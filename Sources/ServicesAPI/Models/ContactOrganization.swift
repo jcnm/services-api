@@ -10,7 +10,7 @@ import Fluent
 import Vapor
 
 /// A relation between organization and user.
-final public class ContactOrganization : AdoptedPivot {
+public final class ContactOrganization : AdoptedPivot {
   /// See `Model`.
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }

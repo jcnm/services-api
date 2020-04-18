@@ -116,11 +116,11 @@ public enum PersonGender: Int, Codable, RawRepresentable, CaseIterable {
 
 }
 
-typealias PhoneNumber = String
+public typealias PhoneNumber = String
 //public struct phoneNumber: Content {
 //  var number: String
 //}
-typealias EmailAddress = String
+public typealias EmailAddress = String
 //public struct emailAddress: Content {
 //  var email:String
 //}
@@ -173,7 +173,7 @@ public final class Contact: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
   
-  init(givenName: String?, familyName: String?, nickname: String? = nil, ckind: ContactKind = .defaultValue, middleName: String? = nil, namePrefix: String? = nil, nameSuffix: String? = nil,  previousFamilyName: String? = nil, imageData: Data? = nil, thumbnailImageData: Data? = nil, imageDataAvailable: Bool = false, note: String? = nil, phoneNumbers: [NamedURI]? = nil, emailAddresses: [NamedEmail]? = nil, urlAddresses: [NamedURI]? = nil, socialProfiles: [NamedURI]? = nil, instantMessageAddresses: [NamedEmail]? = nil, places: [Place]? = nil, departmentName: String? = nil, jobTitle: String? = nil, birthday: Date? = nil,
+  public init(givenName: String?, familyName: String?, nickname: String? = nil, ckind: ContactKind = .defaultValue, middleName: String? = nil, namePrefix: String? = nil, nameSuffix: String? = nil,  previousFamilyName: String? = nil, imageData: Data? = nil, thumbnailImageData: Data? = nil, imageDataAvailable: Bool = false, note: String? = nil, phoneNumbers: [NamedURI]? = nil, emailAddresses: [NamedEmail]? = nil, urlAddresses: [NamedURI]? = nil, socialProfiles: [NamedURI]? = nil, instantMessageAddresses: [NamedEmail]? = nil, places: [Place]? = nil, departmentName: String? = nil, jobTitle: String? = nil, birthday: Date? = nil,
        dates: [LabeledValue<String>]? = nil,
        createdAt: Date? = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id             = id
@@ -213,7 +213,7 @@ extension Contact: Parameter { }
 extension Contact: Content {}
 
 
-extension Contact {
+public extension Contact {
   // this Contact's related organization link
   var organizations: Siblings<Contact, Organization, ContactOrganization> {
     return siblings()

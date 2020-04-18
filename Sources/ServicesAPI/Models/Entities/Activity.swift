@@ -54,7 +54,7 @@ public enum DayOfWeek: Int, Codable, CaseIterable, ReflectionDecodable {
     return defaultValue.rawValue
   }
   
-  var textual: String {
+  public var textual: String {
     switch self {
       case .monday :
       return "Lundi"
@@ -94,7 +94,7 @@ public enum DayOfWeek: Int, Codable, CaseIterable, ReflectionDecodable {
 }
 
 
-extension Int {
+public extension Int {
   var dow: DayOfWeek {
     return DayOfWeek(rawValue: self) ?? DayOfWeek.defaultValue
   }
@@ -102,11 +102,11 @@ extension Int {
 }
 
 // An service Planning
-final public class Activity: AdoptedModel {
+public final class Activity: AdoptedModel {
   public static let name = "activity"
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /// Planning's unique identifier.
   public var id: ObjectID?

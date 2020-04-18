@@ -133,7 +133,7 @@ extension Int {
 }
 
 /// A relation between organization and user.
-final public class UserOrganization : AdoptedPivot {
+public final class UserOrganization : AdoptedPivot {
   /// See `Model`.
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }

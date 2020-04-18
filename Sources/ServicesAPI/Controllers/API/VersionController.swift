@@ -12,10 +12,10 @@ import Fluent
 import Authentication
 
 /// - MARK - CREATE AND GET VERSION(S)
-final class VersionController {
+public final class VersionController {
   
   /// Creates a version.
-  func create(_ req: Request) throws -> Future<Version> {
+  public func create(_ req: Request) throws -> Future<Version> {
     // decode request content
     return try req.content.decode(Version.self).flatMap
       { vers -> Future<Version> in
@@ -36,7 +36,7 @@ final class VersionController {
   }
   
   /// get a version.
-  func show(_ req: Request) throws -> Future<Version> {
+  public func show(_ req: Request) throws -> Future<Version> {
     // decode request content
     return try req.parameters.next(Version.self).flatMap
       { vers -> Future<Version> in
@@ -45,7 +45,7 @@ final class VersionController {
   }
   
   /// get a version.
-  func list(_ req: Request) throws -> Future<[Version]> {
+  public func list(_ req: Request) throws -> Future<[Version]> {
     // decode request content
     return Version.query(on: req).all()
   }
@@ -55,7 +55,7 @@ final class VersionController {
 
 /// - MARK - VERSIONS ROUTES
 extension VersionController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
     /*************************** PUBLIC SECTION *************************
      ***
      *******************************************************************/
@@ -69,24 +69,6 @@ extension VersionController: RouteCollection {
     //    let bearer = router.grouped(User.tokenAuthMiddleware())
     //    bearer.post(kVersionsBasePath, use: create)
     
-  }
-}
-
-
-struct SeedVersion: Migration {
-  typealias Database = AdoptedDatabase
-  
-  static func prepare(on connection: AdoptedConnection) -> Future<Void> {
-    let vers = Version(module: "Services API V1", major: 0, minor: 1, patch: 0, build: 2, release: "Alpha-Alpla")
-    let vers1 = Version(module: "Services API V1", major: 0, minor: 1, patch: 0, build: 4, release: "Alpha-Alpla")
-    let vers2 = Version(module: "Services API V1", major: 0, minor: 1, patch: 0, build: 1, release: "Alpha")
-    
-    _ = vers.save(on: connection).transform(to: ())
-    _ = vers1.save(on: connection).transform(to: ())
-    return vers2.save(on: connection).transform(to: ())
-  }
-  static func revert(on connection: AdoptedConnection) -> Future<Void> {
-    return .done(on: connection)
   }
 }
 

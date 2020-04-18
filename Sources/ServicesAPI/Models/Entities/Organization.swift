@@ -196,7 +196,7 @@ public enum OrganizationGender: Int, RawRepresentable, Codable, CaseIterable {
 }
 
 
-extension Int {
+public extension Int {
   var osize : OrganizationSize {
     return OrganizationSize(rawValue: self) ?? OrganizationSize.defaultValue
   }
@@ -212,10 +212,10 @@ extension Int {
 }
 
 // An industry activity
-final public class Organization: AdoptedModel {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+public final class Organization: AdoptedModel {
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "organization"
   /// Organization's unique identifier.
   public var id: ObjectID?

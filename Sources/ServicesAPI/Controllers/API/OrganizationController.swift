@@ -13,7 +13,7 @@ import CoreFoundation
 import Paginator
 
 /// - MARK - CREATE Sector
-final class OrganizationController {
+public final class OrganizationController {
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
     let _ = try UserController.logged(req)
     
@@ -98,7 +98,7 @@ extension OrganizationController {
     }
   }
   
-  func addMember(_ req: Request) throws -> Future<Organization.UserRoleMemberPublicResponse>  {
+  public func addMember(_ req: Request) throws -> Future<Organization.UserRoleMemberPublicResponse>  {
     let usr = try req.requireAuthenticated(User.self)
     let logger = try  req.make(Logger.self)
     let org = try req.parameters.next(Organization.self)

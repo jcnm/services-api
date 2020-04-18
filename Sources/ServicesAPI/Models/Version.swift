@@ -11,7 +11,7 @@ import Vapor
 import Crypto
 
 /// A model to represent api backend version to every one.
-final public class Version: AdoptedModel {
+public final class Version: AdoptedModel {
   public static let name = "version"
  
   /// UserToken's unique identifier.

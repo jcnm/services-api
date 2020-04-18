@@ -73,9 +73,9 @@ extension Int {
 }
 /// A registered user, capable of owning todo items.
 public final class User:  AdoptedModel {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "user"
   
   /// Can be `nil` if the object has not been saved yet.
@@ -194,7 +194,7 @@ extension User: Migration { /// See `Migration`.
   
 }
 
-extension User {
+ public extension User {
   // this user's related organization link
   var organizations: Siblings<User, Organization, UserOrganization> {
     return siblings()

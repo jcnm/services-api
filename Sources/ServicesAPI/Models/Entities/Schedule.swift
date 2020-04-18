@@ -14,11 +14,11 @@ import Crypto
 let kScheduleReferenceBasePrefix  = "CAL"
 let kScheduleReferenceLength = 3
 // An service Schedule to attache plannings on
-final public class Schedule: AdoptedModel {
+public final class Schedule: AdoptedModel {
   public static let name = "schedule"
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   /// Schedule's unique identifier.
   public var id: ObjectID?
   /// Schedule's unique réference.
@@ -102,7 +102,7 @@ extension Schedule: Migration {
 }
 
 
-extension Schedule {
+public extension Schedule {
   // this Schedule's related service parent
   var service: Parent<Schedule, Service> {
     return parent(\.serviceID)

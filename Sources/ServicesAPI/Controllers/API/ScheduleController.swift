@@ -12,7 +12,7 @@ import Authentication
 import Paginator
 
 /// - MARK - CREATE Service
-final class ScheduleController {
+public final class ScheduleController {
   public func create(_ req: Request) throws -> Future<Schedule.ShortPublicResponse> {
     let user = try UserController.logged(req)
     let logger = try req.make(Logger.self)
@@ -205,7 +205,7 @@ extension ScheduleController {
 
 
 extension ScheduleController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
       
     /*************************** LOGGED USER SECTION *******************
      ***

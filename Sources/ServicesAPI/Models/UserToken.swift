@@ -16,7 +16,7 @@ let tenMinuteInterval = TimeInterval(60 * 10)
 let kExpirationTokenDurationInMinute = oneWeekInterval
 
 /// An ephermal authentication token that identifies a registered user.
-final public class UserToken: AdoptedModel {
+public final class UserToken: AdoptedModel {
   public static let name = "utoken"
 
   /// See `Model`.

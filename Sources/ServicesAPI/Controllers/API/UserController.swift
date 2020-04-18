@@ -17,7 +17,7 @@ let kRootPathForProfilPicture = "public/u/"
 let kFinalPatchProfilPicture = "/pp"
 
 /// - MARK - CREATE AND AUTHENTICATE USERS
-final class UserController {
+public final class UserController {
   
   public static func logged(_ req: Request) throws -> User {
     let logger = try  req.make(Logger.self)
@@ -80,7 +80,7 @@ final class UserController {
   }
   
   /// Creates a new user.
-  func create(_ req: Request) throws -> Future<User.FullPublicResponse> {
+  public func create(_ req: Request) throws -> Future<User.FullPublicResponse> {
     // decode request content
     return try req.content.decode(User.Create.self)
       .flatMap { cuser -> Future<User> in
@@ -135,7 +135,7 @@ final class UserController {
 /// - MARK - USER UPDATE CONTROLLER
 extension UserController {
   /// Update an user using User.Update
-  func updateUser(_ req: Request) throws -> Future<User.ShortPublicResponse> {
+  public func updateUser(_ req: Request) throws -> Future<User.ShortPublicResponse> {
     // decode request parameter (u/:id)
     return try req.parameters.next(User.self).flatMap
       { uToUpdate -> Future<User.ShortPublicResponse> in
@@ -169,7 +169,7 @@ extension UserController {
   }
   
   /// Update an user using User.Update
-  func update(_ req: Request) throws -> Future<User.ShortPublicResponse> {
+  public func update(_ req: Request) throws -> Future<User.ShortPublicResponse> {
     // decode request parameter (u/:id)
     let u = try UserController.logged(req)
     return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> EventLoopFuture<User.ShortPublicResponse> in
@@ -426,7 +426,7 @@ extension UserController {
 
 /// - MARK - USERS ROUTES
 extension UserController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
     /*************************** PUBLIC SECTION *************************
      ***
      *******************************************************************/

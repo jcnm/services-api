@@ -42,11 +42,11 @@ public enum BCardKind: Int, Codable, CaseIterable {
 }
 
 // A services BankCard
-final public class BankCard: AdoptedModel {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+public final class BankCard: AdoptedModel {
   public static let name = "bankcard"
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   /// Bank Card uniq object ID
   public var id: ObjectID?
   /// Unique référence of this object

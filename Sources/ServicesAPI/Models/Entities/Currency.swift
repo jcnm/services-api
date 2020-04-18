@@ -13,9 +13,9 @@ let kCurrencyReferenceBasePrefix  = "CUR"
 let kCurrencyReferenceLength = 3
 
 public final class Currency : AdoptedModel  {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "currency"
   /// Currency  uniq object ID
   public var id: ObjectID?
@@ -47,7 +47,7 @@ public final class Currency : AdoptedModel  {
     self.init(code: "EUR", symbol: "€", usd: "1.09")
   }
   
-  init(code: String, symbol: String, usd: String, createdAt : Date = Date(), updatedAt: Date? = nil,
+  public init(code: String, symbol: String, usd: String, createdAt : Date = Date(), updatedAt: Date? = nil,
   deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kCurrencyReferenceBasePrefix, size: kCurrencyReferenceLength)

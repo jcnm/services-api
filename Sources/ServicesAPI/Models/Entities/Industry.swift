@@ -60,26 +60,6 @@ final public class Industry: Industrial, AdoptedModel {
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
   }
-  
-  func response() -> Industry.ShortPublicResponse {
-    let resp = Industry.ShortPublicResponse(
-      id: self.id, citi: self.citi, scian: self.scian,  nace: self.nace,
-      title: self.title, sectorID: self.sectorID, updatedAt: self.updatedAt)
-    return resp
-  }
-  
-  func fullResponse(_ req: Vapor.Request) throws -> Industry.FullPublicResponse {
-    var parent: Industry.ShortPublicResponse? = nil
-    if let p = self.parent {
-      parent = try p.get(on: req).wait().response()
-    }
-    let fullResp = Industry.FullPublicResponse(
-      id: self.id, parent: parent, citi: self.citi, scian: self.scian,
-      nace: self.nace, title: self.title, description: self.description,
-      sector: try self.sector.get(on: req).wait().response(), createdAt: self.createdAt,
-      updatedAt: self.updatedAt, deletedAt: self.deletedAt)
-    return  fullResp
-  }
 }
 
 /// Allows `Industry` to be used as a Fluent migration.

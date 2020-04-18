@@ -30,7 +30,7 @@ public enum PaymentMethod: Int, Codable {
 }
 
 // A service Payment
-final public class Payment: AdoptedModel {
+public final class Payment: AdoptedModel {
   public static let name = "payment"
   
   static public var createdAtKey: TimestampKey? { return \.createdAt }

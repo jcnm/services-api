@@ -12,7 +12,7 @@ import Authentication
 import Paginator
 
 /// - MARK - CREATE Service
-final class ActivityController {
+public final class ActivityController {
   
   public func create(_ req: Request) throws -> Future<Activity.ShortPublicResponse> {
     let user = try UserController.logged(req)
@@ -175,7 +175,7 @@ extension ActivityController {
 
 
 extension ActivityController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
     
     /*************************** LOGGED USER SECTION *******************
      ***

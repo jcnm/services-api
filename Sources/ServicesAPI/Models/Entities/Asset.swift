@@ -14,11 +14,11 @@ let kAssetReferenceLength = kReferenceDefaultLength
 //
 
 // An service Asset
-final public class Asset: AdoptedModel {
-  public static let name = "asset"
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+public final class Asset: AdoptedModel {
+  public let name = "asset"
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /// Asset's unique identifier.
   public var id: ObjectID?

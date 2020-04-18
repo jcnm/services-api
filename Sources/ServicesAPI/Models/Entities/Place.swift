@@ -98,7 +98,7 @@ public final class Place: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
   
-  init(label: String?, number: String, kind: PlaceKind, street: String, city: String, state: String?, postalCode: String, country: String, position: [Double] = [], subLocality: String? = nil, subAdministrativeArea: String? = nil, createdAt: Date? = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
+  public init(label: String?, number: String, kind: PlaceKind, street: String, city: String, state: String?, postalCode: String, country: String, position: [Double] = [], subLocality: String? = nil, subAdministrativeArea: String? = nil, createdAt: Date? = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.label    = label
     self.id       = id
     self.ref      = Utils.newRef(kPlaceReferenceBasePrefix, size: kPlaceReferenceLength)

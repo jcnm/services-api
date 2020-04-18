@@ -14,7 +14,7 @@ import Paginator
 //import SwifQLVapor
 
 /// - MARK - CREATE Service
-final class ServiceController {
+public final class ServiceController {
   
   public func create(_ req: Request) throws -> Future<Service.ShortPublicResponse> {
     let user = try UserController.logged(req)
@@ -632,7 +632,7 @@ extension ServiceController {
 
 /// - MARK - WEBSITE USER DASHBOARD ROUTES
 extension ServiceController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
     /*************************** PUBLIC SECTION *************************
      ***
      *******************************************************************/

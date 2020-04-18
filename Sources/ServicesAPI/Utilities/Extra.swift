@@ -15,7 +15,7 @@ public typealias  ObjectID        = Int
 public typealias  AbsolutePath    = String
 public typealias  Time            = String
 
-extension Time {
+public extension Time {
   var hours: Int? {
     if self.isEmpty || !self.contains(":") { return nil }
     return Int(String(self.split(separator: ":").first!))
@@ -151,8 +151,7 @@ extension ObjectStatus: Equatable {
   
 }
 
-extension Int {
-  
+public extension Int {
   var status: ObjectStatus {
     return ObjectStatus(rawValue: self) ?? ObjectStatus.defaultValue
   }
@@ -285,7 +284,7 @@ public struct Device: Codable, ReflectionDecodable {
   }
 }
 
-extension Int {
+public extension Int {
   var place: PlaceKind {
     return PlaceKind(rawValue: self) ?? PlaceKind.defaultValue
   }

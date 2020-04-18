@@ -10,10 +10,10 @@ import Vapor
 import Fluent
 
 /// Allows `Contact` to be encoded to and decoded from HTTP messages.
-extension Contact {
+public extension Contact {
   /// Public full representation of an contact data.
   struct CreateContact: Content {
-    static let defaultContentType: MediaType = .multipart
+    public static let defaultContentType: MediaType = .multipart
     // Contact uniq identifier
     public var userID: User.ID
     public var profileID: Contact.ID?
@@ -73,7 +73,7 @@ extension Contact {
   }
   
   /// Public full representation of an contact data.
-  public struct FullPersonPublicResponse: Content {
+  struct FullPersonPublicResponse: Content {
     // Contact uniq identifier
     public var id: ObjectID?
     public var note: String?
@@ -114,7 +114,7 @@ extension Contact {
   }
   
   /// Public full representation of an contact data.
-  public struct ShortPersonPublicResponse: Content {
+  struct ShortPersonPublicResponse: Content {
     // Contact uniq identifier
     public var id: ObjectID?
     public var imageData: Data?

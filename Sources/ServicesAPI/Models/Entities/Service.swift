@@ -135,7 +135,7 @@ public enum ServiceTarget: Int, Codable, CaseIterable {
   }
 }
 
-extension Int {
+public extension Int {
   var billing: BillingPlan {
     return BillingPlan(rawValue: self) ?? BillingPlan.defaultValue
   }
@@ -145,10 +145,10 @@ extension Int {
 }
 
 // An industry Service
-final public class Service: Servable, AdoptedModel {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+public final class Service: Servable, AdoptedModel {
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "service"
   /// Service's unique identifier.
   public var id: ObjectID?
@@ -349,28 +349,7 @@ public extension Service {
   var scores: Children<Service, Score> {
     return children(\Score.serviceID)
   }
-
-  /// TODO: Complet in next Version to retrieve parent tree
-  func parentList(req: Request) {
-    var qry =
-    """
-    WITH RECURSIVE serv
-    AS (SELECT sv.*, (sv."id"::text) as chainkey, 0 as indent
-    FROM service as sv
-    WHERE sv.id = \(self.id!)
-    UNION ALL
-    SELECT  ss.*,
-    (CAST(s.chainkey AS text) || CAST(ss.id AS text) ) as chainkey, s.indent + 1 as indent
-    FROM service as ss
-    INNER JOIN serv as s ON ss."id" = s."parentID"
-    )
-    SELECT *
-    FROM serv
-    WHERE indent != 0
-    ORDER BY chainkey ASC
-  """
-    
-  }
+ 
 }
 
 /// Allows `Service` to be used as a dynamic parameter in route definitions.

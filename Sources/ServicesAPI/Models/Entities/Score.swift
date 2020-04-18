@@ -14,11 +14,11 @@ let kScoreReferenceLength = kReferenceDefaultLength
 //
 
 // An service Score
-final public class Score: AdoptedModel {
+public final class Score: AdoptedModel {
   public static let name = "score"
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /// Score's unique identifier.
   public var id: ObjectID?

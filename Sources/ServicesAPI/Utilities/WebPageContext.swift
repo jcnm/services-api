@@ -10,45 +10,45 @@ import Vapor
 import Fluent
 import Paginator
 
-let kDefaultPaginatorLimit      = 2
-let kDefaultPaginatorOffset     = 0
-let kDefaultPaginatorPage       = 1
-let kDefaultPaginatorDirection  = "desc"
-let kDefaultQueryString         = ""
+public let kDefaultPaginatorLimit      = 2
+public let kDefaultPaginatorOffset     = 0
+public let kDefaultPaginatorPage       = 1
+public let kDefaultPaginatorDirection  = "desc"
+public let kDefaultQueryString         = ""
 
-let kPaginatorLimitQuery        = "limit"
-let kPaginatorOffsetQuery       = "offset"
-let kPaginatorPageQuery         = "p"
-let kPaginatorDirectionQuery    = "order"
+public let kPaginatorLimitQuery        = "limit"
+public let kPaginatorOffsetQuery       = "offset"
+public let kPaginatorPageQuery         = "p"
+public let kPaginatorDirectionQuery    = "order"
 
 
-let kDefaultNavigationLimit     = 2
-let kDefaultNavigationOffset    = 0
-let kDefaultNavigationPage      = 1
-let kDefaultNavigationDirection = "null"
+public let kDefaultNavigationLimit     = 2
+public let kDefaultNavigationOffset    = 0
+public let kDefaultNavigationPage      = 1
+public let kDefaultNavigationDirection = "null"
 
-let kNavigationOrgQuery         = "org"
-let kNavigationScheduleQuery    = "schedule"
-let kNavigationUserQuery        = "usr"
-let kNavigationServiceQuery     = "service"
-let kNavigationLimitQuery       = "limit"
-let kNavigationOffsetQuery      = "offset"
-let kNavigationPageQuery        = "p"
-let kNavigationDirectionQuery   = "o"
-let kNavigationSectorQuery      = "sec"
-let kNavigationIndustryQuery    = "i"
-let kNavigationRoleQuery        = "role"
-let kNavigationSizeQuery        = "size"
-let kNavigationKindQuery        = "kind"
-let kNavigationStateQuery       = "s"
-let kNavigationMoneyQuery       = "devise"
-let kNavigationJuridicQuery     = "t"
-let kNavigationCreatedQuery     = "c"
-let kNavigationUpdatedQuery     = "u"
-let kNavigationDeletedQuery     = "d"
-let kNavigationActivityStartQuery   = "sstart"
-let kNavigationActivityEndQuery     = "send"
-let kNavigationQuery                = "q"
+public let kNavigationOrgQuery         = "org"
+public let kNavigationScheduleQuery    = "schedule"
+public let kNavigationUserQuery        = "usr"
+public let kNavigationServiceQuery     = "service"
+public let kNavigationLimitQuery       = "limit"
+public let kNavigationOffsetQuery      = "offset"
+public let kNavigationPageQuery        = "p"
+public let kNavigationDirectionQuery   = "o"
+public let kNavigationSectorQuery      = "sec"
+public let kNavigationIndustryQuery    = "i"
+public let kNavigationRoleQuery        = "role"
+public let kNavigationSizeQuery        = "size"
+public let kNavigationKindQuery        = "kind"
+public let kNavigationStateQuery       = "s"
+public let kNavigationMoneyQuery       = "devise"
+public let kNavigationJuridicQuery     = "t"
+public let kNavigationCreatedQuery     = "c"
+public let kNavigationUpdatedQuery     = "u"
+public let kNavigationDeletedQuery     = "d"
+public let kNavigationActivityStartQuery   = "sstart"
+public let kNavigationActivityEndQuery     = "send"
+public let kNavigationQuery                = "q"
 
 public struct UrlWebsite : Content {
   var base        = Config.Static.baseUrl
@@ -103,7 +103,7 @@ public struct PageMeta : Content {
   var namedData:  [String:[NamedEmail]] = [:]
   var params:     [String:String]       = [:]
   
-  mutating public func config(from req: Request) {
+  public mutating func config(from req: Request) {
     do {
       let logger    = try req.make(Logger.self)
       
@@ -295,7 +295,7 @@ public struct FilterNavigation<Obj: Content>: Content {
   
   init(){}
   
-  init(limit: Int, offset: Int, order: String, page: Int) {
+  public init(limit: Int, offset: Int, order: String, page: Int) {
     self.direction = order
     self.limit    = limit
     self.offset   = offset

@@ -12,7 +12,7 @@ import Authentication
 import Paginator
 
 /// - MARK - CREATE Service
-final class OrderController {
+public final class OrderController {
   
   public func create(_ req: Request) throws -> Future<Schedule.ShortPublicResponse> {
     let user = try UserController.logged(req)
@@ -189,7 +189,7 @@ extension OrderController {
 
 
 extension OrderController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
     
     /*************************** LOGGED USER SECTION *******************
      ***

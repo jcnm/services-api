@@ -13,7 +13,7 @@ let kContractReferenceBasePrefix  = "CTR"
 let kContractReferenceLength      = kReferenceDefaultLength
 
 // A services contract
-final public class Contract: AdoptedModel {
+public final class Contract: AdoptedModel {
   public static let name = "contract"
 
   /// Contract's unique identifier.

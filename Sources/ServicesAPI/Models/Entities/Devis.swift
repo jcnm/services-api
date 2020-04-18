@@ -13,7 +13,7 @@ let kDevisReferenceBasePrefix  = "`DEV`"
 let kDevisReferenceLength      = kReferenceDefaultLength
 
 // A services `Devis`
-final public class Devis: AdoptedModel {
+public final class Devis: AdoptedModel {
   public static let name = "devis"
 
   /// Devis's unique identifier.

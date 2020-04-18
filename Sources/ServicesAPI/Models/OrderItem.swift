@@ -13,15 +13,15 @@ let kOrderItemReferenceBasePrefix   = "OI"
 let kOrderItemReferenceLength       = kReferenceDefaultLength
 
 // A service OrderItem
-final public class OrderItem: AdoptedPivot {
+public final class OrderItem: AdoptedPivot {
   public typealias Left = Schedule
   public typealias Right = Order
   public static var leftIDKey: LeftIDKey = \.scheduleID
   public static var rightIDKey: RightIDKey = \.orderID
   
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "orderitem"
   /// OrderItem's unique identifier.
   public var id: ObjectID?

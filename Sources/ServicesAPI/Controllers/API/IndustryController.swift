@@ -13,7 +13,7 @@ import CoreFoundation
 import Paginator
 
 /// - MARK - CREATE Industry
-final class IndustryController {
+public final class IndustryController {
   
   public static func checkAttributs(_ indus: Industrial) throws -> Bool {
     

@@ -13,7 +13,7 @@ import Fluent
 extension Place: Content {}
 
 /// Allows `Place` to be encoded to and decoded from HTTP messages.
-extension Place {
+public extension Place {
   /// Public full representation of an industry data.
   struct FullPublicResponse: Content {
     /// Industry's unique identifier.

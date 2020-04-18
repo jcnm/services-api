@@ -30,7 +30,7 @@ public enum SectorKind: Int, Codable, ReflectionDecodable {
   }
 }
 
-extension Int {
+public extension Int {
   var skind: SectorKind {
     return SectorKind(rawValue: self) ?? SectorKind.defaultValue
   }
@@ -39,9 +39,9 @@ extension Int {
 
 // A sector on indistry activity
 final public class Sector: Industrial, AdoptedModel {
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   public static let name = "sector"
   
   /// Sector's unique identifier.

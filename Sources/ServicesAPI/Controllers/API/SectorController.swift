@@ -11,7 +11,7 @@ import Fluent
 import Authentication
 
 /// - MARK - CREATE Sector
-final class SectorController {
+public final class SectorController {
   
   public func create(_ req: Request) throws -> Future<Sector> {
     let _ = try UserController.logged(req)
@@ -112,7 +112,7 @@ extension SectorController {
 }
 
 extension SectorController: RouteCollection {
-  func boot(router: Router) throws {
+  public func boot(router: Router) throws {
       
     /*************************** LOGGED USER SECTION *******************
      ***

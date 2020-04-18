@@ -19,9 +19,9 @@ public final class ServiceAsset: AdoptedPivot {
   public typealias Right = Asset
   public static var leftIDKey: LeftIDKey = \.serviceID
   public static var rightIDKey: RightIDKey = \.assetID
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /// ServiceAsset's unique identifier.
   public var id: ObjectID?

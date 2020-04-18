@@ -11,11 +11,11 @@ import FluentPostgreSQL
 
 
 // An service Order
-final public class Order: AdoptedModel {
+public final class Order: AdoptedModel {
   public static let name = "order"
-  static public var createdAtKey: TimestampKey? { return \.createdAt }
-  static public var updatedAtKey: TimestampKey? { return \.updatedAt }
-  static public var deletedAtKey: TimestampKey? { return \.deletedAt }
+  public static var createdAtKey: TimestampKey? { return \.createdAt }
+  public static var updatedAtKey: TimestampKey? { return \.updatedAt }
+  public static var deletedAtKey: TimestampKey? { return \.deletedAt }
   /// Order's unique identifier.
   public var id: ObjectID?
   /// Order's unique réference.
