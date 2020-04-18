@@ -183,11 +183,11 @@ extension Sector: Parameter { }
 
 extension Sector {
   // this Sector's related industries
-  var industries: Children<Sector, Industry> {
+  public var industries: Children<Sector, Industry> {
     return children(\.sectorID)
   }
   // this Sector's related organizations
-  var organizations: Children<Sector, Organization> {
+  public var organizations: Children<Sector, Organization> {
     return children(\.sectorID)
   }
 }

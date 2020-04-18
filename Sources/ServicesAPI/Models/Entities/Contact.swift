@@ -163,9 +163,9 @@ public final class Contact: AdoptedModel {
   public var departmentName: String?
   public var jobTitle: String? // jobFunction
   /** The Gregorian birthday. */
-  var birthday: Date?
+  public var birthday: Date?
   /** Other Gregorian dates (anniversaries, etc). */
-  var dates: [LabeledValue<String>]?
+  public var dates: [LabeledValue<String>]?
   /// Create date.
   public var createdAt: Date?
   /// Update date.
@@ -215,7 +215,7 @@ extension Contact: Content {}
 
 public extension Contact {
   // this Contact's related organization link
-  var organizations: Siblings<Contact, Organization, ContactOrganization> {
+  public var organizations: Siblings<Contact, Organization, ContactOrganization> {
     return siblings()
   }
 }

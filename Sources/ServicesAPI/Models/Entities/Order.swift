@@ -86,17 +86,17 @@ extension Order: Migration {
 
 public extension Order {
   /// Fluent relation to the client user who is ordering this command .
-  var client: Parent<Order, User> {
+  public var client: Parent<Order, User> {
     return parent(\.clientID)
   }
   
   /// this order's related schedules link
-  var schedules: Siblings<Order, Schedule, OrderItem> {
+  public var schedules: Siblings<Order, Schedule, OrderItem> {
     return siblings()
   }
   
   /// this order's related schedules link
-  var items: Children<Order, OrderItem> {
+  public var items: Children<Order, OrderItem> {
     return children(\OrderItem.orderID)
   }
 }

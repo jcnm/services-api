@@ -36,6 +36,8 @@ public final class ContactOrganization : AdoptedPivot {
   /// Deleted date.
   public var deletedAt: Date?
   
+  public init() { }
+
 }
 
 

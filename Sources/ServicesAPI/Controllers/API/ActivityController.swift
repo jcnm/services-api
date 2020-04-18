@@ -14,6 +14,7 @@ import Paginator
 /// - MARK - CREATE Service
 public final class ActivityController {
   
+  public init() { }
   public func create(_ req: Request) throws -> Future<Activity.ShortPublicResponse> {
     let user = try UserController.logged(req)
     let logger = try req.make(Logger.self)

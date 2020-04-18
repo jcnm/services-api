@@ -196,50 +196,50 @@ extension User: Migration { /// See `Migration`.
 
  public extension User {
   // this user's related organization link
-  var organizations: Siblings<User, Organization, UserOrganization> {
+  public var organizations: Siblings<User, Organization, UserOrganization> {
     return siblings()
   }
   // this user's related order link
-  var orders: Children<User, Order> {
+  public var orders: Children<User, Order> {
     return children(\.clientID)
   }
   // this user's related services link
-  var services: Children<User, Service> {
+  public var services: Children<User, Service> {
     return children(\Service.authorID)
   }
   // this user's related schedules link
-  var schedules: Children<User, Schedule> {
+  public var schedules: Children<User, Schedule> {
     return children(\Schedule.ownerID)
   }
   // this user's related profile link
-  var profile: Parent<User, Contact>? {
+  public var profile: Parent<User, Contact>? {
     return parent(\.profileID)
   }
 }
 
 
 /// Administrative operation
-extension User {
-  func isStaffUser() -> Bool {
+public extension User {
+  public func isStaffUser() -> Bool {
     return !self.staff.staff.isNotStaff
   }
   
-  func isStaffAnalyst() -> Bool {
+  public func isStaffAnalyst() -> Bool {
     return self.staff.staff.isAnalyst
   }
-  func isStaffModerator() -> Bool {
+  public func isStaffModerator() -> Bool {
     return self.staff.staff.isModerator
   }
-  func isStaffManager() -> Bool {
+  public func isStaffManager() -> Bool {
     return self.staff.staff.isManager
   }
-  func isStaffAdministrator() -> Bool {
+  public func isStaffAdministrator() -> Bool {
     return self.staff.staff.isAdministrator
   }
-  func isStaffFinancial() -> Bool {
+  public func isStaffFinancial() -> Bool {
     return self.staff.staff.isFinancial
   }
-  func isBigBrother() -> Bool {
+  public func isBigBrother() -> Bool {
     return self.staff.staff.isBigBrother
   }
 }

@@ -14,6 +14,9 @@ import Paginator
 
 /// - MARK - CREATE Sector
 public final class OrganizationController {
+  
+  public init() { }
+
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
     let _ = try UserController.logged(req)
     

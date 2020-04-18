@@ -15,6 +15,8 @@ import Paginator
 /// - MARK - CREATE Industry
 public final class IndustryController {
   
+  public init() { }
+
   public static func checkAttributs(_ indus: Industrial) throws -> Bool {
     
     if let citi = indus.citi {

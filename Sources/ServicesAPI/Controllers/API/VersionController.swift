@@ -14,6 +14,8 @@ import Authentication
 /// - MARK - CREATE AND GET VERSION(S)
 public final class VersionController {
   
+  public init() { }
+
   /// Creates a version.
   public func create(_ req: Request) throws -> Future<Version> {
     // decode request content

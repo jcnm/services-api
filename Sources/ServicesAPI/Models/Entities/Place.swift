@@ -68,28 +68,28 @@ public final class Place: AdoptedModel {
   /// Place's unique réference.
   public var ref: String?
   /// Label or title of tha place
-  var label: String?
+  public var label: String?
   /// Street kind (house, avenue, etc)
-  var kind: PlaceKind.RawValue
-  var number: String
+  public var kind: PlaceKind.RawValue
+  public var number: String
   /** multi-street address is delimited with carriage returns “\n” */
-  var street: String
+  public var street: String
   /// City of the place
-  var city: String
+  public var city: String
   /// State of this place
-  var state: String?
+  public var state: String?
   /// Postal ou zip code of this place
-  var postalCode: String
+  public var postalCode: String
   /// Country's place
-  var country: String
+  public var country: String
   /// Country ISO
-  var isoCountryCode: String?
+  public var isoCountryCode: String?
   /// Sub Locality of this place
-  var subLocality: String?
+  public var subLocality: String?
   /// For administrative area : sub administrative area
-  var subAdministrativeArea: String?
+  public var subAdministrativeArea: String?
   /// Position lon lat double
-  var position: [Double]?
+  public var position: [Double]?
   
   /// Create date.
   public var createdAt: Date?

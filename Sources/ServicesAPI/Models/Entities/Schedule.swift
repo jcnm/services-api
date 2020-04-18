@@ -104,21 +104,21 @@ extension Schedule: Migration {
 
 public extension Schedule {
   // this Schedule's related service parent
-  var service: Parent<Schedule, Service> {
+  public var service: Parent<Schedule, Service> {
     return parent(\.serviceID)
   }
   
   // this Schedule's related service parent
-  var owner: Parent<Schedule, User> {
+  public var owner: Parent<Schedule, User> {
     return parent(\.ownerID)
   }
   
   /// Fluent relation to schedules items of this command .
-  var activities: Children<Schedule, Activity> {
+  public var activities: Children<Schedule, Activity> {
     return children(\.scheduleID)
   }
   /// this schedule's related order link (return all the order made for this schedul)
-  var orders: Siblings<Schedule, Order, OrderItem> {
+  public var orders: Siblings<Schedule, Order, OrderItem> {
     return siblings()
   }
   

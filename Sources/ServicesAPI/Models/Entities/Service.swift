@@ -316,37 +316,37 @@ extension Service: Migration {
 
 public extension Service {
   /// Fluent relation to the industry that is relative to the service.
-  var industry: Parent<Service, Industry> {
+  public var industry: Parent<Service, Industry> {
     return parent(\.industryID)
   }
   /// Fluent relation to the organization that is relative to the service.
-  var organization: Parent<Service, Organization> {
+  public var organization: Parent<Service, Organization> {
     return parent(\.organizationID)
   }
   /// Parent relation between two services.
-  var parent: Parent<Service, Service>? {
+  public var parent: Parent<Service, Service>? {
     return parent(\.parentID)
   }
   /// Cheldren of this services.
-  var services: Children<Service, Service> {
+  public var services: Children<Service, Service> {
     return children(\.parentID)
   }
   /// Schedules of this services.
-  var schedules: Children<Service, Schedule> {
+  public var schedules: Children<Service, Schedule> {
     return children(\.serviceID)
   }
   
   /// User relation between this service.
-  var author: Parent<Service, User> {
+  public var author: Parent<Service, User> {
     return parent(\.authorID)
   }
   
-  var assets: Siblings<Service, Asset, ServiceAsset> {
+  public var assets: Siblings<Service, Asset, ServiceAsset> {
     // Controle to add
     return siblings()
   }
   
-  var scores: Children<Service, Score> {
+  public var scores: Children<Service, Score> {
     return children(\Score.serviceID)
   }
  

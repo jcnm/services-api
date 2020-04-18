@@ -13,6 +13,8 @@ import Authentication
 /// - MARK - CREATE Sector
 public final class SectorController {
   
+  public init() { }
+
   public func create(_ req: Request) throws -> Future<Sector> {
     let _ = try UserController.logged(req)
     

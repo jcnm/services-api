@@ -19,6 +19,8 @@ let kFinalPatchProfilPicture = "/pp"
 /// - MARK - CREATE AND AUTHENTICATE USERS
 public final class UserController {
   
+  public init() { }
+
   public static func logged(_ req: Request) throws -> User {
     let logger = try  req.make(Logger.self)
     logger.info("@@@\n@@@\n@@@\n@@@\n@@@\n@@@ Query came (\(req.http.headers.firstValue(name: HTTPHeaderName.referer)) (req.http.channel!.remoteAddress :  \(req.http.channel!.remoteAddress))\n@@@@\n@@@@\n@@@\n@@@")

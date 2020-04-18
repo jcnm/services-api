@@ -13,6 +13,9 @@ import Paginator
 
 /// - MARK - CREATE Service
 public final class ScheduleController {
+  
+  public init() { }
+
   public func create(_ req: Request) throws -> Future<Schedule.ShortPublicResponse> {
     let user = try UserController.logged(req)
     let logger = try req.make(Logger.self)
