@@ -207,7 +207,6 @@ extension OrderController: RouteCollection {
      */
     let orderGroup      = bearer.grouped(kOrdersBasePath)
     orderGroup.get(use: list)
-    orderGroup.get(use: list)
     orderGroup.post(use: create)
     orderGroup.get(Order.parameter, use: show)
     orderGroup.patch(Order.parameter, use: update)

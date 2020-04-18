@@ -84,6 +84,9 @@ extension Order: Migration {
   }
 }
 
+/// Allows `Order` to be used as a dynamic parameter in route definitions.
+extension Order: Parameter { }
+
 public extension Order {
   /// Fluent relation to the client user who is ordering this command .
   public var client: Parent<Order, User> {
@@ -100,6 +103,3 @@ public extension Order {
     return children(\OrderItem.orderID)
   }
 }
-
-/// Allows `Order` to be used as a dynamic parameter in route definitions.
-extension Order: Parameter { }
