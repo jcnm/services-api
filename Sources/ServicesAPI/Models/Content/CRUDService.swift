@@ -40,7 +40,7 @@ public extension Service {
     return serv.midResponse(ind: ind, user: user, org: org)
   }
   
-
+  
   func shortResponse() -> ShortPublicResponse {
     let price = nil == self.price ? nil : String(format: "%.2f", self.price!)
     return ShortPublicResponse(id: self.id, label: self.label, ref: self.ref!, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, authorID: self.authorID, industryID: self.industryID, organizationID: self.organizationID, updatedAt: self.updatedAt)
@@ -49,7 +49,7 @@ public extension Service {
   static func shortResponse(serv: Service) -> ShortPublicResponse {
     return serv.shortResponse()
   }
-
+  
   struct CreateService: Content  {
     /// Organization's unique identifier.
     public var userID: User.ID
@@ -85,7 +85,7 @@ public extension Service {
     /// activity ended date.
     public var serviceEndedAt: String?
   }
-
+  
   struct UpdateService : Content {
     /// Service's unique identifier.
     public var id: Service.ID?
@@ -153,7 +153,7 @@ public extension Service {
   }
   
   struct ScoreAverage: Content {
-      /// Score count
+    /// Score count
     public var tgeneral: Int?
     /// Organization's intengibility score
     public var tintengibility: Int?
@@ -189,10 +189,10 @@ public extension Service {
     public var adisponibility: Double?
     /// Organization's pricing score
     public var apricing: Double?
-
+    
   }
   
-
+  
   struct ShortPublicResponse : Content {
     /// Service's unique identifier.
     public var id: ObjectID?
@@ -227,7 +227,7 @@ public extension Service {
     /// Successes codes and messages
     public var succes: [String: String]?
   }
- 
+  
   struct MidPublicResponse : Content {
     /// Service's unique identifier.
     public var id: Service.ID?
@@ -299,80 +299,80 @@ public extension Service {
     /// Successes codes and messages
     public var succes: [String: String]?
   }
-
-
-struct FullPublicResponse : Content {
-  /// Service's unique identifier.
-  public var id: Service.ID?
-  /// Service label (full name of service)
-  public var label: String
-  /// Service unique reference
-  public var ref: String
-  /// Service organization reference
-  public var orgServiceRef: String?
-  /// State of the service (validated by the responsable / owner of the organization)
-  public var state: ObjectStatus.RawValue
-  /// Billing plan by default direct : one shot
-  public var billing: BillingPlan.RawValue
-  public var target: ServiceTarget.RawValue
-  public var scoreAverage: ScoreAverage?
-  /// description of the industry
-  public var description: String
-  /// Short label service
-  public var shortLabel: String
-  /// Service Price
-  public var price: String?
-  /// Organization's intengibility score
-  public var intengibility: Int?
-  /// Organization's intengibility score
-  public var inseparability: Int?
-  /// Organization's variability score
-  public var variability: Int?
-  /// Organization's perishability score
-  public var perishability: Int?
-  /// Organization's ownership score
-  public var ownership: Int?
-  /// Organization's reliability score
-  public var reliability: Int?
-  /// Organization's disponibility score
-  public var disponibility: Int?
-  /// Organization's pricing score
-  public var pricing: Int?
-  /// Unbillable Services.
-  public var unbelliable: Bool // bool
-  /// negociable.
-  public var negociable: Bool // bool
-  /// location.
-  public var location: Place?
-  /// activity perimeter in kilometer.
-  public var geoPerimeter: Int
-  /// activity begin date.
-  public var openOn: Date
-  /// activity end date.
-  public var endOn: Date?
-  /// Service Parent Service
-  public var parent: Service.ShortPublicResponse?
-  /// Service definition's author
-  public var author: User.ShortPublicResponse
-  /// Attached Industry.
-  public var industry: Industry.ShortPublicResponse
-  /// Attached organization.
-  public var organization: Organization.ShortPublicResponse
-  public var children: [Service.ShortPublicResponse]?
-  public var schedules: [Schedule.MidPublicResponse]?
-  public var assets: [Asset.ShortPublicResponse]?
-  public var scores: OffsetPaginator<Score.MidPublicResponse>?
-  /// Create date.
-  public var createdAt: Date?
-  /// Update date.
-  public var updatedAt: Date?
-  /// Deleted date.
-  public var deletedAt: Date?
-  /// Errors  codes and messages
-  public var errors: [String: String]?
-  /// Successes codes and messages
-  public var succes: [String: String]?
-}
+  
+  
+  struct FullPublicResponse : Content {
+    /// Service's unique identifier.
+    public var id: Service.ID?
+    /// Service label (full name of service)
+    public var label: String
+    /// Service unique reference
+    public var ref: String
+    /// Service organization reference
+    public var orgServiceRef: String?
+    /// State of the service (validated by the responsable / owner of the organization)
+    public var state: ObjectStatus.RawValue
+    /// Billing plan by default direct : one shot
+    public var billing: BillingPlan.RawValue
+    public var target: ServiceTarget.RawValue
+    public var scoreAverage: ScoreAverage?
+    /// description of the industry
+    public var description: String
+    /// Short label service
+    public var shortLabel: String
+    /// Service Price
+    public var price: String?
+    /// Organization's intengibility score
+    public var intengibility: Int?
+    /// Organization's intengibility score
+    public var inseparability: Int?
+    /// Organization's variability score
+    public var variability: Int?
+    /// Organization's perishability score
+    public var perishability: Int?
+    /// Organization's ownership score
+    public var ownership: Int?
+    /// Organization's reliability score
+    public var reliability: Int?
+    /// Organization's disponibility score
+    public var disponibility: Int?
+    /// Organization's pricing score
+    public var pricing: Int?
+    /// Unbillable Services.
+    public var unbelliable: Bool // bool
+    /// negociable.
+    public var negociable: Bool // bool
+    /// location.
+    public var location: Place?
+    /// activity perimeter in kilometer.
+    public var geoPerimeter: Int
+    /// activity begin date.
+    public var openOn: Date
+    /// activity end date.
+    public var endOn: Date?
+    /// Service Parent Service
+    public var parent: Service.ShortPublicResponse?
+    /// Service definition's author
+    public var author: User.ShortPublicResponse
+    /// Attached Industry.
+    public var industry: Industry.ShortPublicResponse
+    /// Attached organization.
+    public var organization: Organization.ShortPublicResponse
+    public var children: [Service.ShortPublicResponse]?
+    public var schedules: [Schedule.MidPublicResponse]?
+    public var assets: [Asset.ShortPublicResponse]?
+    public var scores: OffsetPaginator<Score.MidPublicResponse>?
+    /// Create date.
+    public var createdAt: Date?
+    /// Update date.
+    public var updatedAt: Date?
+    /// Deleted date.
+    public var deletedAt: Date?
+    /// Errors  codes and messages
+    public var errors: [String: String]?
+    /// Successes codes and messages
+    public var succes: [String: String]?
+  }
 }
 
 

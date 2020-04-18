@@ -252,7 +252,7 @@ let kSearchQuery = "q"
 /// - MARK - GET USER INFOS
 extension UserController {
   /// List all users.
-  func list(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
+  public func list(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
     let user = try req.requireAuthenticated(User.self)
     var meta = PageMeta()
     meta.config(from: req)
@@ -274,7 +274,7 @@ extension UserController {
     })
   }
   
-  func lookupAssociated(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
+  public func lookupAssociated(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
     let logger = try  req.make(Logger.self)
     logger.info(req.http.debugDescription)
     let user = try UserController.logged(req)
@@ -392,7 +392,7 @@ extension UserController {
   }
   
   /// Show an user.
-  func show(_ req: Request) throws -> Future<User.FullPublicResponse> {
+  public func show(_ req: Request) throws -> Future<User.FullPublicResponse> {
     // fetch auth'd user
     let _ = try req.requireAuthenticated(User.self)
     
@@ -418,7 +418,7 @@ extension UserController {
   }
   
   /// Show the authentificated user.
-  func account(_ req: Request) throws -> Future<User.FullPublicResponse> {
+  public func account(_ req: Request) throws -> Future<User.FullPublicResponse> {
     // fetch auth'd user
     let u = try req.requireAuthenticated(User.self)
     return u.fullResponse(req)

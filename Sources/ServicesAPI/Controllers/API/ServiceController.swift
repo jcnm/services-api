@@ -103,7 +103,7 @@ extension ServiceController {
   /**
    *
    */
-  func serviceFullResponseTree(req: Request, _ serviceID: Service.ID) throws -> Future<[Service.FullPublicResponse]> {
+  public func serviceFullResponseTree(req: Request, _ serviceID: Service.ID) throws -> Future<[Service.FullPublicResponse]> {
     
     let logger = try req.make(Logger.self)
     logger.debug("Getting Service from parameter \(serviceID)")
@@ -232,7 +232,7 @@ extension ServiceController {
   /**
    
    */
-  func serviceFullResponse(req: Request, serv: Service) throws -> Future<Service.FullPublicResponse> {
+  public func serviceFullResponse(req: Request, serv: Service) throws -> Future<Service.FullPublicResponse> {
     
     let logger = try req.make(Logger.self)
     logger.debug("Getting Service from parameter \(serv.id!):\(serv.label)")

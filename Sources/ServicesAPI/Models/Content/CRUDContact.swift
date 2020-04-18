@@ -42,34 +42,34 @@ public extension Contact {
     public var departmentName: String?
     public var jobTitle: String? // jobFunction
     /** The Gregorian birthday. */
-    var birthday: String
+    public var birthday: String
     /// Pour les informations d'adresse
-    var places_id: String?
+    public var places_id: String?
     /// Pour les informations d'adresse
-    var places_label: String?
+    public var places_label: String?
     /// Street kind (house, avenue, etc)
-    var places_kind: String
-    var places_number: String
+    public var places_kind: String
+    public var places_number: String
     /** multi-street address is delimited with carriage returns “\n” */
-    var places_street: String
+    public var places_street: String
     /// City of the place
-    var places_city: String
+    public var places_city: String
     /// State of this place
-    var places_state: String?
+    public var places_state: String?
     /// Postal ou zip code of this place
-    var places_postalCode: String
+    public var places_postalCode: String
     /// Country's place
-    var places_country: String
+    public var places_country: String
     /// Country ISO
-    var places_isoCountryCode: String?
+    public var places_isoCountryCode: String?
     /// Sub Locality of this place
-    var places_subLocality: String?
+    public var places_subLocality: String?
     /// For administrative area : sub administrative area
-    var places_subAdministrativeArea: String?
+    public var places_subAdministrativeArea: String?
     /// Position lon lat double
-    var places_position: [Double]?
+    public var places_position: [Double]?
     /// Create date.
-    var createdAt: Date? 
+    public var createdAt: Date?
   }
   
   /// Public full representation of an contact data.
@@ -104,9 +104,9 @@ public extension Contact {
     public var departmentName: String?
     public var jobTitle: String? // jobFunction
     /** The Gregorian birthday. */
-    var birthday: Date?
+    public var birthday: Date?
     /** Other Gregorian dates (anniversaries, etc). */
-    var dates: [LabeledValue<String>]?
+    public var dates: [LabeledValue<String>]?
     /// Create date.
     public var createdAt: Date?
     /// Update date.
@@ -141,9 +141,9 @@ public extension Contact {
     public var departmentName: String?
     public var jobTitle: String? // jobFunction
     /** The Gregorian birthday. */
-    var birthday: Date?
+    public var birthday: Date?
     /** Other Gregorian dates (anniversaries, etc). */
-    var dates: [LabeledValue<String>]?
+    public var dates: [LabeledValue<String>]?
     /// Create date.
     public var createdAt: Date?
     /// Update date.

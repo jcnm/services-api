@@ -75,7 +75,7 @@ public extension Schedule {
     /// Schedule description
     public var description: String
   }
-
+  
   
   struct ShortPublicResponse : Content {
     /// Schedule's unique identifier.
@@ -102,7 +102,7 @@ public extension Schedule {
     /// Successes codes and messages
     public var succes: [String: String]?
   }
-
+  
   
   struct MidPublicResponse : Content {
     /// Schedule's unique identifier.

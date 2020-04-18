@@ -30,7 +30,7 @@ public extension Score {
   
   static func midResponse(score: Score, user: User)
     -> MidPublicResponse { score.midResponse(user: user) }
-
+  
   struct LinkServiceScore: Content  {
     /// author of the asset
     public var authorID: User.ID
@@ -64,7 +64,7 @@ public extension Score {
     // Label
     public var label:           String?
   }
-
+  
   struct FullLinkServiceScoreResponse: Content  {
     /// author of the asset
     public var author:        User.FullPublicResponse
@@ -113,7 +113,7 @@ public extension Score {
     public var pricing:         Int?
     
     public var comment:         String?
-   }
+  }
   
   struct ShortPublicResponse: Content {
     /// Activity's unique identifier.
@@ -140,7 +140,7 @@ public extension Score {
     /// Update date.
     public var updatedAt:         Date?
   }
-
+  
   struct MidPublicResponse: Content {
     /// Activity's unique identifier.
     public var id:                Activity.ID
@@ -173,7 +173,7 @@ public extension Score {
     /// Successes codes and messages
     public var succes:            [String: String]?
   }
-
+  
   struct FullPublicResponse: Content {
     /// Activity's unique identifier.
     public var id:                Activity.ID
