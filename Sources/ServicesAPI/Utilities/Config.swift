@@ -26,7 +26,7 @@ public extension Config {
   // Public transversals
   static let bbMainUserID   = Int(Environment.get("BB_MAIN_USER_IDENT") ?? String(kDefaultBBMainUserIdentifier))!
   static let bbMainOrgID    = Int(Environment.get("BB_MAIN_ORGA_IDENT") ?? String(kDefaultBBMainOrganizationIdentifier))!
-  static let bbUserPWD      = Environment.get("BB_USER_PASSWORD") ?? kDefaultBBUserPassword!
+  static let bbUserPWD      = Environment.get("BB_USER_PASSWORD") ?? kDefaultBBUserPassword
   static let cacheURL       = Environment.get("BASE_CACHE_URL") ?? ""
   static let baseUrl        = Environment.get("BASE_DOMAINE_URL") ?? kDefaultBaseDomaineURL
   static let apiVersion     = Int(Environment.get("API_VERSION") ?? String(kDefaultAPIVersion))
