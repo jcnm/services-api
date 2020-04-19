@@ -177,11 +177,11 @@ public final class UserOrganization : AdoptedPivot {
 
 public extension UserOrganization {
   /// Fluent relation to the user that is linked.
-  public var user: Parent<UserOrganization, User> {
+  var user: Parent<UserOrganization, User> {
     return parent(\.userID)
   }
   /// Fluent relation to the organization that owns this token.
-  public var organization: Parent<UserOrganization, Organization> {
+  var organization: Parent<UserOrganization, Organization> {
     return parent(\.organizationID)
   }
 }

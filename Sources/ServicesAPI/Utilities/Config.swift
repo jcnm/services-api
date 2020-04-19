@@ -8,93 +8,122 @@
 import Foundation
 import Vapor
 
-
-// Public transversals
-public let kVersionsBasePath       = "versions"
-public let kVersionRelativePath       = "version"
-
-// 0 BASE ADM ENDPOINT
-public let kAdministrationBasePath       = "adm"
-
-// 1 USER ENDPOINT
-public let kUserBasePath             = "u"
-public let kProfileBasePath          = "p"
-public let kUsersRegisterPath        = "signup"
-public let kUsersSignUpPath          = "signup"
-public let kAccountBasePath          = "account"
-public let kUsersLoginBasePath       = "login"
-public let kUsersLookupBasePath      = "lookup"
-public let kUsersLogoutBasePath      = "logout"
-public let kUsersBasePath            = "users"
-
-// 2 SECTOR ENDPOINT
-public let kSectorsBasePath          = "sectors"
-public let kSectorRelativePath       = "sector"
-
-// 3 INDUSTRY ENDPOINT
-public let kIndustriesBasePath         = "industries"
-public let kIndustryRelativePath       = "industry"
-
-// 4 ORGANIZATION ENDPOINT
-public let kOrganizationsBasePath      = "organizations"
-public let kOrganizationReelativePath  = "organization"
-
-// 5 SERVICES ENDPOINT
-public let kServicesBasePath         = "services"
-public let kServiceRelativePath      = "service"
-
-// 6 ORDER ENDPOINT
-public let kOrdersBasePath           = "orders"
-public let kOrderRelativePath        = "order"
-
-// 7 ORDERITEM ENDPOINT
-public let kOItemsBasePath           = "oitems"
-public let kOItemRelativePath        = "oitem"
-
-// 8 USERORGANIZATION ENDPOINT
-public let kUOrgssBasePath           = "uorgs"
-public let kUOrgelativePath          = "uorg"
-
-// 9 PLANNING ENDPOINT
-public let kActivitiesBasePath         = "activities"
-public let kActivityRelativePath       = "activity"
-
-// 10 SCHEDULE ENDPOINT
-public let kSchedulesBasePath        = "schedules"
-public let kSchedulelativePath       = "schedule"
-
-// 15 PAIEMENT
-public let kCheckoutBasePath         = "checkout"
-public let kBasketBasePath           = "basket"
-public let kDevisBasePath           = "devis"
-
-public let kDefaultDataBasePostgresURL       = ""
-public let kDefaultDataBasePostgresPort      = 5432
-public let kDefaultDataBasePostgresBasename  = "services"
-public let kDefaultDataBasePostgreHostname   = "localhost"
-public let kDefaultDataBasePostgreUser       = "bbservices"
-public let kDefaultDataBasePostgrePassword   = "Service2019PostgresSQL"
+fileprivate let kDefaultDataBasePostgresURL       = ""
+fileprivate let kDefaultDataBasePostgresPort      = 5432
+fileprivate let kDefaultDataBasePostgresBasename  = "services"
+fileprivate let kDefaultDataBasePostgreHostname   = "localhost"
+fileprivate let kDefaultDataBasePostgreUser       = "bbservices"
+fileprivate let kDefaultDataBasePostgrePassword   = "Service2019PostgresSQL"
 /// Default domaine url website and API
-public let kDefaultBaseDomaineURL            = "http://localhost:8080"
-public let kDefaultAPIVersion                = ""
-public let kDefaultBaseDomaineAPIURL         = kDefaultBaseDomaineURL + "/api/" + kDefaultAPIVersion
+fileprivate let kDefaultBaseDomaineURL            = "http://localhost:8080"
+fileprivate let kDefaultAPIVersion                = ""
 
-public let kDefaultBBUserPassword            = "myo\\v/nPa$5word"
-public let kBBMainUserIdentifier                   = 7
-public let kBBMainOrganizationIdentifier           = 27
+fileprivate let kDefaultBBUserPassword            = "myo\\v/nPa$5word"
+fileprivate let kDefaultBBMainUserIdentifier                   = 7
+fileprivate let kDefaultBBMainOrganizationIdentifier           = 27
 
 public extension Config {
-  struct Static {
-    public static var bbMainUserID           = kBBMainUserIdentifier
-    public static var bbMainOrgID        = kBBMainOrganizationIdentifier
-    private static let _baseUrl       = Environment.get("BASE_DOMAINE_URL")
-    public static var baseUrl : String {
-      if let url = _baseUrl {
-        return url
-      } else {
-        return kDefaultBaseDomaineURL
-      }
+  // Public transversals
+  static let bbMainUserID   = Int(Environment.get("BB_MAIN_USER_IDENT") ?? String(kDefaultBBMainUserIdentifier))
+  static let bbMainOrgID    = Int(Environment.get("BB_MAIN_ORGA_IDENT") ?? String(kDefaultBBMainOrganizationIdentifier))
+  static let bbUserPWD      = Int(Environment.get("BB_USER_PASSWORD") ?? String(kDefaultBBUserPassword))
+  static let cacheURL       = Environment.get("BASE_CACHE_URL") ?? ""
+  static let baseUrl        = Environment.get("BASE_DOMAINE_URL") ?? kDefaultBaseDomaineURL
+  static let apiVersion     = Int(Environment.get("API_VERSION") ?? String(kDefaultAPIVersion))
+  static let rootUpdloadedFiles  = "uploads/"
+  static let rootUpdloadedImagesFiles  = "imgs/"
+  static let rootUpdloadedDocumentsFiles  = "docs/"
+  static let rootUpdloadedConfigsFiles  = "configs/"
+
+  struct SearchEngine {
+
+    struct Default {
+      public static let nonullable      = 0
+      public static let nullable      = -1
+      public static let offset     = 0
+      public static let page       = 1
+      public static let limit     = 2
+      public static let queryString = ""
+      public static let direction = "null"
     }
+    
+    public static let paramsOrganizationQuery = "org"
+    public static let paramsScheduleQuery     = "sche"
+    public static let paramsUserQuery         = "usr"
+    public static let paramsServiceQuery      = "serv"
+    public static let paramsLimitQuery        = "lim"
+    public static let paramsOffsetQuery       = "off"
+    public static let paramsPageQuery         = "p"
+    public static let paramsDirectionQuery    = "o"
+    public static let paramsSectorQuery       = "sec"
+    public static let paramsIndustryQuery     = "i"
+    public static let paramsRoleQuery         = "role"
+    public static let paramsSizeQuery         = "size"
+    public static let paramsKindQuery         = "kind"
+    public static let paramsStateQuery        = "s"
+    public static let paramsMoneyQuery        = "dev"
+    public static let paramsJuridicQuery      = "t"
+    public static let paramsCreatedQuery      = "c"
+    public static let paramsUpdatedQuery      = "up"
+    public static let paramsDeletedQuery      = "del"
+    public static let paramsActivityStartQuery   = "ss"
+    public static let paramsActivityEndQuery     = "se"
+    public static let paramsQuery                = "q"
+
+  }
+  struct APIWEP {
+    public static let organizationsWEP = "organizations"
+    public static let freeWEP           = "free"
+    public static let newWEP            = "new"
+    public static let addWEP            = "add"
+    public static let updateWEP         = "update"
+    public static let deleteWEP         = "delete"
+    public static let revokeWEP         = "revoke"
+    public static let basketsWEP        = "baskets"
+    public static let devisWEP          = "devis"
+    public static let checkoutWEP       = "checkouts"
+    public static let schedulesWEP      = "schedules"
+    public static let activitiesWEP     = "activities"
+    public static let uorgsWEP          = "uorgs"
+    public static let membersWEP        = "members"
+    public static let rightsWEP         = "rights"
+    public static let teamsWEP          = "teams"
+    public static let disruptionsWEP    = "disruptions"
+    public static let oitemsWEP         = "oitems"
+    public static let ordersWEP         = "orders"
+    public static let servicesWEP       = "services"
+        
+    public static let versionsWEP       = "versions"
+    public static let admWEP            = "adm"
+    public static let signupWEP         = "signup"
+    public static let loginWEP          = "login"
+    public static let accountWEP        = "account"
+    public static let lookupWEP         = "lookup"
+    public static let logoutWEP         = "logout"
+    public static let usersWEP          = "users"
+    public static let sectorsWEP        = "services"
+    public static let industriesWEP     = "orders"
+    public static let assetsWEP         = "assets"
+    public static let scoresWEP         = "scores"
+    public static let paymentsWEP       = "payments"
+    public static let cardWEP           = "cards"
+    public static let detailsWEP        = "details"
+    public static let helpsWEP          = "help"
+    public static let cguWEP            = "cgu"
+    public static let parametersWEP     = "parameters"
+    public static let contractsWEP      = "contracts"
+    public static let currenciesWEP     = "currencies"
+    public static let contactWEP        = "contact"
+    public static let placesWEP         = "places"
+    public static let billingsWEP       = "billings"
+    public static let aboutWEP          = "about"
+    public static let legalesWEP        = "legales"
+    public static let userWEP           = "u"
+    public static let profilesWEP       = "p"
+    public static let profilePictureWEP = "pp"
+  }
+  
+  struct Static {
     /****
      * Data base configuration
      ***/

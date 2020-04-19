@@ -35,77 +35,37 @@ public struct Utils {
   
 }
 
-public let kDefaultPaginatorLimit      = 2
-public let kDefaultPaginatorOffset     = 0
-public let kDefaultPaginatorPage       = 1
-public let kDefaultPaginatorDirection  = "desc"
-public let kDefaultQueryString         = ""
-
-public let kPaginatorLimitQuery        = "limit"
-public let kPaginatorOffsetQuery       = "offset"
-public let kPaginatorPageQuery         = "p"
-public let kPaginatorDirectionQuery    = "order"
-
-
-public let kDefaultNavigationLimit     = 2
-public let kDefaultNavigationOffset    = 0
-public let kDefaultNavigationPage      = 1
-public let kDefaultNavigationDirection = "null"
-
-public let kNavigationOrgQuery         = "org"
-public let kNavigationScheduleQuery    = "schedule"
-public let kNavigationUserQuery        = "usr"
-public let kNavigationServiceQuery     = "service"
-public let kNavigationLimitQuery       = "limit"
-public let kNavigationOffsetQuery      = "offset"
-public let kNavigationPageQuery        = "p"
-public let kNavigationDirectionQuery   = "o"
-public let kNavigationSectorQuery      = "sec"
-public let kNavigationIndustryQuery    = "i"
-public let kNavigationRoleQuery        = "role"
-public let kNavigationSizeQuery        = "size"
-public let kNavigationKindQuery        = "kind"
-public let kNavigationStateQuery       = "s"
-public let kNavigationMoneyQuery       = "devise"
-public let kNavigationJuridicQuery     = "t"
-public let kNavigationCreatedQuery     = "c"
-public let kNavigationUpdatedQuery     = "u"
-public let kNavigationDeletedQuery     = "d"
-public let kNavigationActivityStartQuery   = "sstart"
-public let kNavigationActivityEndQuery     = "send"
-public let kNavigationQuery                = "q"
-
 public struct PageMeta : Content {
-  public var limit:        Int               = kDefaultPaginatorLimit
-  public var offset:       Int               = kDefaultPaginatorOffset
-  public var page:         Int               = kDefaultPaginatorPage
-  public var direction:    String            = kDefaultPaginatorDirection
+  public var limit:        Int               = Config.SearchEngine.Default.limit
+  public var offset:       Int               = Config.SearchEngine.Default.offset
+  public var page:         Int               = Config.SearchEngine.Default.page
+  public var direction:    String            = Config.SearchEngine.Default.direction
   // Services
-  public var pricing:      Int               = -1
-  public var priceLess:    Int               = -1
-  public var priceUpper:   Int               = -1
-  public var billing:      Int               = -1
-  public var target:       Int               = -1
-  public var negociable:   Int               = -1
-  public var free:         Int               = -1
+  public var pricing:      Int               = Config.SearchEngine.Default.nullable
+  public var priceLess:    Int               = Config.SearchEngine.Default.nullable
+  public var priceUpper:   Int               = Config.SearchEngine.Default.nullable
+  public var billing:      Int               = Config.SearchEngine.Default.nullable
+  public var target:       Int               = Config.SearchEngine.Default.nullable
+  public var negociable:   Int               = Config.SearchEngine.Default.nullable
+  public var free:         Int               = Config.SearchEngine.Default.nullable
   
   // Organizations
-  public var upper:    Int                   = 0
-  public var total:    Int                   = 0
-  public var count:    Int                   = 0
-  public var sector:   Int                   = -1
-  public var role:     Int                   = -1
-  public var size:     Int                   = -1
-  public var organization:     Int           = -1
-  public var industry: Int                   = -1
-  public var service:  Int                   = -1
-  public var schedule:  Int                  = -1
-  public var user:     Int                   = -1
-  public var kind:     Int                   = -1
-  public var status:   Int                   = -1
-  public var parent:   Int                   = -1
-  public var owner:   Int                    = -1
-  public var q:        String                = kDefaultQueryString
+  public var upper:    Int                   = Config.SearchEngine.Default.nonullable
+  public var total:    Int                   = Config.SearchEngine.Default.nonullable
+  public var count:    Int                   = Config.SearchEngine.Default.nonullable
+  public var sector:   Int                   = Config.SearchEngine.Default.nullable
+  public var role:     Int                   = Config.SearchEngine.Default.nullable
+  public var size:     Int                   = Config.SearchEngine.Default.nullable
+  public var organization:     Int           = Config.SearchEngine.Default.nullable
+  public var industry: Int                   = Config.SearchEngine.Default.nullable
+  public var service:  Int                   = Config.SearchEngine.Default.nullable
+  public var schedule:  Int                  = Config.SearchEngine.Default.nullable
+  public var user:     Int                   = Config.SearchEngine.Default.nullable
+  public var kind:     Int                   = Config.SearchEngine.Default.nullable
+  public var status:   Int                   = Config.SearchEngine.Default.nullable
+  public var parent:   Int                   = Config.SearchEngine.Default.nullable
+  public var owner:   Int                    = Config.SearchEngine.Default.nullable
+  public var q:        String                = Config.SearchEngine.Default.queryString
   public var namedData:  [String:[NamedEmail]] = [:]
   public var params:     [String:String]       = [:]
   
@@ -113,68 +73,68 @@ public struct PageMeta : Content {
     do {
       let logger    = try req.make(Logger.self)
       
-      if let q    = try? req.query.get(String.self, at: kNavigationQuery) {
+      if let q    = try? req.query.get(String.self, at: Config.SearchEngine.paramsQuery) {
         self.q = q
         logger.info("Filter q given for the query : \(self.q)")
-        self.params[kNavigationQuery] = q
+        self.params[Config.SearchEngine.paramsQuery] = q
       }
-      if let sta    = try? req.query.get(Int.self, at: kNavigationStateQuery) {
+      if let sta    = try? req.query.get(Int.self, at: Config.SearchEngine.paramsStateQuery) {
         self.status = sta
         logger.info("Filter status given for the query : \(self.status)")
-        self.params[kNavigationStateQuery] = String(sta)
+        self.params[Config.SearchEngine.paramsStateQuery] = String(sta)
       }
-      if let sch    = try? req.query.get(Int.self, at: kNavigationScheduleQuery) {
+      if let sch    = try? req.query.get(Int.self, at: Config.SearchEngine.paramsScheduleQuery) {
         self.schedule   = sch
         logger.info("Filter schedule given for the query : \(self.schedule)")
-        self.params[kNavigationScheduleQuery] = String(sch)
+        self.params[Config.SearchEngine.paramsScheduleQuery] = String(sch)
       }
-      if let org    = try? req.query.get(Int.self, at: kNavigationOrgQuery) {
+      if let org    = try? req.query.get(Int.self, at: Config.SearchEngine.paramsOrganizationQuery) {
         self.organization   = org
         logger.info("Filter organization given for the query : \(self.organization)")
-        self.params[kNavigationOrgQuery] = String(org)
+        self.params[Config.SearchEngine.paramsOrganizationQuery] = String(org)
       }
-      if let usr    = try? req.query.get(Int.self, at: kNavigationUserQuery) {
+      if let usr    = try? req.query.get(Int.self, at: Config.SearchEngine.paramsUserQuery) {
         self.user   = usr
         logger.info("Filter user given for the query : \(self.user)")
-        self.params[kNavigationUserQuery] = String(usr)
+        self.params[Config.SearchEngine.paramsUserQuery] = String(usr)
       }
-      if let serv     = try? req.query.get(Int.self, at: kNavigationServiceQuery) {
+      if let serv     = try? req.query.get(Int.self, at: Config.SearchEngine.paramsServiceQuery) {
         self.service  = serv
         logger.info("Filter service given for the query : \(self.service)")
-        self.params[kNavigationServiceQuery] = String(serv)
+        self.params[Config.SearchEngine.paramsServiceQuery] = String(serv)
       }
-      if let lim      = try? req.query.get(Int.self, at: kNavigationLimitQuery) {
+      if let lim      = try? req.query.get(Int.self, at: Config.SearchEngine.paramsLimitQuery) {
         self.limit    = lim
         logger.info("Filter limit given for the query : \(self.limit)")
-        self.params[kNavigationLimitQuery] = String(lim)
+        self.params[Config.SearchEngine.paramsLimitQuery] = String(lim)
       }
-      if let role     = try? req.query.get(Int.self, at: kNavigationRoleQuery) {
+      if let role     = try? req.query.get(Int.self, at: Config.SearchEngine.paramsRoleQuery) {
         self.role     = role
         logger.info("Filter role given for the query : \(self.role)")
-        self.params[kNavigationRoleQuery] = String(role)
+        self.params[Config.SearchEngine.paramsRoleQuery] = String(role)
       }
-      if let size     = try? req.query.get(Int.self, at: kNavigationSizeQuery) {
+      if let size     = try? req.query.get(Int.self, at: Config.SearchEngine.paramsSizeQuery) {
         self.size     = size
         logger.info("Filter size given for the query : \(self.size)")
-        self.params[kNavigationSizeQuery] = String(size)
+        self.params[Config.SearchEngine.paramsSizeQuery] = String(size)
       }
-      if let ind        = try? req.query.get(Int.self, at: kNavigationIndustryQuery) {
+      if let ind        = try? req.query.get(Int.self, at: Config.SearchEngine.paramsIndustryQuery) {
         self.industry   = ind
         logger.info("Filter industry given for the query : \(self.industry)")
-        self.params[kNavigationIndustryQuery] = String(ind)
+        self.params[Config.SearchEngine.paramsIndustryQuery] = String(ind)
       }
-      if let sec      = try? req.query.get(Int.self, at: kNavigationSectorQuery) {
+      if let sec      = try? req.query.get(Int.self, at: Config.SearchEngine.paramsSectorQuery) {
         self.sector   = sec
         logger.info("Filter sector given for the query : \(self.sector)")
-        self.params[kNavigationSectorQuery] = String(sec)
+        self.params[Config.SearchEngine.paramsSectorQuery] = String(sec)
       }
-      if let cursor   = try? req.query.get(Int.self, at: kNavigationOffsetQuery) {
+      if let cursor   = try? req.query.get(Int.self, at: Config.SearchEngine.paramsOffsetQuery) {
         self.offset   = cursor
         logger.info("Filter cursor/offset for the query : \(self.offset)")
-        self.params[kNavigationOffsetQuery] = String(cursor)
+        self.params[Config.SearchEngine.paramsOffsetQuery] = String(cursor)
       }
-      if let ord      = try? req.query.get(String.self, at: kNavigationDirectionQuery).uppercased() {
-        self.params[kNavigationDirectionQuery] = ord
+      if let ord      = try? req.query.get(String.self, at: Config.SearchEngine.paramsDirectionQuery).uppercased() {
+        self.params[Config.SearchEngine.paramsDirectionQuery] = ord
         if ["ASC", "DESC"].contains(ord.uppercased()) {
           self.direction = ord.uppercased()
           logger.info("Filter direction given for the order query : \(ord)")
@@ -182,14 +142,13 @@ public struct PageMeta : Content {
           logger.warning("Bad direction given for the order query : \(ord)")
         }
       }
-      if let pg   = try? req.query.get(Int.self, at: kNavigationPageQuery) {
-        self.params[kNavigationPageQuery] = String(pg)
+      if let pg   = try? req.query.get(Int.self, at: Config.SearchEngine.paramsPageQuery) {
+        self.params[Config.SearchEngine.paramsPageQuery] = String(pg)
         self.page = pg
-        if pg >= 1 {
+        if pg >= 1 && self.offset != Config.SearchEngine.Default.offset {
           self.offset = (pg - 1) * self.limit
           self.upper  = self.limit + self.offset - 1
-        } else {
-          self.offset = kDefaultNavigationOffset
+        } else { 
           self.upper  = self.offset
         }
         logger.info("Filter cursor/offset for the query : \(self.offset)")
@@ -197,7 +156,7 @@ public struct PageMeta : Content {
         self.page = Int((Double(offset) / Double(limit)).rounded(.up))
         self.page = self.page < 1 ? 1 : self.page
       }
-      self.params[kNavigationPageQuery] = String(self.page)
+      self.params[Config.SearchEngine.paramsPageQuery] = String(self.page)
     } catch _ {
       fatalError("Some error happen during filtering creation for : \(req)")
     }
@@ -241,10 +200,10 @@ public struct FilterNavigation<Obj: Content>: Content {
   //  var metas: PaginatorMeta
   //    public func metaData() { return self.metas }
   
-  public var limit:Int                   = kDefaultPaginatorLimit
-  public var offset: Int                 = kDefaultPaginatorOffset
-  public var page: Int                   = kDefaultPaginatorPage
-  public var direction: String           = kDefaultPaginatorDirection
+  public var limit:Int                   = Config.SearchEngine.Default.limit
+  public var offset: Int                 = Config.SearchEngine.Default.offset
+  public var page: Int                   = Config.SearchEngine.Default.page
+  public var direction: String           = Config.SearchEngine.Default.direction
   public var upper: Int                  = 0
   public var total: Int                  = 0
   public var count: Int                  = 0
@@ -252,15 +211,15 @@ public struct FilterNavigation<Obj: Content>: Content {
   public mutating func config(from req: Request) {
     do {
       let logger = try req.make(Logger.self)
-      if let lim = try? req.query.get(Int.self, at: kNavigationLimitQuery) {
+      if let lim = try? req.query.get(Int.self, at: Config.SearchEngine.paramsLimitQuery) {
         self.limit = lim
         logger.info("Filter limit given for the query : \(self.limit)")
       }
-      if let cursor = try? req.query.get(Int.self, at: kNavigationOffsetQuery) {
+      if let cursor = try? req.query.get(Int.self, at: Config.SearchEngine.paramsOffsetQuery) {
         self.offset = cursor
         logger.info("Filter cursor/offset for the query : \(self.offset)")
       }
-      if let ord = try? req.query.get(String.self, at: kNavigationDirectionQuery).uppercased() {
+      if let ord = try? req.query.get(String.self, at: Config.SearchEngine.paramsDirectionQuery).uppercased() {
         
         if ["ASC", "DESC"].contains(ord.uppercased()) {
           self.direction = ord.uppercased()
@@ -269,13 +228,13 @@ public struct FilterNavigation<Obj: Content>: Content {
           logger.warning("Bad direction given for the order query : \(ord)")
         }
       }
-      if let pg = try? req.query.get(Int.self, at: kNavigationPageQuery) {
+      if let pg = try? req.query.get(Int.self, at: Config.SearchEngine.paramsPageQuery) {
         self.page = pg
         if pg >= 1 {
           self.offset = (pg - 1) * self.limit
           self.upper = self.limit + self.offset - 1
         } else {
-          self.offset = kDefaultNavigationOffset
+          self.offset = Config.SearchEngine.Default.offset
           self.upper = self.offset
         }
         logger.info("Filter cursor/offset for the query : \(self.offset)")

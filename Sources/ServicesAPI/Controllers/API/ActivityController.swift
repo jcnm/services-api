@@ -190,7 +190,7 @@ extension ActivityController: RouteCollection {
     /**
      ** Logged User activity Sector - 2
      */
-    let activitiesGroup      = bearer.grouped(kActivitiesBasePath)
+    let activitiesGroup      = bearer.grouped(Config.APIWEP.activitiesWEP)
     activitiesGroup.get(use: list)
     activitiesGroup.post(use: create)
     activitiesGroup.get(Activity.parameter, use: show)

@@ -205,7 +205,7 @@ extension OrderController: RouteCollection {
     /**
      ** Logged User activity Sector - 2
      */
-    let orderGroup      = bearer.grouped(kOrdersBasePath)
+    let orderGroup      = bearer.grouped(Config.APIWEP.ordersWEP)
     orderGroup.get(use: list)
     orderGroup.post(use: create)
     orderGroup.get(Order.parameter, use: show)

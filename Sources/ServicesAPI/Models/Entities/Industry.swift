@@ -95,15 +95,15 @@ extension Industry: Content {}
 
 public extension Industry {
   /// Fluent relation to the sector that is relative to this industry.
-  public var sector: Parent<Industry, Sector> {
+  var sector: Parent<Industry, Sector> {
     return parent(\.sectorID)
   }
   /// Parent relation between two industries.
-  public var parent: Parent<Industry, Industry>? {
+  var parent: Parent<Industry, Industry>? {
     return parent(\.parentID)
   }
   /// this industry's related services
-  public var services: Children<Industry, Service> {
+  var services: Children<Industry, Service> {
     return children(\.industryID)
   }
   

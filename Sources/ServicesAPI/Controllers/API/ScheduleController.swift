@@ -222,11 +222,11 @@ extension ScheduleController: RouteCollection {
     /**
      ** Logged User activity Sector - 2
      */
-    let scheduleGroup      = bearer.grouped(kSchedulesBasePath)
-    let scheduleAccountGroup      = bearer.grouped(kAccountBasePath, kSchedulesBasePath)
+    let scheduleGroup      = bearer.grouped(Config.APIWEP.schedulesWEP)
+    let scheduleAccountGroup      = bearer.grouped(Config.APIWEP.accountWEP, Config.APIWEP.schedulesWEP)
     scheduleGroup.get(use: list)
     scheduleAccountGroup.get(use: accountRelativeList)
-    scheduleGroup.get(Schedule.parameter, kIndustriesBasePath, use: scheduleOfActivity)
+    scheduleGroup.get(Schedule.parameter, Config.APIWEP.industriesWEP, use: scheduleOfActivity)
     scheduleGroup.post(use: create)
     scheduleGroup.get(Schedule.parameter, use: show)
     scheduleGroup.patch(Schedule.parameter, use: update)

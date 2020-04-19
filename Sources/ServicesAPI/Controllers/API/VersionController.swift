@@ -64,9 +64,9 @@ extension VersionController: RouteCollection {
     /** Public user end point api spec */
     // Creation of a new version
     
-    router.post(kVersionsBasePath, use: create)
-    router.get(kVersionsBasePath, use: list)
-    router.get(kVersionsBasePath, Version.parameter, use: show)
+    router.post(Config.APIWEP.versionsWEP, use: create)
+    router.get(Config.APIWEP.versionsWEP, use: list)
+    router.get(Config.APIWEP.versionsWEP, Version.parameter, use: show)
     
     //    let bearer = router.grouped(User.tokenAuthMiddleware())
     //    bearer.post(kVersionsBasePath, use: create)

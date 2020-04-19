@@ -89,17 +89,17 @@ extension Order: Parameter { }
 
 public extension Order {
   /// Fluent relation to the client user who is ordering this command .
-  public var client: Parent<Order, User> {
+  var client: Parent<Order, User> {
     return parent(\.clientID)
   }
   
   /// this order's related schedules link
-  public var schedules: Siblings<Order, Schedule, OrderItem> {
+  var schedules: Siblings<Order, Schedule, OrderItem> {
     return siblings()
   }
   
   /// this order's related schedules link
-  public var items: Children<Order, OrderItem> {
+  var items: Children<Order, OrderItem> {
     return children(\OrderItem.orderID)
   }
 }

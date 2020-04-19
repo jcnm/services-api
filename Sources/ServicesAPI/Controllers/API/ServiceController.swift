@@ -129,9 +129,9 @@ extension ServiceController {
     return res.flatMap { (services) -> Future<[Service.FullPublicResponse]> in
       /// Create service of assets list
       var serviceDico: [Service.ID: (Service, [Asset.ShortPublicResponse])] = [:]
-      var mutServices = services
+      let mutServices = services
 //      let firstSv = mutServices.removeFirst()
-      var idents = mutServices.reduce(into: []) { (result: inout [String], service) in
+      let idents = mutServices.reduce(into: []) { (result: inout [String], service) in
         result.append("\(service.id!)") ; serviceDico[service.id!] = (service, []) }
 //      idents.append("\(firstSv.id!)")
       let strIdents = idents.joined(separator: ",")
@@ -270,7 +270,7 @@ extension ServiceController {
             retRes.scoreAverage = scsts
             retRes.assets = sass
             retRes.scores = sss
-            logger.debug("Linking assets count(\(sass.count)), scores struct(\(sss.metaData()?.total)) for the service \(serv.id!) \(String(describing: serv.label))")
+            logger.debug("Linking assets count(\(sass.count)), scores struct(\(String(describing: sss.metaData()?.total))) for the service \(serv.id!) \(String(describing: serv.label))")
             if let pare = parent {
               _ = pare.map { (par) -> Void in
                 logger.debug("Linking given parent  \(par.id!) \(par.label)")
@@ -368,7 +368,7 @@ extension ServiceController {
   
   public static func indexList(_ req: Request) throws -> (PageMeta, Future<OffsetPaginator<Service.FullPublicResponse>>) {
     let logger = try  req.make(Logger.self)
-    var meta = PageMeta(req)
+    let meta = PageMeta(req)
     var qry: QueryBuilder<AdoptedDatabase, Service>
     let uAutth = try? req.requireAuthenticated(User.self)
     if let u = uAutth {
@@ -456,7 +456,7 @@ extension ServiceController {
       .join(\User.id, to: \Service.authorID, method: .default)
       .join(\Industry.id, to: \Service.industryID, method: .default)
       .join(\Organization.id, to: \Service.organizationID, method: .default)
-      .filter(\Organization.id == Config.Static.bbMainOrgID)
+      .filter(\Organization.id == Config.bbMainOrgID)
       .group(.or) {
         $0.filter(\Service.status == ObjectStatus.online.rawValue)
         $0.filter(\Service.status == ObjectStatus.review.rawValue)
@@ -531,7 +531,7 @@ extension ServiceController {
     if meta.industry != -1 {
       qry = qry.filter(\Service.industryID == meta.industry)
     }
-    if meta.q != kDefaultQueryString {
+    if meta.q != Config.SearchEngine.Default.queryString {
       let sqr = "%\(meta.q)%"
       qry = qry.group(.or) {
         $0.filter(\Service.label,           .ilike, sqr)
@@ -642,18 +642,16 @@ extension ServiceController: RouteCollection {
     // Creation of a new version
     
     let bearer                = router.grouped(User.tokenAuthMiddleware())
-    let accountGroup          = bearer.grouped(kAccountBasePath)
-    let servicesGroup         = bearer.grouped(kServicesBasePath)
-    let servicesAccountGroup  = accountGroup.grouped(kServicesBasePath)
-    
-    /// Organizations account
-    servicesAccountGroup.get(use: accountRelativeList)
-    
+    let accountGroup          = bearer.grouped(Config.APIWEP.accountWEP)
+    let servicesGroup         = bearer.grouped(Config.APIWEP.servicesWEP)
+    let servicesAccountGroup  = accountGroup.grouped(Config.APIWEP.servicesWEP)
+
     servicesGroup.get(use: list)
+    servicesAccountGroup.get(use: accountRelativeList)
     servicesAccountGroup.post(use: create)
     servicesAccountGroup.get(Service.parameter, use: { try self.show($0).1 } )
     servicesAccountGroup.patch(Service.parameter, use: update)
-    servicesAccountGroup.patch(Service.parameter, kIndustriesBasePath, use: industryOfService)
+    servicesAccountGroup.patch(Service.parameter, Config.APIWEP.industriesWEP, use: industryOfService)
     
   }
 }

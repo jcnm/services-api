@@ -393,32 +393,32 @@ extension Organization: Migration {
 
 public extension Organization {
   /// Fluent relation to the sector that is relative to this organization.
-  public var sector: Parent<Organization, Sector> {
+  var sector: Parent<Organization, Sector> {
     return parent(\.sectorID)
   }
   /// Fluent relation to the services that is relative to this organization.
-  public var services: Children<Organization, Service> {
+  var services: Children<Organization, Service> {
     return children(\.organizationID)
   }
   
   /// Parent relation between two organization.
-  public var parent: Parent<Organization, Organization>? {
+  var parent: Parent<Organization, Organization>? {
     return parent(\.parentID)
   }
   
   // this user's related sub organization relations
-  public var organizations: Children<Organization, Organization> {
+  var organizations: Children<Organization, Organization> {
     return children(\.parentID)
   }
   
   /// this organization's related users link
-  public var members: Siblings<Organization, User, UserOrganization> {
+  var members: Siblings<Organization, User, UserOrganization> {
     // Controle to add
     return siblings()
   }
   
   /// this organization's related users link
-  public var contacts: Siblings<Organization, Contact, ContactOrganization> {
+  var contacts: Siblings<Organization, Contact, ContactOrganization> {
     // Controle to add
     return siblings()
   }

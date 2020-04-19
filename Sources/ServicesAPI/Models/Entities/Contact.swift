@@ -215,7 +215,7 @@ extension Contact: Content {}
 
 public extension Contact {
   // this Contact's related organization link
-  public var organizations: Siblings<Contact, Organization, ContactOrganization> {
+  var organizations: Siblings<Contact, Organization, ContactOrganization> {
     return siblings()
   }
 }

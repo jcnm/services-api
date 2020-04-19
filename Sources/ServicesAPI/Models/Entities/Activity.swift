@@ -203,7 +203,7 @@ extension Activity: Migration {
 
 public extension Activity {
   /// Fluent relation to the schedule that is relative to the planning.
-  public var schedule: Parent<Activity, Schedule> {
+  var schedule: Parent<Activity, Schedule> {
     return parent(\.scheduleID)
   }
   

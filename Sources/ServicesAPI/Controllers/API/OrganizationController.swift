@@ -16,7 +16,7 @@ import Paginator
 public final class OrganizationController {
   
   public init() { }
-
+  
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
     let _ = try UserController.logged(req)
     
@@ -102,14 +102,13 @@ extension OrganizationController {
   }
   
   public func addMember(_ req: Request) throws -> Future<Organization.UserRoleMemberPublicResponse>  {
-    let usr = try req.requireAuthenticated(User.self)
+    _ = try req.requireAuthenticated(User.self)
     let logger = try  req.make(Logger.self)
     let org = try req.parameters.next(Organization.self)
     let re = try req.content.decode(Organization.UserNewRole.self)
     return re.flatMap { (nuo) ->  Future<Organization.UserRoleMemberPublicResponse> in
       let uId = nuo.memberID
-      print(nuo)
-      print("#################@")
+      logger.info("Adding new member ")
       let user = User.find(uId, on: req)
       return user.flatMap{ u -> Future<Organization.UserRoleMemberPublicResponse> in
         guard let realUsr = u else {
@@ -134,7 +133,7 @@ extension OrganizationController {
     }
   }
 }
- 
+
 /// - MARK - GET  Organization
 extension OrganizationController {
   
@@ -191,7 +190,7 @@ extension OrganizationController {
       guard try user.requireID() != 0 else {
         throw Abort(HTTPResponseStatus.badRequest)
       }
-      var meta = PageMeta(req)
+      let meta = PageMeta(req)
       //          let qryNav = meta.apply(, from: req)
       var query = try user.organizations.query(on: req)
         //      .join(\Organization.id, to: \Organization.parentID)
@@ -326,4 +325,29 @@ extension OrganizationController {
     }
   }
   
+}
+
+extension OrganizationController: RouteCollection {
+  public func boot(router: Router) throws {
+    
+    /*************************** LOGGED USER SECTION *******************
+     ***
+     ***
+     ***
+     *******************************************************************/
+    
+    // bearer / token auth protected routes
+    let bearer = router.grouped(User.tokenAuthMiddleware())
+    let orgaGroup      = bearer.grouped(Config.APIWEP.organizationsWEP)
+    
+    /**
+     ** Logged User  activity Organization - 4
+     */
+    orgaGroup.get(use: list)
+    orgaGroup.post(use: create)
+    orgaGroup.get(Organization.parameter, use: show)
+    orgaGroup.patch(Organization.parameter, use: update)
+    orgaGroup.patch(Organization.parameter, Config.APIWEP.sectorsWEP, use: sectorOfOrganization)
+    orgaGroup.post(Organization.parameter, Config.APIWEP.membersWEP, use: addMember)
+  }
 }

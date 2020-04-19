@@ -128,9 +128,9 @@ extension SectorController: RouteCollection {
     /**
      ** Logged User activity Sector - 2
      */
-    let sectorGroup      = bearer.grouped(kSectorsBasePath)
+    let sectorGroup      = bearer.grouped(Config.APIWEP.sectorsWEP)
     sectorGroup.get(use: list)
-    sectorGroup.get(Sector.parameter, kIndustriesBasePath, use: industriesOfSector)
+    sectorGroup.get(Sector.parameter, Config.APIWEP.industriesWEP, use: industriesOfSector)
     sectorGroup.post(use: create)
     sectorGroup.get(Sector.parameter, use: show)
     sectorGroup.patch(Sector.parameter, use: update)

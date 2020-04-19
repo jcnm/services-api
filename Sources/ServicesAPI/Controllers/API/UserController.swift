@@ -13,9 +13,6 @@ import FluentPostgreSQL
 import Authentication
 import CoreFoundation
 
-let kRootPathForProfilPicture = "public/u/"
-let kFinalPatchProfilPicture = "/pp"
-
 /// - MARK - CREATE AND AUTHENTICATE USERS
 public final class UserController {
   
@@ -23,7 +20,7 @@ public final class UserController {
 
   public static func logged(_ req: Request) throws -> User {
     let logger = try  req.make(Logger.self)
-    logger.info("@@@\n@@@\n@@@\n@@@\n@@@\n@@@ Query came (\(req.http.headers.firstValue(name: HTTPHeaderName.referer)) (req.http.channel!.remoteAddress :  \(req.http.channel!.remoteAddress))\n@@@@\n@@@@\n@@@\n@@@")
+    logger.info("Origin :\(String(describing: req.http.headers.firstValue(name: HTTPHeaderName.referer))) \n Client IP: \(String(describing: req.http.channel!.remoteAddress))")
     // fetch auth'd user
     let user = try req.requireAuthenticated(User.self)
     guard try user.requireID() != 0 else {
@@ -200,9 +197,11 @@ extension UserController {
   }
   
   private func savePicture(_ img: File, _ user: User) throws {
-    let home:URL = URL(fileURLWithPath: kRootPathForProfilPicture, isDirectory: true)
-    let subLoggedUserPath = user.login + kFinalPatchProfilPicture
-    var path = home.appendingPathComponent(subLoggedUserPath)
+    let home:URL = URL(fileURLWithPath: Config.rootUpdloadedFiles, isDirectory: true)
+    let subLoggedUserPath = user.ref + Config.APIWEP.profilePictureWEP
+    var path =
+      home.appendingPathComponent(Config.rootUpdloadedImagesFiles, isDirectory: true)
+        .appendingPathComponent(subLoggedUserPath, isDirectory: true)
     path.appendPathComponent(img.filename.hash.description + "." + (img.ext ?? ".png"), isDirectory: false)
     // TODO Catch
     try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
@@ -237,18 +236,6 @@ extension UserController {
   
 }
 
-
-let kLookUpNavigationLimit     = 2
-let kLookUpNavigationOffset    = 0
-let kLookUpNavigationPage      = 1
-let kLookUpNavigationDirection = "null"
-
-let kLookUpLimitQuery     = "limit"
-let kLookUpOffsetQuery    = "offset"
-let kLookUpPageQuery      = "p"
-let kLookUpDirectionQuery = "order"
-let kSearchQuery = "q"
-
 /// - MARK - GET USER INFOS
 extension UserController {
   /// List all users.
@@ -279,9 +266,9 @@ extension UserController {
     logger.info(req.http.debugDescription)
     let user = try UserController.logged(req)
     logger.info("Getting User search initiated by \(user.id!) (\(user.login))")
-    var meta = PageMeta(req) 
+    let meta = PageMeta(req)
     var qry = ""
-    if let qsrch = try? req.query.get(String.self, at: kSearchQuery) {
+    if let qsrch = try? req.query.get(String.self, at: Config.SearchEngine.paramsQuery) {
       qry = "%"+qsrch+"%"
     }
     if qry.isEmpty {
@@ -434,25 +421,25 @@ extension UserController: RouteCollection {
      *******************************************************************/
     /** Public user end point api spec */
     // Creation of a new user
-    router.post(kUsersRegisterPath, use: create)
+    router.post(Config.APIWEP.signupWEP, use: create)
     // basic / password auth protected routes
     let basic = router.grouped(User.basicAuthMiddleware(using: BCryptDigest()))
     // bearer / token auth protected routes
     
     let bearer = router.grouped(User.tokenAuthMiddleware())
-    basic.post(kUsersLoginBasePath, use: loginAPI)
-    bearer.get(kUsersLookupBasePath, kUsersBasePath, use: { try self.lookupAssociated($0) })
+    basic.post(Config.APIWEP.loginWEP, use: loginAPI)
+    bearer.get(Config.APIWEP.lookupWEP, Config.APIWEP.usersWEP, use: { try self.lookupAssociated($0) })
     
     /**
      ** Logged User end point api spec - 1
      */
-    let accoundGroup = bearer.grouped(kAccountBasePath)
+    let accoundGroup = bearer.grouped(Config.APIWEP.accountWEP)
     accoundGroup.get(use: account)
-    accoundGroup.patch(kAccountBasePath, use: update) // update account
-    //    accoundGroup.patch(kProfileBasePath, use: updateProfile) // update profile accound
+    accoundGroup.patch(Config.APIWEP.detailsWEP, use: update) // update account
+    accoundGroup.patch(Config.APIWEP.profilesWEP, use: update) // update profile accound
     
-    let userLoggedGroup = bearer.grouped(kUserBasePath)
-    userLoggedGroup.get(User.parameter, use: show)
+    let userLogInGroup = bearer.grouped(Config.APIWEP.userWEP)
+    userLogInGroup.get(User.parameter, use: show)
     
   }
   
