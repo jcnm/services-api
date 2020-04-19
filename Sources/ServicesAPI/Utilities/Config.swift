@@ -19,14 +19,14 @@ fileprivate let kDefaultBaseDomaineURL            = "http://localhost:8080"
 fileprivate let kDefaultAPIVersion                = ""
 
 fileprivate let kDefaultBBUserPassword            = "myo\\v/nPa$5word"
-fileprivate let kDefaultBBMainUserIdentifier                   = 7
-fileprivate let kDefaultBBMainOrganizationIdentifier           = 27
+fileprivate let kDefaultBBMainUserIdentifier          = 7
+fileprivate let kDefaultBBMainOrganizationIdentifier  = 27
 
 public extension Config {
   // Public transversals
-  static let bbMainUserID   = Int(Environment.get("BB_MAIN_USER_IDENT") ?? String(kDefaultBBMainUserIdentifier))
-  static let bbMainOrgID    = Int(Environment.get("BB_MAIN_ORGA_IDENT") ?? String(kDefaultBBMainOrganizationIdentifier))
-  static let bbUserPWD      = Int(Environment.get("BB_USER_PASSWORD") ?? String(kDefaultBBUserPassword))
+  static let bbMainUserID   = Int(Environment.get("BB_MAIN_USER_IDENT") ?? String(kDefaultBBMainUserIdentifier))!
+  static let bbMainOrgID    = Int(Environment.get("BB_MAIN_ORGA_IDENT") ?? String(kDefaultBBMainOrganizationIdentifier))!
+  static let bbUserPWD      = Int(Environment.get("BB_USER_PASSWORD") ?? String(kDefaultBBUserPassword))!
   static let cacheURL       = Environment.get("BASE_CACHE_URL") ?? ""
   static let baseUrl        = Environment.get("BASE_DOMAINE_URL") ?? kDefaultBaseDomaineURL
   static let apiVersion     = Int(Environment.get("API_VERSION") ?? String(kDefaultAPIVersion))
@@ -38,13 +38,13 @@ public extension Config {
   struct SearchEngine {
 
     struct Default {
-      public static let nonullable      = 0
+      public static let nonullable    = 0
       public static let nullable      = -1
-      public static let offset     = 0
-      public static let page       = 1
-      public static let limit     = 2
-      public static let queryString = ""
-      public static let direction = "null"
+      public static let offset        = 0
+      public static let page          = 1
+      public static let limit         = 2
+      public static let queryString   = ""
+      public static let direction     = "null"
     }
     
     public static let paramsOrganizationQuery = "org"
