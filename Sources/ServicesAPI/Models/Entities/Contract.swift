@@ -34,7 +34,7 @@ public final class Contract: AdoptedModel {
   public var contractPrivateKey: String?
   
   /// Contract's object
-  public var object: String
+  public var subject: String
   /// Contract's execution modality
   public var execution: String
   /// Contract's duration modality
@@ -54,7 +54,7 @@ public final class Contract: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
 
-  public init(label: String, order: Order.ID, object: String,
+  public init(label: String, order: Order.ID, subject: String,
               execution: String, duration: String, payment: String,
               endContract: String, litige: String, lang: String,
               createdAt : Date = Date(), updatedAt: Date? = nil,
@@ -63,7 +63,7 @@ public final class Contract: AdoptedModel {
     self.ref        = Utils.newRef(kContractReferenceBasePrefix, size: kContractReferenceLength)
     self.orderID    = order
     self.label      = label
-    self.object     = object
+    self.subject    = subject
     self.execution  = execution
     self.duration   = duration
     self.payment    = payment
@@ -92,7 +92,7 @@ extension Contract: Migration {
       builder.field(for: \.orgContractBRef)
       builder.field(for: \.contractPublicKey)
       builder.field(for: \.contractPrivateKey)
-      builder.field(for: \.object)
+      builder.field(for: \.subject)
       builder.field(for: \.execution)
       builder.field(for: \.duration)
       builder.field(for: \.payment)

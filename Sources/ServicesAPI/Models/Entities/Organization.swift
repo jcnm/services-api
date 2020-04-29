@@ -22,21 +22,129 @@ let kOrganizationReferenceLength      = kReferenceDefaultLength
  6 : High profit structure:
  */
 public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
+  /*Entrepreneur individuel
+  Artisan-commerçant
+  Commerçant
+  Artisan
+  Officier public ou ministériel
+  Profession libérale
+  Exploitant agricole
+  Agent commercial
+  Associé gérant de Société
+  (Autre) Personne physique
+  Groupement de droit privé non doté de la personnalité morale
+  Indivision
+  Société créée de fait
+  Société en participation
+  Fiducie
+  Paroisse hors zone concordataire
+  Autre groupement de droit privé non doté de la personnalité morale
+  Personne morale de droit étranger
+  Personne morale de droit étranger, immatriculée au RCS
+  Personne morale de droit étranger, non immatriculée au RCS
+  Personne morale de droit public soumise au droit commercial
+  Etablissement public ou régie à caractère industriel ou commercial
+  Société commerciale
+  Société coopérative commerciale particulière
+  Société en nom collectif
+  Société en commandite
+  Société à responsabilité limitée (SARL)
+  Société anonyme à conseil d'administration
+  Société anonyme à directoire
+  Société par actions simplifiée
+  Société européenne
+  Autre personne morale immatriculée au RCS
+  Caisse d'épargne et de prévoyance
+  Groupement d'intérêt économique
+  Société coopérative agricole
+  Société d'assurance mutuelle
+  Société civile
+  Autre personne morale de droit privé inscrite au registre du commerce et des sociétés
+  Personne morale et organisme soumis au droit administratif
+  Administration de l'état
+  Collectivité territoriale
+  Etablissement public administratif
+  Autre personne morale de droit public administratif
+  Organisme privé spécialisé
+  Organisme gérant un régime de protection sociale à adhésion obligatoire
+  Organisme mutualiste
+  Comité d'entreprise
+  Organisme professionnel
+  Organisme de retraite à adhésion non obligatoire
+  Groupement de droit privé
+  Syndicat de propriétaires
+  Association loi 1901 ou assimilé
+  Fondation
+  Autre personne morale de droit privé
+*/
   
-  case noprofit     = 0 //
-  case aid          = 1 //
-  case educative    = 2 //
-  case associative  = 3 // small bussiness
-  case informative  = 4 //
-  case pureprofit   = 8 //
+  /**
+   0.
+   1. Entrepreneur individuel
+   
+   3. Personne morale de droit étranger
+   4.
+   5. Société commerciale
+   6. Autre personne morale  // Compagnie registration Office
+   trade and companies register
+   7.
+   9. Organisme privé spécialisé
+   10. Groupement de droit privé
+   
+   */
+  case tbd                            = 0 //
+  // 1. Entrepreneur individuel
+  case individual                     = 10 //
+  // 2. Groupement de droit privé non doté de la personnalité morale
+  case unmoralyPrivateGroup           = 20 //
+  // 3. Personne morale de droit étranger
+  case foreign                        = 30 //
+  // 4. Personne morale de droit public soumise au droit commercial
+  case publicNCommercial              = 40
+  // 5. Société commerciale
+  case commercial                     = 50 //
+  // 6. Compagnie registration Office // immatriculée au Registre du Commerce et des Sociétés
+  case otherRCO                       = 60
+  // 7. Personne morale et organisme soumis au droit administratif
+  case administrative                 = 70
+  // 8. Organisme privé spécialisé
+  case privateSpecial                 = 80
+  // 9. Groupement de droit privé
+  case privateGroup                   = 90
   
   public static var defaultValue: OrganizationKind {
-    return .pureprofit
+    return .commercial
   }
   
   public static var defaultRaw: OrganizationKind.RawValue {
     return defaultValue.rawValue
   }
+  
+  public func textual() -> String {
+    switch self {
+      case .tbd :
+        return "TBD"
+      case .individual :
+        return "Entrepreneur individuel"
+      case .unmoralyPrivateGroup:
+        return "Groupement de droit privé non doté de la personnalité morale"
+      case .foreign:
+        return "Personne morale de droit public soumise au droit commercial"
+      case .publicNCommercial :
+        return "Société commerciale"
+      case .commercial:
+        return "Autre personne morale immatriculée au RCS"
+      case .otherRCO:
+        return "Personne morale et organisme soumis au droit administratif"
+      case .administrative :
+        return "Personne morale et organisme soumis au droit administratif"
+      case .privateSpecial:
+        return "Organisme privé spécialisé"
+      case .privateGroup :
+        return "Groupement de droit privé"
+    }
+  }
+
 }
 
 /**
@@ -45,19 +153,23 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
 public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentable, CaseIterable {
   
   public static func reflectDecoded() throws -> (OrganizationSize, OrganizationSize) {
-    return (eti, network)
+    return (eti, group)
   }
   
-  case division = 1 // Subdivision of an organization /// Pas besoin d'informations légales
-  case eti   // independant worker / auto entrepreneur  /// Pas besoin de certaines informations légales
-  case tpe   // très petite entreprise
-  case pe  // small bussiness entre 10 salariés et 49 salariés avec soit un chiffre d'affaires inférieur à 10 millions d'euros par an, soit un total bilan inférieur à 10 millions d'euros.  
-  case me // entre 50 salariés et 250 salariés avec soit un chiffre d'affaires inférieur à 50 millions d'euros par an, soit un total bilan inférieur à 43 millions d'euros
-  case ge       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  case group       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  case holding       // Holding de plusieurs entreprises de différentes tailles d'une même structure
-  case network       // Réseau d'entreprise indépendante
+  /// These are note entreprise
+  case none         = 0 // Unclassifiable as a organization
+  case division     = 10 // Subdivision of an organization /// Pas besoin d'informations légales
   
+  /// These are micro entreprise
+  case eti          = 20 // independant worker / auto entrepreneur  /// Pas besoin de certaines informations légales
+  /// These are small entreprise 10 - 49 employees
+  case pe           = 30  // small bussiness entre 10 salariés et 49 salariés avec soit un chiffre d'affaires inférieur à 10 millions d'euros par an, soit un total bilan inférieur à 10 millions d'euros.
+  case me           = 40 // entre 50 salariés et 250 salariés avec soit un chiffre d'affaires inférieur à 50 millions d'euros par an, soit un total bilan inférieur à 43 millions d'euros
+  case ge           = 50       // plus de 249 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
+  case group        = 60       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
+  
+  case holding      = 70       // Holding de plusieurs entreprises de différentes tailles d'une même structure
+    
   public static var defaultValue: OrganizationSize {
     return .eti
   }
@@ -65,6 +177,28 @@ public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentabl
   public static var defaultRaw: OrganizationSize.RawValue {
     return defaultValue.rawValue
   }
+  
+  public func textual() -> String {
+    switch self {
+      case .none :
+        return "N/A"
+      case .division :
+        return "Division D'entreprise"
+      case .eti:
+        return "Entreprise Individuelle"
+      case .pe:
+        return "Petite entreprise"
+      case .me :
+        return "Moyenne Entreprise"
+      case .ge:
+        return "Grande entreprise"
+      case .group:
+        return "Grand Groupe"
+      case .holding :
+        return "Pilote d'Entreprises (Holding)"
+    }
+  }
+  
 }
 
 
