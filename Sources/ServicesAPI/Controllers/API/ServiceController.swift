@@ -371,7 +371,7 @@ extension ServiceController {
     let meta = PageMeta(req)
     var qry: QueryBuilder<AdoptedDatabase, Service>
     let uAutth = try? req.requireAuthenticated(User.self)
-    if let u = uAutth {
+    if let u = uAutth, let b = try? u.requireID(), b != 0 {
       logger.info("Getting Index Full Service list ... initiated by user \(u.id!) (\(u.login))")
       
     } else {

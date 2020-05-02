@@ -153,7 +153,8 @@ extension IndustryController {
     let _ = try UserController.logged(req)
     // decode request parameter
     return try req.parameters.next(Industry.self).flatMap
-      { indusToUpdate -> Future<Industry> in
+      {
+        indusToUpdate -> Future<Industry> in
         guard try IndustryController.checkAttributs(indusToUpdate) else {
           fatalError("This industry has bad properties definition")
         }
@@ -161,5 +162,29 @@ extension IndustryController {
         // TODO Update historic trace
         return indusToUpdate.update(on: req)
     }
+  }
+}
+ 
+extension IndustryController: RouteCollection {
+  public func boot(router: Router) throws {
+    
+    /*************************** LOGGED USER SECTION *******************
+     ***
+     ***
+     ***
+     *******************************************************************/
+    
+    // bearer / token auth protected routes
+    let bearer = router.grouped(User.tokenAuthMiddleware())
+    let indusGroup      = bearer.grouped(Config.APIWEP.industriesWEP)
+    
+     /**
+     ** Logged User  activity Industry - 3
+     */
+    indusGroup.get(use: list)
+    indusGroup.post(use: create)
+    indusGroup.get(Industry.parameter, use: show)
+    indusGroup.patch(Industry.parameter, use: update)
+    indusGroup.patch(Industry.parameter, Config.APIWEP.sectorsWEP, use: sectorOfIndustry)
   }
 }

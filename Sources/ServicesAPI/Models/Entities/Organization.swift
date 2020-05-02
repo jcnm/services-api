@@ -120,7 +120,7 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
     return defaultValue.rawValue
   }
   
-  public func textual() -> String {
+  public var textual : String {
     switch self {
       case .tbd :
         return "TBD"
@@ -178,7 +178,7 @@ public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentabl
     return defaultValue.rawValue
   }
   
-  public func textual() -> String {
+  public var textual: String {
     switch self {
       case .none :
         return "N/A"
@@ -263,7 +263,7 @@ public enum OrganizationGender: Int, RawRepresentable, Codable, CaseIterable {
   /// European Economic Interest Grouping (EEIG = GEIE)
   case eeig
   
-  public func textual() -> String {
+  public var textual: String {
     switch self {
       case .freelance :
         return "Auto Entrepreneur (Micro-Entreprise)"

@@ -147,7 +147,7 @@ public final class UserOrganization : AdoptedPivot {
   /// UserOrganization's unique identifier.
   public var id: ObjectID?
   /// UserOrganization's unique réference.
-  public var ref: String?
+  public var ref: String
   /// Organization linked.
   public var organizationID: Organization.ID
   /// User linked.

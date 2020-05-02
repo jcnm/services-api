@@ -29,9 +29,9 @@ public final class VersionController {
           .filter(\.patch == vers.patch)
           .first().flatMap { (vBase) -> EventLoopFuture<Version> in
             if let v = vBase {
-              return v.create(on: req)
+              throw Abort(HTTPResponseStatus.custom(code: HTTPResponseStatus.badRequest.code, reasonPhrase: "Unable to create this Version Id:\(v.id) v\(v.major).\(v.minor).\(v.patch), it's already registerd."))
             } else {
-              throw Abort(HTTPResponseStatus.custom(code: HTTPResponseStatus.badRequest.code, reasonPhrase: "Unable to create this Version."))
+              return vers.create(on: req)
             }
         }
     }

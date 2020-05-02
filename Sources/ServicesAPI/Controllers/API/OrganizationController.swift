@@ -15,6 +15,8 @@ import Paginator
 /// - MARK - CREATE Sector
 public final class OrganizationController {
   
+  let partnerController = PartnerController( )
+  
   public init() { }
   
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
@@ -327,6 +329,27 @@ extension OrganizationController {
   
 }
 
+/// - MARK - GET  Relative to Partener
+extension OrganizationController {
+  
+  public func dataOfPartner<T:Content>(_ req: Request) throws -> Future<T> {
+    let qPartnerStr = try req.parameters.next(String.self)
+    let qStr = try req.parameters.next(String.self)
+    let partners = partnerController.search(req, qPartnerStr)
+    return partners.flatMap { (parts) -> EventLoopFuture<T> in
+      let client = try req.client()
+      for p in parts {
+        let fullUrl = "\(p.mainUrl)/\(p.endPointAPI)/\(p.asPathParam ? "/" : (p.paramQueryName == nil ? "\(p.paramQueryName!)=" : "q="))\(qStr)"
+        let response = client.get(fullUrl, headers: HTTPHeaders([("Authorization", "Bearer \(p.bearerToken)")]))
+        return response.flatMap { (resp) -> EventLoopFuture<T> in
+          return try resp.content.decode(T.self)
+        }
+      }
+      throw Abort(HTTPResponseStatus.badRequest)
+    }
+  }
+}
+
 extension OrganizationController: RouteCollection {
   public func boot(router: Router) throws {
     
@@ -349,5 +372,9 @@ extension OrganizationController: RouteCollection {
     orgaGroup.patch(Organization.parameter, use: update)
     orgaGroup.patch(Organization.parameter, Config.APIWEP.sectorsWEP, use: sectorOfOrganization)
     orgaGroup.post(Organization.parameter, Config.APIWEP.membersWEP, use: addMember)
+    
+    // Organization SIRET
+    orgaGroup.get(Config.APIWEP.partnersWEP, String.parameter, use: list)
+
   }
 }

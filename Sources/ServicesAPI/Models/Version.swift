@@ -10,12 +10,16 @@ import FluentPostgreSQL
 import Vapor
 import Crypto
 
+let kVersionReferenceBasePrefix     = "VER"
+let kVersionReferenceLength         = 3
+
 /// A model to represent api backend version to every one.
 public final class Version: AdoptedModel {
   public static let name = "version"
  
   /// UserToken's unique identifier.
   public var id: ObjectID?
+  public var ref: String
   /// Version name.
   public var module: String
   /// Sem Version Core.
@@ -40,6 +44,7 @@ public final class Version: AdoptedModel {
               changelog: String? = nil, createdAt: Date = Date(),
               updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id       = id
+    self.ref      = Utils.newRef(kVersionReferenceBasePrefix, size: kVersionReferenceLength)
     self.module   = module
     self.major    = major
     self.minor    = minor
@@ -64,6 +69,7 @@ extension Version: Migration {
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
     return AdoptedDatabase.create(Version.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
+      builder.field(for: \.ref)
       builder.field(for: \.versionHash)
       builder.field(for: \.module)
       builder.field(for: \.major)
