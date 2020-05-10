@@ -30,9 +30,16 @@ public final class Partner: AdoptedModel {
   public var description: String
   public var lastAPIUpdate: String
   public var referedAppName: String
+  // confuguration
   public var asPathParam : Bool
   public var paramQueryName: String?
   public var hooksPointAPI: String?
+  // Presta
+  public var providerName : String
+  public var providerWebsite: String?
+  public var providerEmail: String?
+  public var providerNumber: String?
+
   /// Created date.
   public var createdAt: Date
   /// Updated date.
@@ -43,7 +50,8 @@ public final class Partner: AdoptedModel {
   /// Creates a new `UserToken`.
   public init(mainUrl: String, endPointAPI:String, versionAPI: String, bearerToken: String,
               name: String, description: String, lastAPIUpdate: String, referedAppName: String,
-    asPathParam: Bool = false, paramQueryName: String? = nil, hooksPointAPI: String? = nil,
+    asPathParam: Bool = true, paramQueryName: String? = nil, hooksPointAPI: String? = nil,
+    providerName: String = "", providerWebsite: String? = nil, providerEmail: String? = nil, providerNumber: String? = nil,
     createdAt: Date = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id             = id
     self.ref            = Utils.newRef(kPartnerReferenceBasePrefix, size: kPartnerReferenceLength)
@@ -58,6 +66,10 @@ public final class Partner: AdoptedModel {
     self.asPathParam    = asPathParam
     self.paramQueryName = paramQueryName
     self.hooksPointAPI  = hooksPointAPI
+    self.providerName   = providerName
+    self.providerWebsite = providerWebsite
+    self.providerEmail  = providerEmail
+    self.providerNumber = providerNumber
     self.createdAt      = createdAt
     self.updatedAt      = updatedAt
     self.deletedAt      = deletedAt
@@ -83,6 +95,10 @@ extension Partner: Migration {
       builder.field(for: \.asPathParam)
       builder.field(for: \.paramQueryName)
       builder.field(for: \.hooksPointAPI)
+      builder.field(for: \.providerName)
+      builder.field(for: \.providerWebsite)
+      builder.field(for: \.providerEmail)
+      builder.field(for: \.providerNumber)
       builder.field(for: \.createdAt)
       builder.field(for: \.updatedAt)
       builder.field(for: \.deletedAt)

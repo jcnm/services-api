@@ -71,32 +71,36 @@ public final class PartnerController {
   }
   
   /// get a version.
-  public func search(_ req: Request, _ q: String? = nil) -> Future<[Partner]> {
+  public func search(_ req: Request, _ q: String? = nil) -> Future<Partner?> {
     var qStr: String = ""
     qStr = q ?? ""
-    if let partStr = try? req.query.get(String.self, at: Config.SearchEngine.paramsPartnerQuery).uppercased() {
+    if let partStr = try? req.query.get(String.self, at: Config.SearchEngine.paramsPartnerQuery) {
       qStr = partStr
     }
+    print("String quering : \(qStr)")
     if qStr.isEmpty {
-      return req.future([])
+      return req.future(nil)
     }
+    print("Searching a partner for : \(qStr)")
     let part = Partner.query(on: req)
-      .group(.or){
-        $0.filter(\.name, .ilike, qStr)
-          .filter(\.ref, .ilike, qStr)
-          .filter(\.description, .ilike, qStr)
-          .filter(\.referedAppName, .ilike, qStr)
-    }
-    .group(.or){
-      $0.filter(\.deletedAt, .equal, nil)
-        .filter(\.deletedAt, .greaterThan, Date())
-    }
-    .range(lower: 0, upper: nil)
+      .group(.or) {
+        $0.filter(\.name, .equal,               qStr)
+          .filter(\.ref,  .ilike,               qStr) }
+      .group(.or) {
+        $0.filter(\.deletedAt, .equal,          nil)
+          .filter(\.deletedAt, .greaterThan,  Date()) }
+//    .range(lower: 0, upper: 1)
     // decode request content
-    return part.all()
+    return part.first()
   }
-  
 }
+
+/// - MARK - GET  Relative to Partener
+extension OrganizationController {
+  
+ 
+}
+
 
 /// - MARK - Partner ROUTES
 extension PartnerController: RouteCollection {
@@ -112,7 +116,9 @@ extension PartnerController: RouteCollection {
     partnerRoute.get(use: list)
     partnerRoute.get(Partner.parameter, use: show)
     partnerRoute.post(String.parameter, use: show)
-    
+    // Organization SIRET
+    partnerRoute.get(Config.APIWEP.partnersWEP, String.parameter, use: list)
+
   }
 }
 

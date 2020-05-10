@@ -15,7 +15,7 @@ let kAssetReferenceLength = kReferenceDefaultLength
 
 // An service Asset
 public final class Asset: AdoptedModel {
-  public let name = "asset"
+  public static let name = "asset"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }

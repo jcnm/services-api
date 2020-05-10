@@ -367,18 +367,18 @@ public final class Organization: AdoptedModel {
   public var denomination: String?
   /// full name for this organization could be a initials, abbreviation etc.
   public var shortLabel: String
-  /// full label name for this organization (raison social).
-  public var label: String
+  /// full legal name name for this organization (raison social).
+  public var legalName: String
   /// Organization's slogan.
   public var slogan: String?
-  /// Organization kind.
-  public var okind: OrganizationKind.RawValue
   /// Organization's title string.
   public var state: ObjectStatus.RawValue
+  /// Organization kind.
+  public var okind: OrganizationKind.RawValue
   /// Organization size type.
   public var osize: OrganizationSize.RawValue
   /// Organization juridic for type.
-  public var form: OrganizationGender.RawValue
+  public var juridicForm: OrganizationGender.RawValue
   /// Organization juridic for type.
   public var publicPart: String?
   /// Organization's currency.
@@ -391,6 +391,8 @@ public final class Organization: AdoptedModel {
   public var siret: String?
   /// Organization tva number.
   public var tva: String?
+  /// Organization tvaintracommon
+  public var ommunityTVA: String?
   /// Organization siren number.
   public var siren: String?
   /// Organization siren number.
@@ -429,7 +431,7 @@ public final class Organization: AdoptedModel {
               state: ObjectStatus, size: OrganizationSize = OrganizationSize.pe,
               parent: Organization.ID?, shortLabel: String,
               organizationRef: String? = nil, siren: String? = nil, siret:  String? = nil,
-              tva:  String? = nil, activityStartedAt: Date? = nil,
+              tva:  String? = nil, ommunityTVA: String? = nil, activityStartedAt: Date? = nil,
               activityEndedAt: Date? = nil,
               brand: String? = nil, denomination: String? = nil,
               orgGender:  OrganizationGender = OrganizationGender.defaultValue,
@@ -444,7 +446,7 @@ public final class Organization: AdoptedModel {
     self.ref        = Utils.newRef(kOrganizationReferenceBasePrefix, size: kOrganizationReferenceLength)
     self.organizationRef  = organizationRef
     self.parentID         = parent
-    self.label            = label
+    self.legalName        = label
     self.shortLabel       = shortLabel
     self.slogan           = slogan
     self.money            = money
@@ -456,10 +458,11 @@ public final class Organization: AdoptedModel {
     self.siren            = siren
     self.siret            = siret
     self.tva              = tva
+    self.ommunityTVA      = ommunityTVA
     self.createdAt        = createdAt
     self.updatedAt        = updatedAt
     self.deletedAt        = deletedAt
-    self.form             = orgGender.rawValue
+    self.juridicForm      = orgGender.rawValue
   }
 }
 
@@ -477,18 +480,19 @@ extension Organization: Migration {
       builder.field(for: \.brand)
       builder.field(for: \.denomination)
       builder.field(for: \.shortLabel)
-      builder.field(for: \.label)
+      builder.field(for: \.legalName)
       builder.field(for: \.slogan)
       builder.field(for: \.okind)
       builder.field(for: \.state)
       builder.field(for: \.osize)
-      builder.field(for: \.form)
+      builder.field(for: \.juridicForm)
       builder.field(for: \.publicPart)
       builder.field(for: \.money)
       builder.field(for: \.status)
       builder.field(for: \.description)
       builder.field(for: \.siret)
       builder.field(for: \.tva)
+      builder.field(for: \.ommunityTVA)
       builder.field(for: \.siren)
       builder.field(for: \.rcs)
       builder.field(for: \.apetCode)

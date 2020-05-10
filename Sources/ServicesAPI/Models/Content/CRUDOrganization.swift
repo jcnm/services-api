@@ -24,7 +24,7 @@ public extension Organization {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
     
-    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, label: org.label, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, form: org.form, publicPart: org.publicPart, status: org.status, description: org.description, siret: org.siret, tva: org.tva, siren: org.siren, apetCode: org.apetCode, apetLabel: org.apetLabel, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description, siret: org.siret, tva: org.tva, siren: org.siren, apetCode: org.apetCode, apetLabel: org.apetLabel, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
   
   static func fullResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse {
@@ -38,11 +38,11 @@ public extension Organization {
     if let uo = uorg, let iduo = uo.id {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
-    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, label: org.label, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, form: org.form, description: org.description, siret: org.siret, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, juridicForm: org.juridicForm, description: org.description, siret: org.siret, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
 
   func shortResponse() -> Organization.ShortPublicResponse {
-    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, label: self.label, ref: self.ref, kind: self.okind, money: self.money, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
+    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, legalName: self.legalName, ref: self.ref, kind: self.okind, money: self.money, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
   }
   static func midResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization? = nil) -> MidPublicResponse {
     return org.midResponse(sect: sect, uorg: uorg, parent: parent?.shortResponse())
@@ -58,7 +58,7 @@ public extension Organization {
     /// short cut name.
     public var shortLabel: String
     /// full name for this sector.
-    public var label: String
+    public var legalName: String
     /// Organization kind.
     public var kind: OrganizationKind
     /// Organization's description.
@@ -70,7 +70,7 @@ public extension Organization {
     /// Organization size type.
     public var size: OrganizationSize
     /// Organization juridic for type.
-    public var form: OrganizationGender
+    public var juridicForm: OrganizationGender
     /// Organization Parent Organization.ID.
     public var parentID: Organization.ID?
     /// Organization slogan.
@@ -82,9 +82,10 @@ public extension Organization {
     /// Organization status redaction for some form of organization this is required.
     public var status: String?
     /// Organization siret number.
-    public var siret: String?
+    public var siret: String
     /// Organization tva number.
     public var tva: String?
+    
     /// Organization rcs number.
     public var rcs: String?
     /// Organization APET code.
@@ -169,7 +170,7 @@ public extension Organization {
     /// short cut name.
     public var shortLabel: String
     /// full name for this organization.
-    public var label: String
+    public var legalName: String
     /// full référence for this organization.
     public var ref: String
     /// Organization kind.
@@ -200,7 +201,7 @@ public extension Organization {
     /// short cut name.
     public var shortLabel: String
     /// full name for this organization.
-    public var label: String
+    public var legalName: String
     /// full référence for this organization.
     public var ref: String
     /// Organization kind.
@@ -224,7 +225,7 @@ public extension Organization {
     /// Organization size type.
     public var size: OrganizationSize.RawValue
     /// Organization juridic for type. /// organizationGender
-    public var form: OrganizationGender.RawValue
+    public var juridicForm: OrganizationGender.RawValue
     /// Organization's description.
     public var description: String
     /// Organization siret number.
@@ -263,7 +264,7 @@ public extension Organization {
     /// short cut name.
     public var shortLabel: String
     /// full name for this sector.
-    public var label: String
+    public var legalName: String
     /// full référence for this organization.
     public var ref: String
     /// Organization's unique réference into the organization.
@@ -291,7 +292,7 @@ public extension Organization {
     /// Organization size type.
     public var size: OrganizationSize.RawValue
     /// Organization juridic for type. /// organizationGender
-    public var form: OrganizationGender.RawValue
+    public var juridicForm: OrganizationGender.RawValue
     /// Organization juridic for type.
     public var publicPart: String?
     /// Organization status redaction for some form of organization this is required.

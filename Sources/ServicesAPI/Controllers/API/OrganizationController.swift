@@ -40,7 +40,7 @@ public final class OrganizationController {
           print("@@@@@@@@@@@@Unknown sector")
           throw Abort(HTTPResponseStatus.badRequest)
         }
-        let orga = Organization(label: oc.label, slogan: oc.slogan, description: oc.description, sector: oc.sectorID, kind: oc.kind, money: oc.currency, state: ObjectStatus.defaultValue, size: oc.size, parent: oc.parentID == 0 ? nil : oc.parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: nil, siret: oc.siret, tva: oc.tva, activityStartedAt: dateForm.date(from: oc.activityStartedAt ?? ""), activityEndedAt: dateForm.date(from: oc.activityEndedAt ?? ""), brand: oc.brand, denomination: oc.denomination, orgGender: oc.form, publicPart: oc.publicPart, insurance: oc.insurance, insuranceName: oc.insuranceName, apetCode: oc.apetCode, apetLabel: oc.apetLabel, nafCode: oc.nafCode, nafLabel: oc.nafLabel, capital: oc.capital, market: oc.market, marketValue: oc.marketValue, status: oc.status, rcs: oc.rcs)
+        let orga = Organization(label: oc.legalName, slogan: oc.slogan, description: oc.description, sector: oc.sectorID, kind: oc.kind, money: oc.currency, state: ObjectStatus.defaultValue, size: oc.size, parent: oc.parentID == 0 ? nil : oc.parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: nil, siret: oc.siret, tva: oc.tva, activityStartedAt: dateForm.date(from: oc.activityStartedAt ?? ""), activityEndedAt: dateForm.date(from: oc.activityEndedAt ?? ""), brand: oc.brand, denomination: oc.denomination, orgGender: oc.juridicForm, publicPart: oc.publicPart, insurance: oc.insurance, insuranceName: oc.insuranceName, apetCode: oc.apetCode, apetLabel: oc.apetLabel, nafCode: oc.nafCode, nafLabel: oc.nafLabel, capital: oc.capital, market: oc.market, marketValue: oc.marketValue, status: oc.status, rcs: oc.rcs)
         /// Save the organization
         return orga.save(on: req).flatMap { (org) -> Future<Organization.FullPublicResponse> in
           print("@@@@@@@@@@@@Organization saved with succes")
@@ -88,7 +88,7 @@ extension OrganizationController {
             }
             
             orgToUpdate.okind = org.okind
-            orgToUpdate.label = org.label
+            orgToUpdate.legalName = org.legalName
             orgToUpdate.slogan = org.slogan
             orgToUpdate.state = org.state
             orgToUpdate.shortLabel = org.shortLabel
@@ -178,7 +178,7 @@ extension OrganizationController {
             }
           }
           _ = parent?.map{ (m_org) -> Void in
-            let orgspr = Organization.ShortPublicResponse(id: m_org.id, shortLabel: m_org.shortLabel, label: m_org.label, ref: m_org.ref, kind: m_org.okind, money: m_org.money, sectorID: m_org.sectorID, parentID: m_org.parentID, size: m_org.osize, createdAt: m_org.createdAt, updatedAt: m_org.updatedAt)
+            let orgspr = Organization.ShortPublicResponse(id: m_org.id, shortLabel: m_org.shortLabel, legalName: m_org.legalName, ref: m_org.ref, kind: m_org.okind, money: m_org.money, sectorID: m_org.sectorID, parentID: m_org.parentID, size: m_org.osize, createdAt: m_org.createdAt, updatedAt: m_org.updatedAt)
             orgFull.parent = orgspr
           }
           return req.future(orgFull)
@@ -329,27 +329,6 @@ extension OrganizationController {
   
 }
 
-/// - MARK - GET  Relative to Partener
-extension OrganizationController {
-  
-  public func dataOfPartner<T:Content>(_ req: Request) throws -> Future<T> {
-    let qPartnerStr = try req.parameters.next(String.self)
-    let qStr = try req.parameters.next(String.self)
-    let partners = partnerController.search(req, qPartnerStr)
-    return partners.flatMap { (parts) -> EventLoopFuture<T> in
-      let client = try req.client()
-      for p in parts {
-        let fullUrl = "\(p.mainUrl)/\(p.endPointAPI)/\(p.asPathParam ? "/" : (p.paramQueryName == nil ? "\(p.paramQueryName!)=" : "q="))\(qStr)"
-        let response = client.get(fullUrl, headers: HTTPHeaders([("Authorization", "Bearer \(p.bearerToken)")]))
-        return response.flatMap { (resp) -> EventLoopFuture<T> in
-          return try resp.content.decode(T.self)
-        }
-      }
-      throw Abort(HTTPResponseStatus.badRequest)
-    }
-  }
-}
-
 extension OrganizationController: RouteCollection {
   public func boot(router: Router) throws {
     
@@ -373,8 +352,5 @@ extension OrganizationController: RouteCollection {
     orgaGroup.patch(Organization.parameter, Config.APIWEP.sectorsWEP, use: sectorOfOrganization)
     orgaGroup.post(Organization.parameter, Config.APIWEP.membersWEP, use: addMember)
     
-    // Organization SIRET
-    orgaGroup.get(Config.APIWEP.partnersWEP, String.parameter, use: list)
-
   }
 }

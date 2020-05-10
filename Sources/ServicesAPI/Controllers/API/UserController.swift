@@ -289,6 +289,11 @@ extension UserController {
           .filter(\Contact.jobTitle,        .ilike, qry)
           .filter(\Contact.middleName,      .ilike, qry)
       }
+      .group(.or){
+        $0.filter(\User.deletedAt, .equal, nil)
+          .filter(\User.deletedAt, .greaterThan, Date())
+      }
+
       logger.debug("Getting User search from an administrator (\(user.staff.staff.isAdministrator)")
 
       return usersBuild.all().flatMap({(usrs: [(User, Contact)]) -> Future<[User.QuickSearch]> in
@@ -329,6 +334,8 @@ extension UserController {
     OR "organization"."slogan"        ILIKE '\(qry)'
     OR "organization"."shortLabel"    ILIKE '\(qry)'
     )
+    AND
+    ( "user"."deletedAt" IS NULL OR "user"."deletedAt" > NOW() )
     """
     return req.withNewConnection(to: .psql) { $0.raw( query ).all(decoding: User.QuickSearch.self) }
     

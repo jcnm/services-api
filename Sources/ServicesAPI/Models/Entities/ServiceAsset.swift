@@ -10,15 +10,15 @@ import Vapor
 import FluentPostgreSQL
 
 let kServiceAssetReferenceBasePrefix  = "SAS"
-let kServiceAssetReferenceLength = kReferenceDefaultLength
+let kServiceAssetReferenceLength      = kReferenceDefaultLength
 //
 // An service ServiceAsset
 public final class ServiceAsset: AdoptedPivot {
-  public static let name = "serviceasset"
-  public typealias Left = Service
-  public typealias Right = Asset
-  public static var leftIDKey: LeftIDKey = \.serviceID
-  public static var rightIDKey: RightIDKey = \.assetID
+  public static let name  = "serviceasset"
+  public typealias Left   = Service
+  public typealias Right  = Asset
+  public static var leftIDKey: LeftIDKey        = \.serviceID
+  public static var rightIDKey: RightIDKey      = \.assetID
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }

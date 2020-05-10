@@ -181,7 +181,7 @@ extension ServiceController {
               return industry.and(orga).and(author).flatMap { (indorg, auth) -> Future<Service.FullPublicResponse> in
                 let (ind, org) = indorg
                 logger.debug("Getting industry \(ind.id!) \(ind.title)")
-                logger.debug("Getting organization \(org.id!) \(org.label)")
+                logger.debug("Getting organization \(org.id!) \(org.legalName)")
                 logger.debug("Getting service author \(auth.id!) \(auth.login)")
                 return servScorePagine.flatMap { sss -> Future<Service.FullPublicResponse> in
                   var retRes = Service.fullResponse(serv: serv, ind: ind.shortResponse(), user: auth.shortResponse(), org: org.shortResponse(), parent: nil)
@@ -263,7 +263,7 @@ extension ServiceController {
         return industry.and(orga).and(author).flatMap { (indorg, auth) -> Future<Service.FullPublicResponse> in
           let (ind, org) = indorg
           logger.debug("Getting industry \(ind.id!) \(ind.title)")
-          logger.debug("Getting organization \(org.id!) \(org.label)")
+          logger.debug("Getting organization \(org.id!) \(org.legalName)")
           logger.debug("Getting service author \(auth.id!) \(auth.login)")
           return assets.and(servScorePagine).flatMap { (sass, sss) -> Future<Service.FullPublicResponse> in
             var retRes = Service.fullResponse(serv: serv, ind: ind.shortResponse(), user: auth.shortResponse(), org: org.shortResponse(), parent: nil)
