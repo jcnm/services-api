@@ -260,8 +260,8 @@ import Crypto
 
 
 public struct HeaderResponse: Content {
-  var statut: Int = 200
-  var message: String = ""
+  public var statut: Int = 200
+  public var message: String = ""
 }
 
 /**
@@ -466,11 +466,23 @@ public final class Siret: Content {
 }
  
 public final class Sirene: Content {
-  var header: HeaderResponse
+  public var header: HeaderResponse
   var uniteLegale: SireneSirenUL?
   var etablissement: SireneSiretEtablissement?
   var nomCatJuridiqueN3: String?
   var nomRev2NAF: String?
+  
+  init(header: HeaderResponse,
+       uniteLegale: SireneSirenUL? = nil,
+       etablissement: SireneSiretEtablissement? = nil,
+       nomCatJuridiqueN3: String? = nil,
+       nomRev2NAF: String? = nil) {
+    self.header = header
+    self.uniteLegale = uniteLegale
+    self.etablissement = etablissement
+    self.nomCatJuridiqueN3 = nomCatJuridiqueN3
+    self.nomRev2NAF = nomRev2NAF
+  }
 }
 
 

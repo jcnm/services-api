@@ -24,7 +24,7 @@ public extension Organization {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
     
-    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description, siret: org.siret, tva: org.tva, siren: org.siren, apetCode: org.apetCode, apetLabel: org.apetLabel, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, siren: org.siren, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
   
   static func fullResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse {
@@ -38,7 +38,7 @@ public extension Organization {
     if let uo = uorg, let iduo = uo.id {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
-    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, denomination: org.denomination, size: org.osize, juridicForm: org.juridicForm, description: org.description, siret: org.siret, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, description: org.description, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
 
   func shortResponse() -> Organization.ShortPublicResponse {
@@ -54,13 +54,13 @@ public extension Organization {
     /// Organization connected user's role.
     public var userRole: RoleKind
     /// CEO given denomination name as short as possible.
-    public var denomination: String?
+    public var sigle: String?
     /// short cut name.
     public var shortLabel: String
     /// full name for this sector.
     public var legalName: String
     /// Organization kind.
-    public var kind: OrganizationKind
+    public var kind: Int?
     /// Organization's description.
     public var description: String
     /// Organization's description.
@@ -70,7 +70,11 @@ public extension Organization {
     /// Organization size type.
     public var size: OrganizationSize
     /// Organization juridic for type.
-    public var juridicForm: OrganizationGender
+    public var juridicForm: OrganizationJuridic
+    /// Organization juridic for type.
+    public var juridicCatLabel: String?
+    /// Organization juridic for type.
+    public var juridicCatCode: Int?
     /// Organization Parent Organization.ID.
     public var parentID: Organization.ID?
     /// Organization slogan.
@@ -85,13 +89,10 @@ public extension Organization {
     public var siret: String
     /// Organization tva number.
     public var tva: String?
-    
+    /// Organization tva number.
+    public var communityTVA: String?
     /// Organization rcs number.
     public var rcs: String?
-    /// Organization APET code.
-    public var apetCode: String?
-    /// Organization APET label.
-    public var apetLabel: String?
     /// Organization NAF code.
     public var nafCode: String?
     /// Organization NAF label.
@@ -174,7 +175,8 @@ public extension Organization {
     /// full référence for this organization.
     public var ref: String
     /// Organization kind.
-    public var kind: OrganizationKind.RawValue
+    public var kind: Int?
+    public var communityTVA: String?
     /// Organization's description.
     public var money: String
     /// Reference to sector
@@ -205,7 +207,7 @@ public extension Organization {
     /// full référence for this organization.
     public var ref: String
     /// Organization kind.
-    public var kind: OrganizationKind.RawValue
+    public var kind: Int?
     /// Organization's title string.
     public var state: ObjectStatus.RawValue
     /// Organization's description.
@@ -221,17 +223,22 @@ public extension Organization {
     /// Submitted brand if you are working throught a brand licence.
     public var brand: String?
     /// CEO given denomination name as short as possible.
-    public var denomination: String?
+    public var sigle: String?
     /// Organization size type.
     public var size: OrganizationSize.RawValue
     /// Organization juridic for type. /// organizationGender
-    public var juridicForm: OrganizationGender.RawValue
+    public var juridicForm: OrganizationJuridic
+    /// Organization juridic for type.
+    public var juridicCatLabel: String?
+    /// Organization juridic for type.
+    public var juridicCatCode: Int?
     /// Organization's description.
     public var description: String
     /// Organization siret number.
     public var siret: String?
     /// Organization tva number.
     public var tva: String?
+    public var communityTVA: String?
     /// Organization Market value
     public var marketValue: String?
     /// activity begin date.
@@ -272,7 +279,7 @@ public extension Organization {
     /// Organization slogan.
     public var slogan: String?
     /// Organization kind.
-    public var kind: OrganizationKind.RawValue
+    public var kind: Int?
     /// Organization's title string.
     public var state: ObjectStatus.RawValue
     /// Organization's description.
@@ -288,11 +295,15 @@ public extension Organization {
     /// Submitted brand if you are working throught a brand licence.
     public var brand: String?
     /// CEO given denomination name as short as possible.
-    public var denomination: String?
+    public var sigle: String?
     /// Organization size type.
     public var size: OrganizationSize.RawValue
     /// Organization juridic for type. /// organizationGender
-    public var juridicForm: OrganizationGender.RawValue
+    public var juridicForm: OrganizationJuridic
+    /// Organization juridic for type.
+    public var juridicCatLabel: String?
+    /// Organization juridic for type.
+    public var juridicCatCode: Int?
     /// Organization juridic for type.
     public var publicPart: String?
     /// Organization status redaction for some form of organization this is required.
@@ -303,12 +314,10 @@ public extension Organization {
     public var siret: String?
     /// Organization tva number.
     public var tva: String?
-    /// Organization siren number.
+    /// Organization communityTVA number.
+    public var communityTVA: String?
+/// Organization siren number.
     public var siren: String?
-    /// Organization APET code.
-    public var apetCode: String?
-    /// Organization APET label.
-    public var apetLabel: String?
     /// Organization NAF code.
     public var nafCode: String?
     /// Organization NAF label.

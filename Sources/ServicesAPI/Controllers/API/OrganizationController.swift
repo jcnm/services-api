@@ -21,9 +21,8 @@ public final class OrganizationController {
   
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
     let _ = try UserController.logged(req)
-    
     // decode request content
-    let re = try req.content.decode(Organization.CreateOrganization.self, using: JSONDecoder.custom(dates: JSONDecoder.DateDecodingStrategy.millisecondsSince1970, data: JSONDecoder.DataDecodingStrategy.deferredToData, floats: JSONDecoder.NonConformingFloatDecodingStrategy.throw))
+    let re = try req.content.decode(Organization.CreateOrganization.self)
     print("CreateOrganization recupéré")
     print(re)
     return re.flatMap { (oc) -> Future<Organization.FullPublicResponse> in
@@ -40,7 +39,8 @@ public final class OrganizationController {
           print("@@@@@@@@@@@@Unknown sector")
           throw Abort(HTTPResponseStatus.badRequest)
         }
-        let orga = Organization(label: oc.legalName, slogan: oc.slogan, description: oc.description, sector: oc.sectorID, kind: oc.kind, money: oc.currency, state: ObjectStatus.defaultValue, size: oc.size, parent: oc.parentID == 0 ? nil : oc.parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: nil, siret: oc.siret, tva: oc.tva, activityStartedAt: dateForm.date(from: oc.activityStartedAt ?? ""), activityEndedAt: dateForm.date(from: oc.activityEndedAt ?? ""), brand: oc.brand, denomination: oc.denomination, orgGender: oc.juridicForm, publicPart: oc.publicPart, insurance: oc.insurance, insuranceName: oc.insuranceName, apetCode: oc.apetCode, apetLabel: oc.apetLabel, nafCode: oc.nafCode, nafLabel: oc.nafLabel, capital: oc.capital, market: oc.market, marketValue: oc.marketValue, status: oc.status, rcs: oc.rcs)
+        let orga = Organization(label: oc.legalName, slogan: oc.slogan, description: oc.description, sector: oc.sectorID, kind: oc.juridicCatCode, money: oc.currency, state: ObjectStatus.await, size: oc.size, parent: oc.parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: nil, siret: oc.siret, tva: oc.tva, communityTVA: oc.communityTVA, activityStartedAt: dateForm.date(from: oc.activityStartedAt ?? ""), activityEndedAt: dateForm.date(from: oc.activityEndedAt ?? ""), brand: oc.brand, sigle: oc.sigle, orgGender: oc.juridicForm, juridicCatCode: oc.juridicCatCode, juridicCatLabel: oc.juridicCatLabel, publicPart: oc.publicPart, insurance: oc.insurance, insuranceName: oc.insuranceName, nafCode: oc.nafCode, nafLabel: oc.nafLabel, capital: oc.capital, market: oc.market, marketValue: oc.marketValue, status: oc.status, rcs: oc.rcs)
+        
         /// Save the organization
         return orga.save(on: req).flatMap { (org) -> Future<Organization.FullPublicResponse> in
           print("@@@@@@@@@@@@Organization saved with succes")
@@ -61,7 +61,6 @@ public final class OrganizationController {
                   return req.future(org.fullResponse(sect: sec, uorg: uo, parent: nil))
                 }
               }
-              
             }
             return req.future(org.fullResponse(sect: sec, uorg: uo, parent: nil))
           }
@@ -76,7 +75,6 @@ extension OrganizationController {
   
   public func update(_ req: Request) throws -> Future<Organization> {
     let _ = try UserController.logged(req)
-    
     return try req.parameters.next(Organization.self).flatMap
       { orgToUpdate -> Future<Organization> in
         // decode request content

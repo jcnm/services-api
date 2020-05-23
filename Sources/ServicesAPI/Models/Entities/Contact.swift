@@ -21,7 +21,7 @@ public enum ContactKind: Codable  {
         let gender = try container.decode(PersonGender.self, forKey: .associatedValue)
         self = .person(gender)
     case 2:
-        let org = try container.decode(OrganizationGender.self, forKey: .associatedValue)
+        let org = try container.decode(OrganizationJuridic.self, forKey: .associatedValue)
         self = .organization(org)
     default:
         throw CodingError.unknownValue
@@ -54,7 +54,7 @@ public enum ContactKind: Codable  {
 
   case association
   case person(PersonGender)
-  case organization(OrganizationGender)
+  case organization(OrganizationJuridic)
   
   public static var defaultValue: ContactKind {
     return .person(.defaultValue)

@@ -22,197 +22,67 @@ let kOrganizationReferenceLength      = kReferenceDefaultLength
  6 : High profit structure:
  */
 public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
-  /*Entrepreneur individuel
-  Artisan-commerçant
-  Commerçant
-  Artisan
-  Officier public ou ministériel
-  Profession libérale
-  Exploitant agricole
-  Agent commercial
-  Associé gérant de Société
-  (Autre) Personne physique
-  Groupement de droit privé non doté de la personnalité morale
-  Indivision
-  Société créée de fait
-  Société en participation
-  Fiducie
-  Paroisse hors zone concordataire
-  Autre groupement de droit privé non doté de la personnalité morale
-  Personne morale de droit étranger
-  Personne morale de droit étranger, immatriculée au RCS
-  Personne morale de droit étranger, non immatriculée au RCS
-  Personne morale de droit public soumise au droit commercial
-  Etablissement public ou régie à caractère industriel ou commercial
-  Société commerciale
-  Société coopérative commerciale particulière
-  Société en nom collectif
-  Société en commandite
-  Société à responsabilité limitée (SARL)
-  Société anonyme à conseil d'administration
-  Société anonyme à directoire
-  Société par actions simplifiée
-  Société européenne
-  Autre personne morale immatriculée au RCS
-  Caisse d'épargne et de prévoyance
-  Groupement d'intérêt économique
-  Société coopérative agricole
-  Société d'assurance mutuelle
-  Société civile
-  Autre personne morale de droit privé inscrite au registre du commerce et des sociétés
-  Personne morale et organisme soumis au droit administratif
-  Administration de l'état
-  Collectivité territoriale
-  Etablissement public administratif
-  Autre personne morale de droit public administratif
-  Organisme privé spécialisé
-  Organisme gérant un régime de protection sociale à adhésion obligatoire
-  Organisme mutualiste
-  Comité d'entreprise
-  Organisme professionnel
-  Organisme de retraite à adhésion non obligatoire
-  Groupement de droit privé
-  Syndicat de propriétaires
-  Association loi 1901 ou assimilé
-  Fondation
-  Autre personne morale de droit privé
-*/
+//  10  Entrepreneur individuel
+//  21  Indivision
+//  22  Société créée de fait
+//  23  Société en participation
+//  24  Fiducie
+//  27  Paroisse hors zone concordataire
+//  29  Autre groupement de droit privé non doté de la personnalité morale
+//  31  Personne morale de droit étranger, immatriculée au RCS (registre du commerce et des sociétés)
+//  32  Personne morale de droit étranger, non immatriculée au RCS
+//  41  Etablissement public ou régie à caractère industriel ou commercial
+//  51  Société coopérative commerciale particulière
+//  52  Société en nom collectif
+//  53  Société en commandite
+//  54  Société à responsabilité limitée (SARL)
+//  55  Société anonyme à conseil d'administration
+//  56  Société anonyme à directoire
+//  57  Société par actions simplifiée
+//  58  Société européenne
+//  61  Caisse d'épargne et de prévoyance
+//  62  Groupement d'intérêt économique
+//  63  Société coopérative agricole
+//  64  Société d'assurance mutuelle
+//  65  Société civile
+//  69  Autre personne morale de droit privé inscrite au registre du commerce et des sociétés
+//  71  Administration de l'état
+//  72  Collectivité territoriale
+//  73  Etablissement public administratif
+//  74  Autre personne morale de droit public administratif
+//  81  Organisme gérant un régime de protection sociale à adhésion obligatoire
+//  82  Organisme mutualiste
+//  83  Comité d'entreprise
+//  84  Organisme professionnel
+//  85  Organisme de retraite à adhésion non obligatoire
+//  91  Syndicat de propriétaires
+//  92  Association loi 1901 ou assimilé
+//  93  Fondation
+//  99  Autre personne morale de droit privé
+//
+//  case tbd                            = 0 //
+//  // 1. Entrepreneur individuel
+//  case individual                     = 10 //
+//  // 2. Groupement de droit privé non doté de la personnalité morale
+//  case unmoralyPrivateGroup           = 20 //
+//  // 3. Personne morale de droit étranger
+//  case foreign                        = 30 //
+//  // 4. Personne morale de droit public soumise au droit commercial
+//  case publicNCommercial              = 40
+//  // 5. Société commerciale
+//  case commercial                     = 50 //
+//  // 6. Compagnie registration Office // immatriculée au Registre du Commerce et des Sociétés
+//  case otherRCO                       = 60
+//  // 7. Personne morale et organisme soumis au droit administratif
+//  case administrative                 = 70
+//  // 8. Organisme privé spécialisé
+//  case privateSpecial                 = 80
+//  // 9. Groupement de droit privé
+//  case privateGroup                   = 90
   
-  /**
-   0.
-   1. Entrepreneur individuel
-   
-   3. Personne morale de droit étranger
-   4.
-   5. Société commerciale
-   6. Autre personne morale  // Compagnie registration Office
-   trade and companies register
-   7.
-   9. Organisme privé spécialisé
-   10. Groupement de droit privé
-   
-   */
   case tbd                            = 0 //
-  // 1. Entrepreneur individuel
-  case individual                     = 10 //
-  // 2. Groupement de droit privé non doté de la personnalité morale
-  case unmoralyPrivateGroup           = 20 //
-  // 3. Personne morale de droit étranger
-  case foreign                        = 30 //
-  // 4. Personne morale de droit public soumise au droit commercial
-  case publicNCommercial              = 40
-  // 5. Société commerciale
-  case commercial                     = 50 //
-  // 6. Compagnie registration Office // immatriculée au Registre du Commerce et des Sociétés
-  case otherRCO                       = 60
-  // 7. Personne morale et organisme soumis au droit administratif
-  case administrative                 = 70
-  // 8. Organisme privé spécialisé
-  case privateSpecial                 = 80
-  // 9. Groupement de droit privé
-  case privateGroup                   = 90
-  
-  public static var defaultValue: OrganizationKind {
-    return .commercial
-  }
-  
-  public static var defaultRaw: OrganizationKind.RawValue {
-    return defaultValue.rawValue
-  }
-  
-  public var textual : String {
-    switch self {
-      case .tbd :
-        return "TBD"
-      case .individual :
-        return "Entrepreneur individuel"
-      case .unmoralyPrivateGroup:
-        return "Groupement de droit privé non doté de la personnalité morale"
-      case .foreign:
-        return "Personne morale de droit public soumise au droit commercial"
-      case .publicNCommercial :
-        return "Société commerciale"
-      case .commercial:
-        return "Autre personne morale immatriculée au RCS"
-      case .otherRCO:
-        return "Personne morale et organisme soumis au droit administratif"
-      case .administrative :
-        return "Personne morale et organisme soumis au droit administratif"
-      case .privateSpecial:
-        return "Organisme privé spécialisé"
-      case .privateGroup :
-        return "Groupement de droit privé"
-    }
-  }
-
-}
-
-/**
- *1
- */
-public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentable, CaseIterable {
-  
-  public static func reflectDecoded() throws -> (OrganizationSize, OrganizationSize) {
-    return (eti, group)
-  }
-  
-  /// These are note entreprise
-  case none         = 0 // Unclassifiable as a organization
-  case division     = 10 // Subdivision of an organization /// Pas besoin d'informations légales
-  
-  /// These are micro entreprise
-  case eti          = 20 // independant worker / auto entrepreneur  /// Pas besoin de certaines informations légales
-  /// These are small entreprise 10 - 49 employees
-  case pe           = 30  // small bussiness entre 10 salariés et 49 salariés avec soit un chiffre d'affaires inférieur à 10 millions d'euros par an, soit un total bilan inférieur à 10 millions d'euros.
-  case me           = 40 // entre 50 salariés et 250 salariés avec soit un chiffre d'affaires inférieur à 50 millions d'euros par an, soit un total bilan inférieur à 43 millions d'euros
-  case ge           = 50       // plus de 249 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  case group        = 60       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  
-  case holding      = 70       // Holding de plusieurs entreprises de différentes tailles d'une même structure
-    
-  public static var defaultValue: OrganizationSize {
-    return .eti
-  }
-  
-  public static var defaultRaw: OrganizationSize.RawValue {
-    return defaultValue.rawValue
-  }
-  
-  public var textual: String {
-    switch self {
-      case .none :
-        return "N/A"
-      case .division :
-        return "Division D'entreprise"
-      case .eti:
-        return "Entreprise Individuelle"
-      case .pe:
-        return "Petite entreprise"
-      case .me :
-        return "Moyenne Entreprise"
-      case .ge:
-        return "Grande entreprise"
-      case .group:
-        return "Grand Groupe"
-      case .holding :
-        return "Pilote d'Entreprises (Holding)"
-    }
-  }
-  
-}
-
-
-public enum OrganizationGender: Int, RawRepresentable, Codable, CaseIterable {
-  /*
-   UK / Ireland / Commonwealth
-   Charitable incorporated organisation (CIO)Community interest company (CIC)Industrial and provident society (IPS)
-   Limited company (Ltd.) by guaranteeby sharesproprietarypublicUnlimited company
-   United States
-   Benefit corporationC corporationLimited liability company (LLC) Low-profit LLCSeries LLCLimited liability limited partnership (LLLP)S corporationDelaware corporation / statutory trust - Massachusetts business trust - Nevada corporation
-   */
-  
   /// les entreprises individuelles
-  case freelance = 1, ei = 2
+  case ei       = 10
   /// Entreprise Individuelle à Responsabilité Limitée (EIRL)
   case eirl
   /// Etablissement Public Industriel et Commercial (EPIC)
@@ -262,13 +132,11 @@ public enum OrganizationGender: Int, RawRepresentable, Codable, CaseIterable {
   case geie
   /// European Economic Interest Grouping (EEIG = GEIE)
   case eeig
-  
+
   public var textual: String {
     switch self {
-      case .freelance :
-        return "Auto Entrepreneur (Micro-Entreprise)"
       case .ei :
-        return "Entreprise Individuel (EI)"
+        return "Entreprise Individuel (EI, Micro-Entreprise)"
       case .eirl:
         return "Entreprise Individuelle à Responsabilité Limitée (EIRL)"
       case .epic:
@@ -320,15 +188,150 @@ public enum OrganizationGender: Int, RawRepresentable, Codable, CaseIterable {
     }
   }
   
-  public static var defaultValue: OrganizationGender {
-    return .freelance
+
+  public static var defaultValue: OrganizationKind {
+    return .tbd
   }
   
-  public static var defaultRaw: OrganizationGender.RawValue {
+  public static var defaultRaw: OrganizationKind.RawValue {
     return defaultValue.rawValue
+  }
+//
+//  public var textual : String {
+//    switch self {
+//      case .tbd :
+//        return "TBD"
+//      case .individual :
+//        return "Entrepreneur individuel"
+//      case .unmoralyPrivateGroup:
+//        return "Groupement de droit privé non doté de la personnalité morale"
+//      case .foreign:
+//        return "Personne morale de droit public soumise au droit commercial"
+//      case .publicNCommercial :
+//        return "Société commerciale"
+//      case .commercial:
+//        return "Autre personne morale immatriculée au RCS"
+//      case .otherRCO:
+//        return "Personne morale et organisme soumis au droit administratif"
+//      case .administrative :
+//        return "Personne morale et organisme soumis au droit administratif"
+//      case .privateSpecial:
+//        return "Organisme privé spécialisé"
+//      case .privateGroup :
+//        return "Groupement de droit privé"
+//    }
+//  }
+}
+
+/**
+ *
+ */
+public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentable, CaseIterable {
+  
+  public static func reflectDecoded() throws -> (OrganizationSize, OrganizationSize) {
+    return (eti, group)
+  }
+  /// These are note entreprise
+  case division     = 0 // Subdivision of an organization /// Pas besoin d'informations légales
+
+  /// These are micro entreprise
+  case eti          = 10 // independant worker / auto entrepreneur  /// Pas besoin de certaines informations légales
+  /// These are small entreprise 10 - 49 employees
+  case pe           = 20  // small bussiness entre 10 salariés et 49 salariés avec soit un chiffre d'affaires inférieur à 10 millions d'euros par an, soit un total bilan inférieur à 10 millions d'euros.
+  case me           = 30 // entre 50 salariés et 250 salariés avec soit un chiffre d'affaires inférieur à 50 millions d'euros par an, soit un total bilan inférieur à 43 millions d'euros
+  case ge           = 50       // plus de 249 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
+  case group        = 60       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
+  
+  case holding      = 70       // Holding de plusieurs entreprises de différentes tailles d'une même structure
+    
+  public static var defaultValue: OrganizationSize {
+    return .eti
+  }
+  
+  public static var defaultRaw: OrganizationSize.RawValue {
+    return defaultValue.rawValue
+  }
+  
+  public var textual: String {
+    switch self {
+      case .division :
+        return "Division d'entreprise"
+      case .eti:
+        return "Entreprise Individuelle"
+      case .pe:
+        return "Petite entreprise"
+      case .me :
+        return "Moyenne Entreprise"
+      case .ge:
+        return "Grande entreprise"
+      case .group:
+        return "Grand Groupe"
+      case .holding :
+        return "Pilote d'Entreprises (Holding)"
+    }
   }
 }
 
+
+//public enum OrganizationGender: Codable, CaseIterable {
+//  /*
+//   UK / Ireland / Commonwealth
+//   Charitable incorporated organisation (CIO)Community interest company (CIC)Industrial and provident society (IPS)
+//   Limited company (Ltd.) by guaranteeby sharesproprietarypublicUnlimited company
+//   United States
+//   Benefit corporationC corporationLimited liability company (LLC) Low-profit LLCSeries LLCLimited liability limited partnership (LLLP)S corporationDelaware corporation / statutory trust - Massachusetts business trust - Nevada corporation
+//   */
+//  public init(from decoder: Decoder) throws {
+//    let container = try decoder.container(keyedBy: Key.self)
+//    let rawValue = try container.decode(Int.self, forKey: .rawValue)
+//
+//    switch rawValue {
+//    case 0:
+//        self = .association
+//    case 1:
+//        let gender = try container.decode(PersonGender.self, forKey: .associatedValue)
+//        self = .person(gender)
+//    case 2:
+//        let org = try container.decode(OrganizationGender.self, forKey: .associatedValue)
+//        self = .organization(org)
+//    default:
+//        throw CodingError.unknownValue
+//    }
+//
+//  }
+//
+//  public func encode(to encoder: Encoder) throws {
+//    var container = encoder.container(keyedBy: Key.self)
+//        switch self {
+//        case .association :
+//            try container.encode(0, forKey: .rawValue)
+//        case .person(let gender):
+//            try container.encode(1, forKey: .rawValue)
+//            try container.encode(gender, forKey: .associatedValue)
+//        case .organization(let gender):
+//            try container.encode(2, forKey: .rawValue)
+//            try container.encode(gender, forKey: .associatedValue)
+//        }
+//  }
+//
+//  enum Key: CodingKey {
+//      case rawValue
+//      case associatedValue
+//  }
+//
+//  enum CodingError: Error {
+//      case unknownValue
+//  }
+//
+//
+//  case jCatCode(Int)
+//
+//  public static var defaultValue: OrganizationGender {
+//    return .jCatCode(1000)
+//  }
+//
+//}
+//
 
 public extension Int {
   var osize : OrganizationSize {
@@ -339,12 +342,13 @@ public extension Int {
     return OrganizationKind(rawValue: self) ?? OrganizationKind.defaultValue
   }
   
-  var ogender : OrganizationGender {
-    return OrganizationGender(rawValue: self) ?? OrganizationGender.defaultValue
-  }
+//  var ogender : OrganizationGender {
+//    return OrganizationGender.jCatCode(self)
+//  }
   
 }
 
+public typealias OrganizationJuridic = Int
 // An industry activity
 public final class Organization: AdoptedModel {
   public static var createdAtKey: TimestampKey? { return \.createdAt }
@@ -364,7 +368,7 @@ public final class Organization: AdoptedModel {
   /// Submitted brand if you are working throught a brand licence.
   public var brand: String?
   /// CEO given denomination name as short as possible.
-  public var denomination: String?
+  public var sigle: String?
   /// full name for this organization could be a initials, abbreviation etc.
   public var shortLabel: String
   /// full legal name name for this organization (raison social).
@@ -374,11 +378,15 @@ public final class Organization: AdoptedModel {
   /// Organization's title string.
   public var state: ObjectStatus.RawValue
   /// Organization kind.
-  public var okind: OrganizationKind.RawValue
+  public var okind: Int?
   /// Organization size type.
   public var osize: OrganizationSize.RawValue
   /// Organization juridic for type.
-  public var juridicForm: OrganizationGender.RawValue
+  public var juridicForm: OrganizationJuridic
+  /// Organization juridic for type.
+  public var juridicCatLabel: String?
+  /// Organization juridic for type.
+  public var juridicCatCode: Int?
   /// Organization juridic for type.
   public var publicPart: String?
   /// Organization's currency.
@@ -391,16 +399,12 @@ public final class Organization: AdoptedModel {
   public var siret: String?
   /// Organization tva number.
   public var tva: String?
-  /// Organization tvaintracommon
-  public var ommunityTVA: String?
+  /// Organization communityTVA
+  public var communityTVA: String?
   /// Organization siren number.
   public var siren: String?
   /// Organization siren number.
   public var rcs: String?
-  /// Organization APET code.
-  public var apetCode: String?
-  /// Organization APET label.
-  public var apetLabel: String?
   /// Organization NAF code.
   public var nafCode: String?
   /// Organization NAF label.
@@ -427,19 +431,18 @@ public final class Organization: AdoptedModel {
   public var deletedAt: Date?
   /// Creates a new `Organization`.
   public init(label: String, slogan: String?, description: String,
-              sector: Sector.ID, kind: OrganizationKind, money: String,
+              sector: Sector.ID, kind: Int?, money: String,
               state: ObjectStatus, size: OrganizationSize = OrganizationSize.pe,
               parent: Organization.ID?, shortLabel: String,
               organizationRef: String? = nil, siren: String? = nil, siret:  String? = nil,
-              tva:  String? = nil, ommunityTVA: String? = nil, activityStartedAt: Date? = nil,
+              tva:  String? = nil, communityTVA: String? = nil, activityStartedAt: Date? = nil,
               activityEndedAt: Date? = nil,
-              brand: String? = nil, denomination: String? = nil,
-              orgGender:  OrganizationGender = OrganizationGender.defaultValue,
-              publicPart: String? = nil, insurance: String? = nil,
-              insuranceName: String? = nil, apetCode: String? = nil,
-              apetLabel: String? = nil, nafCode: String? = nil, nafLabel: String? = nil,
-              capital:  String? = nil, market: String? = nil, marketValue: String? = nil,
-              status: String? = nil, rcs: String? = nil,
+              brand: String? = nil, sigle: String? = nil,
+              orgGender:  OrganizationJuridic = 0, juridicCatCode: Int? = nil,
+              juridicCatLabel: String? = nil, publicPart: String? = nil, insurance: String? = nil,
+              insuranceName: String? = nil, nafCode: String? = nil,
+              nafLabel: String? = nil, capital:  String? = nil, market: String? = nil,
+              marketValue: String? = nil, status: String? = nil, rcs: String? = nil,
               createdAt: Date = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil,
               id: ObjectID? = nil) {
     self.id         = id
@@ -451,18 +454,25 @@ public final class Organization: AdoptedModel {
     self.slogan           = slogan
     self.money            = money
     self.state            = state.rawValue
-    self.okind            = kind.rawValue
+    self.okind            = kind
     self.osize            = size.rawValue
     self.sectorID         = sector
     self.description      = description
     self.siren            = siren
     self.siret            = siret
     self.tva              = tva
-    self.ommunityTVA      = ommunityTVA
+    self.communityTVA      = communityTVA
     self.createdAt        = createdAt
     self.updatedAt        = updatedAt
     self.deletedAt        = deletedAt
-    self.juridicForm      = orgGender.rawValue
+    self.juridicForm      = orgGender
+    self.juridicCatLabel  = juridicCatLabel
+    self.juridicCatCode   = juridicCatCode
+    self.sigle            = sigle
+    self.nafCode          = nafCode
+    self.nafLabel         = nafLabel
+    self.insurance        = insurance
+    self.insuranceName    = insuranceName
   }
 }
 
@@ -478,7 +488,7 @@ extension Organization: Migration {
       builder.field(for: \.parentID)
       builder.field(for: \.sectorID)
       builder.field(for: \.brand)
-      builder.field(for: \.denomination)
+      builder.field(for: \.sigle)
       builder.field(for: \.shortLabel)
       builder.field(for: \.legalName)
       builder.field(for: \.slogan)
@@ -486,17 +496,17 @@ extension Organization: Migration {
       builder.field(for: \.state)
       builder.field(for: \.osize)
       builder.field(for: \.juridicForm)
+      builder.field(for: \.juridicCatCode)
+      builder.field(for: \.juridicCatLabel)
       builder.field(for: \.publicPart)
       builder.field(for: \.money)
       builder.field(for: \.status)
       builder.field(for: \.description)
       builder.field(for: \.siret)
       builder.field(for: \.tva)
-      builder.field(for: \.ommunityTVA)
+      builder.field(for: \.communityTVA)
       builder.field(for: \.siren)
       builder.field(for: \.rcs)
-      builder.field(for: \.apetCode)
-      builder.field(for: \.apetLabel)
       builder.field(for: \.nafCode)
       builder.field(for: \.nafLabel)
       builder.field(for: \.market)

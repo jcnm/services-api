@@ -27,6 +27,11 @@ extension APIController {
     let qPartnerStr: String
     if let p      = partner { qPartnerStr = p } else { qPartnerStr = try req.parameters.next(String.self) }
     let qStr      = try req.parameters.next(String.self)
+    guard CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: qStr)) else {
+      let sirHeader = HeaderResponse(statut: 400, message: "Le numero Sirene est mal formé.")
+      let sir = Sirene(header: sirHeader)
+      return req.future(sir)
+    }
     let partner   = partnerController.search(req, qPartnerStr)
     let logger    = try req.make(Logger.self)
     logger.debug("API Controller target \(qStr) searched partener : \(qPartnerStr)")
@@ -38,7 +43,7 @@ extension APIController {
         logger.debug("New client query at: \(fullUrl)")
         let response =
           client.get(fullUrl,
-                     headers: HTTPHeaders([("Accept", "application/json"),("Authorization", "Bearer \(p.bearerToken)")]))
+            headers: HTTPHeaders([("Accept", "application/json"),("Authorization", "Bearer \(p.bearerToken)")]))
           { q in
             print("Before running request")
             print(q.http); print(q.content)}
@@ -74,7 +79,10 @@ extension APIController {
                 }
             }
           })
-
+        }.catchMap { (err) -> Sirene in
+          print("enable to read data correctly due to server inert request")
+          print(err)
+          return Sirene(header: HeaderResponse(statut: 500, message: "Impossible de joindre le partener"))
         }
       } else {
       throw Abort(HTTPResponseStatus.noContent)
@@ -100,8 +108,8 @@ extension APIController {
                      headers: HTTPHeaders([("Accept", "application/json"),("Authorization", "Bearer \(p.bearerToken)")]))
           { q in
             print("Before running request")
-            print(q.http); print(q.content)
-            
+            print(q.http);
+            print(q.content)
         }
         return response.flatMap { (resp) -> EventLoopFuture<T> in
         logger.debug("Returning client response: \(fullUrl)")
@@ -126,8 +134,8 @@ extension APIController: RouteCollection {
      *******************************************************************/
     
     // bearer / token auth protected routes
-    let bearer            = router.grouped(User.tokenAuthMiddleware())
-    let partnerGroup      = bearer.grouped(Config.APIWEP.partnersWEP)
+//    let bearer            = router.grouped(User.tokenAuthMiddleware())
+//    let partnerGroup      = bearer.grouped(Config.APIWEP.partnersWEP)
 
 //    bearer.get(Config.APIWEP.partnersWEP, String.parameter, use: list)
 
