@@ -9,7 +9,9 @@ import Foundation
 import Crypto
 import FluentPostgreSQL
 import Vapor
-
+import AppKit
+import Fuzi
+import SwiftSoup
 
 public typealias  ObjectID        = Int
 public typealias  AbsolutePath    = String
@@ -49,25 +51,6 @@ public func fillMetaBaseInfo(_ meta: inout PageMeta) {
   for os in ObjectStatus.allCases {
     meta.namedData["status"]!.append(LabeledValue<String>(label: String(os.rawValue), value: os.textual))
   }
-}
-
-public func resume(_ of: String?, limitChar: Int = kCollectionDescriptionContentSize) -> String {
-  guard let desc = of , !desc.isEmpty else {
-    return "N/A"
-  }
-  
-  var descr = String(desc.prefix(limitChar))
-  if (descr.contains(".")) {
-    var descList = descr.split(separator: ".",  omittingEmptySubsequences: true)
-    if descList.count > 1 {
-      descList = descList.dropLast()
-    }
-    descr = (descList.joined(separator: ". ") )
-  } else {
-    let descList = descr.split(separator: " ",  omittingEmptySubsequences: true).dropLast()
-    descr = (descList.joined(separator: " ") )
-  }
-  return descr
 }
 
 /** Channel type  *
@@ -157,6 +140,116 @@ public extension Int {
   }
 }
 
+extension Whitelist {
+  public static func services() throws -> Whitelist {
+    return try Whitelist.none()
+          .addTags(
+              "a", "b", "blockquote", "br", "caption", "cite", "code", "col",
+              "colgroup", "dd", "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6",
+              "i", "img", "li", "ol", "p", "pre", "q", "small", "span", "strike", "strong",
+              "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u",
+              "ul", "iframe")
+          .addAttributes("a", "href", "title")
+          .addAttributes("blockquote", "cite")
+          .addAttributes("col", "span", "width")
+          .addAttributes("colgroup", "span", "width")
+          .addAttributes("img", "align", "alt", "height", "src", "title", "width")
+          .addAttributes("ol", "start", "type")
+          .addAttributes("q", "cite")
+          .addAttributes("table", "summary", "width")
+          .addAttributes("td", "abbr", "axis", "colspan", "rowspan", "width")
+          .addAttributes(
+              "th", "abbr", "axis", "colspan", "rowspan", "scope",
+              "width")
+          .addAttributes("ul", "type")
+          .addAttributes("iframe", "frameborder", "src", "width", "height" )
+
+          .addProtocols("a", "href", "ftp", "http", "https", "mailto")
+          .addProtocols("blockquote", "cite", "http", "https")
+          .addProtocols("cite", "cite", "http", "https")
+          .addProtocols("img", "src", "data", "http", "https")
+          .addProtocols("q", "cite", "http", "https")
+//          .addProtocols("iframe", "src", "https")
+          .addEnforcedAttribute("a", "rel", "nofollow")
+  }
+
+}
+
+extension String {
+/// Trim using Fuzi lib
+//  var htmlToString: String {
+//    let doc = try? HTMLDocument(string: self, encoding: String.Encoding.utf8)
+//    let nodes = doc?.root?.childNodes(ofTypes: [.Element, .Text])
+//    let str = nodes?.reduce("", { (res, xnode) -> String in
+//      return "\(res) \(xnode.stringValue)"
+//    })
+//    return str ?? ""
+//  }
+//="0" src="//www.youtube.com/embed/BSeX7nTsqmw" width="640" height="360" class="note-video-clip"
+var sanitizedHtml: String {
+  if let wList = try? Whitelist.services() {
+    let cleanHTML = try? SwiftSoup.clean(self, wList)
+    return cleanHTML ?? ""
+  }
+  return ""
+}
+
+var trimHTMLTags: String {
+  guard let doc: Document = try? SwiftSoup.parse(self) else { return "" } // parse html
+  guard let txt = try? doc.text() else { return "" }
+  return txt
+}
+  
+}
+
+extension String {
+  // Won't work http://www.openradar.me/34021573
+  ///https://forums.developer.apple.com/thread/115405
+//    public func trimHTMLTags() -> String? {
+//        guard let htmlStringData = self.data(using: String.Encoding.utf8) else {
+//            return nil
+//        }
+//        let options: [NSAttributedString.DocumentReadingOptionKey : Any] = [
+//        .documentType: NSAttributedString.DocumentType.html,
+//        .characterEncoding: String.Encoding.utf8.rawValue ]
+//
+//      if let attributedString = NSAttributedString(html: htmlStringData, options: options, documentAttributes: nil) {
+//        return attributedString.string
+//      }
+//      return nil
+//    }
+}
+
+extension String {
+
+  public func resume(limitChar: Int = kCollectionDescriptionContentSize) -> String {
+    guard !self.isEmpty else {
+      return "N/A"
+    }
+    if self.count < (limitChar * 2) - limitChar/2 {
+      return self
+    }
+    let strPrefix = String(self.trimHTMLTags.prefix(limitChar))
+    var descr: String? = strPrefix 
+    
+    if let d = descr {
+      if d.contains(".") {
+        var descList = d.split(separator: ".",  omittingEmptySubsequences: true)
+        if descList.count > 1 {
+          descList = descList.dropLast()
+        }
+        descr = descList.joined(separator: ". ")
+      } else {
+        let descList = d.split(separator: " ",  omittingEmptySubsequences: true).dropLast()
+        descr = (descList.joined(separator: " "))
+      }
+      if self.count > descr!.count { return "\(descr!)…" }
+      return descr!
+    }
+    return "N/A"
+  }
+
+}
 /**
  AccessRight defines access right to a given echo.
  

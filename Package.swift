@@ -14,12 +14,15 @@ let package = Package(
     .package(name: "FluentPostgreSQL", url: "https://github.com/vapor/fluent-postgresql.git", from: "1.0.0"),
     .package(name: "Multipart", url: "https://github.com/vapor/multipart.git", from: "3.0.0"),
     // Authentication
-    .package(name: "Auth", url: "https://github.com/vapor/auth.git", from: "2.0.4")
+    .package(name: "Auth", url: "https://github.com/vapor/auth.git", from: "2.0.4"),
+    // Html parser
+    .package(name: "Fuzi", url: "https://github.com/cezheng/Fuzi", from: "3.1.2"),
+    .package(name: "SwiftSoup", url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2")
   ],
   targets: [
     .target(
 	name: "ServicesAPI", 
-	dependencies: [.product(name: "Authentication", package: "Auth"), "Multipart", "FluentPostgreSQL", "Paginator", "Vapor"]
+	dependencies: [.product(name: "Authentication", package: "Auth"), "Multipart", "FluentPostgreSQL", "Paginator", "Fuzi", "SwiftSoup", "Vapor"]
 	),
     .testTarget(name: "ServiceAPITests", dependencies: ["ServicesAPI"])
   ]

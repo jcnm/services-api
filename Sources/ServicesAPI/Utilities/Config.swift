@@ -34,9 +34,19 @@ public extension Config {
   static let rootUpdloadedImagesFiles         = "imgs/"
   static let rootUpdloadedDocumentsFiles      = "docs/"
   static let rootUpdloadedConfigsFiles        = "configs/"
+  static let dbPsgURL: String                 = Environment.get("DATABASE_URL") ?? kDefaultDataBasePostgresURL
+  /// Postgress database port
+  static let dbPsgPort: Int                   = Int(Environment.get("DATABASE_PORT") ?? "") ?? kDefaultDataBasePostgresPort
+  /// Postgress database base
+  static let dbPsgBasename: String            = Environment.get("DATABASE_BASENAME") ?? kDefaultDataBasePostgresBasename
+  /// Postgress database hostname
+  static let dbPsgHostname: String            = Environment.get("DATABASE_HOSTNAME") ?? kDefaultDataBasePostgreHostname
+  /// Postgress database user name
+  static let dbPsgUser : String               = Environment.get("DATABASE_USERNAME") ?? kDefaultDataBasePostgreUser
+  /// Postgress database user password
+  static let dbPsgPassword : String           = Environment.get("DATABASE_PASSWORD") ?? kDefaultDataBasePostgrePassword
 
   struct SearchEngine {
-
     struct Default {
       public static let nonullable                = 0
       public static let nullable                  = -1
@@ -128,57 +138,4 @@ public extension Config {
     public static let profilePictureWEP = "pp"
   }
   
-  struct Static {
-    /****
-     * Data base configuration
-     ***/
-    /// Postgress database full url
-    public static var dbPsgURL : String {
-      if let url = Environment.get("DATABASE_URL") {
-        return url
-      } else {
-        return kDefaultDataBasePostgresURL
-      }
-    }
-    /// Postgress database port
-    public static var dbPsgPort : Int {
-      if let port = Environment.get("DATABASE_PORT") {
-        return Int(port) ?? kDefaultDataBasePostgresPort
-      } else {
-        return kDefaultDataBasePostgresPort
-      }
-    }
-    /// Postgress database base
-    public static var dbPsgBasename : String {
-      if let dbname = Environment.get("DATABASE_BASENAME") {
-        return dbname
-      } else {
-        return kDefaultDataBasePostgresBasename
-      }
-    }
-    /// Postgress database hostname
-    public static var dbPsgHostname : String {
-      if let hostname = Environment.get("DATABASE_HOSTNAME") {
-        return hostname
-      } else {
-        return kDefaultDataBasePostgreHostname
-      }
-    }
-    /// Postgress database user name
-    public static var dbPsgUser : String {
-      if let user = Environment.get("DATABASE_USERNAME") {
-        return user
-      } else {
-        return kDefaultDataBasePostgreUser
-      }
-    }
-    /// Postgress database user password
-    public static var dbPsgPassword : String {
-      if let pswd = Environment.get("DATABASE_PASSWORD") {
-        return pswd
-      } else {
-        return kDefaultDataBasePostgrePassword
-      }
-    }
-  }
 }
