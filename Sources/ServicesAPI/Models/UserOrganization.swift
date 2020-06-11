@@ -198,7 +198,7 @@ extension UserOrganization : ModifiablePivot {
 extension UserOrganization: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(UserOrganization.self, on: conn) { builder in
+    let uoTable = AdoptedDatabase.create(UserOrganization.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.userID)
@@ -211,6 +211,12 @@ extension UserOrganization: Migration {
       builder.reference(from: \.userID, to: \User.id)
       builder.reference(from: \.organizationID, to: \Organization.id)
     }
+
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(UserOrganization.name)_id_seq RESTART WITH 500").all()
+    }
+    return uoTable
   }
   
   public static func revert(on conn: Database.Connection) -> Future<Void> {

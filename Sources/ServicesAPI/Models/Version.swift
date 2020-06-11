@@ -67,7 +67,7 @@ public final class Version: AdoptedModel {
 extension Version: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Version.self, on: conn) { builder in
+    let vTable = AdoptedDatabase.create(Version.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.versionHash)
@@ -77,12 +77,20 @@ extension Version: Migration {
       builder.field(for: \.patch)
       builder.field(for: \.build)
       builder.field(for: \.release)
+      builder.field(for: \.changelog)
       builder.field(for: \.createdAt)
       builder.field(for: \.updatedAt)
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.versionHash)
+
     }
+
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Version.name)_id_seq RESTART WITH 10").all()
+    }
+    return vTable
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

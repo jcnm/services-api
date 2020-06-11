@@ -262,6 +262,10 @@ import Crypto
 public struct HeaderResponse: Content {
   public var statut: Int = 200
   public var message: String = ""
+  
+  public static var def: HeaderResponse {
+    return HeaderResponse(statut: 200, message: "Siren par defaut retourne")
+  }
 }
 
 /**
@@ -315,6 +319,10 @@ public struct SireneSirenUL: Content {
   public var categorieEntreprise: String?                           = nil
   public var anneeCategorieEntreprise: String?                      = nil
   public var periodesUniteLegale: [ SirenePeriodeEtablissementUL ]  = []
+  
+  public static var def: SireneSirenUL {
+    return SireneSirenUL(siren: "000000000", statutDiffusionUniteLegale: "N", dateCreationUniteLegale: nil, sigleUniteLegale: nil, sexeUniteLegale: nil, prenom1UniteLegale: nil, prenom2UniteLegale: nil, prenom3UniteLegale: nil, prenom4UniteLegale: nil, prenomUsuelUniteLegale: nil, pseudonymeUniteLegale: nil, identifiantAssociationUniteLegale: nil, trancheEffectifsUniteLegale: nil, anneeEffectifsUniteLegale: nil, dateDernierTraitementUniteLegale: nil, nombrePeriodesUniteLegale: 0, categorieEntreprise: nil, anneeCategorieEntreprise: nil, periodesUniteLegale: [])
+  }
 }
 /////////////
 
@@ -349,6 +357,32 @@ public struct SireneEtablissementUL: Content {
   public var categorieEntreprise: String?                   = ""
   public var anneeCategorieEntreprise: String?               = nil
 
+  public static var def: SireneEtablissementUL {
+    return
+      SireneEtablissementUL(
+        etatAdministratifUniteLegale: nil,
+        statutDiffusionUniteLegale: "N",
+        dateCreationUniteLegale: nil,
+        categorieJuridiqueUniteLegale: "00000",
+        denominationUniteLegale: nil,
+        sigleUniteLegale: nil,
+        denominationUsuelle1UniteLegale: nil,
+        denominationUsuelle2UniteLegale: nil,
+        denominationUsuelle3UniteLegale: nil,
+        sexeUniteLegale: nil, nomUniteLegale: nil,
+        nomUsageUniteLegale: nil, prenom1UniteLegale: nil,
+        prenom2UniteLegale: nil, prenom3UniteLegale: nil,
+        prenom4UniteLegale: nil, prenomUsuelUniteLegale: nil,
+        pseudonymeUniteLegale: nil, activitePrincipaleUniteLegale: "00000",
+        nomenclatureActivitePrincipaleUniteLegale: nil,
+        identifiantAssociationUniteLegale: nil,
+        economieSocialeSolidaireUniteLegale: nil,
+        caractereEmployeurUniteLegale: "N",
+        trancheEffectifsUniteLegale: nil,
+        anneeEffectifsUniteLegale: nil, nicSiegeUniteLegale: "00000",
+        dateDernierTraitementUniteLegale: "2000", categorieEntreprise: nil,
+        anneeCategorieEntreprise: nil)
+  }
 }
 struct SireneAdresseEtablissement: Content {
         
@@ -366,6 +400,24 @@ struct SireneAdresseEtablissement: Content {
   public var libelleCedexEtablissement: String?            = nil
   public var codePaysEtrangerEtablissement: String?        = nil
   public var libellePaysEtrangerEtablissement: String?     = nil
+  
+  public static var def: SireneAdresseEtablissement {
+    return
+      SireneAdresseEtablissement(complementAdresseEtablissement: nil,
+                                 numeroVoieEtablissement: nil,
+                                 indiceRepetitionEtablissement: nil,
+                                 typeVoieEtablissement: nil,
+                                 libelleVoieEtablissement: nil,
+                                 codePostalEtablissement: nil,
+                                 libelleCommuneEtablissement: nil,
+                                 libelleCommuneEtrangerEtablissement: nil,
+                                 distributionSpecialeEtablissement: nil,
+                                 codeCommuneEtablissement: nil,
+                                 codeCedexEtablissement: nil,
+                                 libelleCedexEtablissement: nil,
+                                 codePaysEtrangerEtablissement: nil,
+                                 libellePaysEtrangerEtablissement: nil)
+  }
 }
 
 struct SireneAdresse2Etablissement: Content {
@@ -384,6 +436,25 @@ struct SireneAdresse2Etablissement: Content {
   public var libelleCedex2Etablissement: String?            = nil
   public var codePaysEtranger2Etablissement: String?        = nil
   public var libellePaysEtranger2Etablissement: String?     = nil
+  
+  public static var def: SireneAdresse2Etablissement {
+    return
+      SireneAdresse2Etablissement(
+        complementAdresse2Etablissement: nil,
+        numeroVoie2Etablissement: nil,
+        indiceRepetition2Etablissement: nil,
+        typeVoie2Etablissement: nil,
+        libelleVoie2Etablissement: nil,
+        codePostal2Etablissement: nil,
+        libelleCommune2Etablissement: nil,
+        libelleCommuneEtranger2Etablissement: nil,
+        distributionSpeciale2Etablissement: nil,
+        codeCommune2Etablissement: nil,
+        codeCedex2Etablissement: nil,
+        libelleCedex2Etablissement: nil,
+        codePaysEtranger2Etablissement: nil,
+        libellePaysEtranger2Etablissement: nil)
+  }
 }
 
 struct SirenePeriodeEtablissement: Content {
@@ -423,6 +494,23 @@ struct SireneSiretEtablissement: Content {
   public var adresse2Etablissement: SireneAdresse2Etablissement     = SireneAdresse2Etablissement()
   public var periodesEtablissement: [SirenePeriodeEtablissement]  = []
 
+  public static var def: SireneSiretEtablissement {
+    return
+      SireneSiretEtablissement(
+        siren: "000000000", nic: "00000",
+        siret: "00000000000000",
+        statutDiffusionEtablissement: "N",
+        dateCreationEtablissement: nil,
+        trancheEffectifsEtablissement: nil,
+        anneeEffectifsEtablissement: nil,
+        activitePrincipaleRegistreMetiersEtablissement: nil,
+        dateDernierTraitementEtablissement: nil,
+        etablissementSiege: false, nombrePeriodesEtablissement: 0,
+        uniteLegale: SireneEtablissementUL.def,
+        adresseEtablissement: SireneAdresseEtablissement.def,
+        adresse2Etablissement: SireneAdresse2Etablissement.def,
+        periodesEtablissement: [])
+  }
 }
 
 public final class Siren: Content {
@@ -482,6 +570,15 @@ public final class Sirene: Content {
     self.etablissement = etablissement
     self.nomCatJuridiqueN3 = nomCatJuridiqueN3
     self.nomRev2NAF = nomRev2NAF
+  }
+  
+  public static var def: Sirene {
+    return
+      Sirene(
+        header: HeaderResponse.def,
+        uniteLegale: SireneSirenUL.def,
+        etablissement: SireneSiretEtablissement.def,
+        nomCatJuridiqueN3: "", nomRev2NAF: "")
   }
 }
 

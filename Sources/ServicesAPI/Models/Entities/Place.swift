@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Fluent
+import FluentPostgreSQL
 import Vapor
 
 let kPlaceReferenceBasePrefix  = "PLA"
@@ -64,13 +64,13 @@ public final class Place: AdoptedModel {
   public var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /// Can be `nil` if the object has not been saved yet.
-  public var id: User.ID?
+  public var id: Place.ID?
   /// Place's unique réference.
   public var ref: String?
   /// Label or title of tha place
   public var label: String?
   /// Street kind (house, avenue, etc)
-  public var kind: PlaceKind.RawValue
+  public var kind: PlaceKind.RawValue?
   public var number: String
   /** multi-street address is delimited with carriage returns “\n” */
   public var street: String
@@ -128,7 +128,10 @@ extension Place: ReflectionDecodable {
   }
   
   public static func reflectDecodedIsLeft(_ item: Place) throws -> Bool {
-    return (item.number == "" && item.kind.place == .street && item.city == "" && item.postalCode == "" && item.country == "" )
+    let checkNum      = item.number == ""
+    let checkPlace    = item.city == "" && item.kind?.place == .street
+    let checkCity     = item.postalCode == "" && item.country == ""
+    return (checkNum && checkPlace && checkCity )
   }
   
   
@@ -138,7 +141,7 @@ extension Place: ReflectionDecodable {
 extension Place: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Place.self, on: conn)
+    let pTable = AdoptedDatabase.create(Place.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -161,7 +164,14 @@ extension Place: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+    // Only for Post GreSQL DATABASE
+    _ = conn.raw("ALTER SEQUENCE \(Place.name)_id_seq RESTART WITH 1000").all()
+  }
+  return pTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

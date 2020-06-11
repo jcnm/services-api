@@ -61,7 +61,7 @@ public final class OrderItem: AdoptedPivot {
 extension OrderItem: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(OrderItem.self, on: conn)
+    let oiTable = AdoptedDatabase.create(OrderItem.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.orderID)
@@ -75,7 +75,15 @@ extension OrderItem: Migration {
       builder.unique(on: \.ref)
       builder.reference(from: \OrderItem.scheduleID, to: \Schedule.id, onUpdate: .noAction, onDelete: .setNull)
       builder.reference(from: \OrderItem.orderID, to: \Order.id, onUpdate: .noAction, onDelete: .setNull)
+
     }
+
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(OrderItem.name)_id_seq RESTART WITH 500").all()
+    }
+    return oiTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

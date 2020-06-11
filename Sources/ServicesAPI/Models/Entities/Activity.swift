@@ -174,7 +174,7 @@ public final class Activity: AdoptedModel {
 extension Activity: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Activity.self, on: conn)
+    let aTable = AdoptedDatabase.create(Activity.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -194,6 +194,12 @@ extension Activity: Migration {
       builder.unique(on: \.ref)
       builder.reference(from: \Activity.scheduleID, to: \Schedule.id, onUpdate: .noAction, onDelete: .cascade)
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Activity.name)_id_seq RESTART WITH 10000").all()
+    }
+    return aTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

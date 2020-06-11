@@ -13,14 +13,6 @@ import FluentPostgreSQL
 let kOrganizationReferenceBasePrefix  = "ORG"
 let kOrganizationReferenceLength      = kReferenceDefaultLength
 
-/**
- *1 : Non profit organization
- 2 : Aid service
- 3 : Educative structure
- 4 : Smal profit entity
- 5 : Gov administration
- 6 : High profit structure:
- */
 public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
 //  10  Entrepreneur individuel
 //  21  Indivision
@@ -80,7 +72,7 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
 //  // 9. Groupement de droit privé
 //  case privateGroup                   = 90
   
-  case tbd                            = 0 //
+  case nc       = 0 // Not Concerned by a jurudic status
   /// les entreprises individuelles
   case ei       = 10
   /// Entreprise Individuelle à Responsabilité Limitée (EIRL)
@@ -135,6 +127,8 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
 
   public var textual: String {
     switch self {
+      case .nc :
+        return "Non Concernée"
       case .ei :
         return "Entreprise Individuel (EI, Micro-Entreprise)"
       case .eirl:
@@ -187,40 +181,15 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
         return "European Economic Interest Grouping (EEIG = GEIE)"
     }
   }
-  
 
   public static var defaultValue: OrganizationKind {
-    return .tbd
+    return .nc
   }
   
   public static var defaultRaw: OrganizationKind.RawValue {
     return defaultValue.rawValue
   }
-//
-//  public var textual : String {
-//    switch self {
-//      case .tbd :
-//        return "TBD"
-//      case .individual :
-//        return "Entrepreneur individuel"
-//      case .unmoralyPrivateGroup:
-//        return "Groupement de droit privé non doté de la personnalité morale"
-//      case .foreign:
-//        return "Personne morale de droit public soumise au droit commercial"
-//      case .publicNCommercial :
-//        return "Société commerciale"
-//      case .commercial:
-//        return "Autre personne morale immatriculée au RCS"
-//      case .otherRCO:
-//        return "Personne morale et organisme soumis au droit administratif"
-//      case .administrative :
-//        return "Personne morale et organisme soumis au droit administratif"
-//      case .privateSpecial:
-//        return "Organisme privé spécialisé"
-//      case .privateGroup :
-//        return "Groupement de droit privé"
-//    }
-//  }
+
 }
 
 /**
@@ -229,19 +198,16 @@ public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
 public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentable, CaseIterable {
   
   public static func reflectDecoded() throws -> (OrganizationSize, OrganizationSize) {
-    return (eti, group)
+    return (eti, holding)
   }
   /// These are note entreprise
-  case division     = 0 // Subdivision of an organization /// Pas besoin d'informations légales
-
+  case division     = 1
   /// These are micro entreprise
   case eti          = 10 // independant worker / auto entrepreneur  /// Pas besoin de certaines informations légales
   /// These are small entreprise 10 - 49 employees
   case pe           = 20  // small bussiness entre 10 salariés et 49 salariés avec soit un chiffre d'affaires inférieur à 10 millions d'euros par an, soit un total bilan inférieur à 10 millions d'euros.
   case me           = 30 // entre 50 salariés et 250 salariés avec soit un chiffre d'affaires inférieur à 50 millions d'euros par an, soit un total bilan inférieur à 43 millions d'euros
   case ge           = 50       // plus de 249 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  case group        = 60       // plus de 250 salariés et à la fois un chiffre d'affaires supérieur ou égal à 50 millions d'euros par an et un total bilan supérieur ou égal à 43 millions d'euros
-  
   case holding      = 70       // Holding de plusieurs entreprises de différentes tailles d'une même structure
     
   public static var defaultValue: OrganizationSize {
@@ -255,83 +221,20 @@ public enum OrganizationSize: Int, Codable, ReflectionDecodable, RawRepresentabl
   public var textual: String {
     switch self {
       case .division :
-        return "Division d'entreprise"
+        return "Division d'une organisation"
       case .eti:
-        return "Entreprise Individuelle"
+        return "Organisation Individuelle"
       case .pe:
-        return "Petite entreprise"
+        return "Organisation Petite"
       case .me :
-        return "Moyenne Entreprise"
+        return "Organisation Moyenne"
       case .ge:
-        return "Grande entreprise"
-      case .group:
-        return "Grand Groupe"
+        return "Organisation de Grande taille"
       case .holding :
         return "Pilote d'Entreprises (Holding)"
     }
   }
 }
-
-
-//public enum OrganizationGender: Codable, CaseIterable {
-//  /*
-//   UK / Ireland / Commonwealth
-//   Charitable incorporated organisation (CIO)Community interest company (CIC)Industrial and provident society (IPS)
-//   Limited company (Ltd.) by guaranteeby sharesproprietarypublicUnlimited company
-//   United States
-//   Benefit corporationC corporationLimited liability company (LLC) Low-profit LLCSeries LLCLimited liability limited partnership (LLLP)S corporationDelaware corporation / statutory trust - Massachusetts business trust - Nevada corporation
-//   */
-//  public init(from decoder: Decoder) throws {
-//    let container = try decoder.container(keyedBy: Key.self)
-//    let rawValue = try container.decode(Int.self, forKey: .rawValue)
-//
-//    switch rawValue {
-//    case 0:
-//        self = .association
-//    case 1:
-//        let gender = try container.decode(PersonGender.self, forKey: .associatedValue)
-//        self = .person(gender)
-//    case 2:
-//        let org = try container.decode(OrganizationGender.self, forKey: .associatedValue)
-//        self = .organization(org)
-//    default:
-//        throw CodingError.unknownValue
-//    }
-//
-//  }
-//
-//  public func encode(to encoder: Encoder) throws {
-//    var container = encoder.container(keyedBy: Key.self)
-//        switch self {
-//        case .association :
-//            try container.encode(0, forKey: .rawValue)
-//        case .person(let gender):
-//            try container.encode(1, forKey: .rawValue)
-//            try container.encode(gender, forKey: .associatedValue)
-//        case .organization(let gender):
-//            try container.encode(2, forKey: .rawValue)
-//            try container.encode(gender, forKey: .associatedValue)
-//        }
-//  }
-//
-//  enum Key: CodingKey {
-//      case rawValue
-//      case associatedValue
-//  }
-//
-//  enum CodingError: Error {
-//      case unknownValue
-//  }
-//
-//
-//  case jCatCode(Int)
-//
-//  public static var defaultValue: OrganizationGender {
-//    return .jCatCode(1000)
-//  }
-//
-//}
-//
 
 public extension Int {
   var osize : OrganizationSize {
@@ -395,6 +298,8 @@ public final class Organization: AdoptedModel {
   public var status: String?
   /// Organization's description.
   public var description: String
+  /// summary from the description given
+  public var summary: String?
   /// Organization siret number.
   public var siret: String?
   /// Organization tva number.
@@ -473,6 +378,8 @@ public final class Organization: AdoptedModel {
     self.nafLabel         = nafLabel
     self.insurance        = insurance
     self.insuranceName    = insuranceName
+    self.summary        = description.resume()
+
   }
 }
 
@@ -480,7 +387,7 @@ public final class Organization: AdoptedModel {
 extension Organization: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Organization.self, on: conn)
+    let oTable = AdoptedDatabase.create(Organization.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -502,6 +409,7 @@ extension Organization: Migration {
       builder.field(for: \.money)
       builder.field(for: \.status)
       builder.field(for: \.description)
+      builder.field(for: \.summary)
       builder.field(for: \.siret)
       builder.field(for: \.tva)
       builder.field(for: \.communityTVA)
@@ -523,6 +431,7 @@ extension Organization: Migration {
       builder.unique(on: \.ref)
       builder.unique(on: \.organizationRef)
       builder.unique(on: \.tva)
+      builder.unique(on: \.communityTVA)
       builder.unique(on: \.siret)
       builder.unique(on: \.siren)
       builder.reference(from: \Organization.parentID,
@@ -531,7 +440,14 @@ extension Organization: Migration {
       builder.reference(from: \Organization.sectorID,
                         to: \Sector.id,
                         onUpdate: .noAction, onDelete: .noAction)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Organization.name)_id_seq RESTART WITH 5000").all()
+    }
+    return oTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

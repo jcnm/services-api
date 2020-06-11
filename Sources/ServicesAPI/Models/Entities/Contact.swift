@@ -7,7 +7,7 @@
 
 import Foundation
 import Vapor
-import Fluent
+import FluentPostgreSQL
 
 public enum ContactKind: Codable  {
   public init(from decoder: Decoder) throws {
@@ -134,7 +134,7 @@ public final class Contact: AdoptedModel {
   
   /* General information */
   // Contact uniq identifier
-  public var id: ObjectID?
+  public var id: Contact.ID?
   public var note: String?
   public var imageData: Data?
   public var thumbnailImageData: Data?
@@ -224,7 +224,7 @@ public extension Contact {
 extension Contact: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Contact.self, on: conn)
+    let cTable = AdoptedDatabase.create(Contact.self, on: conn)
     {
       builder in
       builder.field(for: \.id, isIdentifier: true)
@@ -257,7 +257,14 @@ extension Contact: Migration {
       builder.field(for: \.updatedAt)
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Contact.name)_id_seq RESTART WITH 5000").all()
+    }
+    return cTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

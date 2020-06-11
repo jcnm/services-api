@@ -104,22 +104,22 @@ public enum BillingPlan: Int, Codable, ReflectionDecodable, CaseIterable {
  *
  * */
 public enum ServiceTarget: Int, Codable, CaseIterable {
-  case everyOne         = 0 // Every one are targeted
-  case client           = 1 // b2c : tous consomateur
-  case user             = 2 // b2cb : utilisateurs liés à l'organisation
-  case famous           = 3 // b2cb : pour les clients privilègiés de la plateforme
-  case business         = 4 // b2b : pour les entreprises
+  case everyOne         = 1 // Every one are targeted
+  case client           = 2 // b2c : tous consomateur
+  case user             = 3 // b2cb : utilisateurs liés à l'organisation
+  case famous           = 4 // b2bc : pour les clients privilègiés de la plateforme
+  case business         = 5 // b2b : pour les entreprises
   
   public var textual: String {
     switch self {
       case .everyOne:
-        return "Tous visiteur"
+        return "Tous"
       case .client:
         return "Utilisateurs"
       case .user:
-        return "Clients Organisation"
+        return "Clients"
       case .famous:
-        return "Clients H Gamme"
+        return "Prestige"
       case .business:
         return "Entreprises"
     }
@@ -168,6 +168,8 @@ public final class Service: Servable, AdoptedModel {
   public var status: ObjectStatus.RawValue
   /// description of the industry
   public var description: String
+  /// summary from the description given
+  public var summary: String?
   /// Attached Industry.
   public var industryID: Industry.ID
   /// Attached organization.
@@ -198,6 +200,8 @@ public final class Service: Servable, AdoptedModel {
   public var nobillable: Bool // bool
   /// negotiable.
   public var negotiable: Bool // bool
+  /// location full string.
+  public var address: String?
   /// location.
   public var locationID: Place.ID?
   /// activity perimeter in kilometer.
@@ -222,7 +226,7 @@ public final class Service: Servable, AdoptedModel {
               pricing: Int = 0, disponibility: Int = 0, reliability: Int = 0,
               ownership: Int = 0, perishability: Int = 0, variability: Int = 0,
               inseparability: Int = 0, intengibility: Int = 0, nobillable: Bool = false,
-              negotiable: Bool = false, locationID: Place.ID? = nil, geoPerimeter: Int = 1,
+              negotiable: Bool = false, address: String? = nil, locationID: Place.ID? = nil, geoPerimeter: Int = 1,
               openOn: Date = Date(), endOn: Date? = nil,
               createdAt : Date = Date(), updatedAt: Date? = nil,
               deletedAt : Date? = nil, id: ObjectID? = nil) {
@@ -257,6 +261,8 @@ public final class Service: Servable, AdoptedModel {
     self.geoPerimeter   = geoPerimeter
     self.openOn         = openOn
     self.endOn          = endOn
+    self.summary        = description.resume()
+    self.address        = address
   }
   
 }
@@ -266,7 +272,7 @@ public final class Service: Servable, AdoptedModel {
 extension Service: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Service.self, on: conn)
+    let sTable = AdoptedDatabase.create(Service.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -282,6 +288,7 @@ extension Service: Migration {
       builder.field(for: \.billing)
       builder.field(for: \.target)
       builder.field(for: \.description)
+      builder.field(for: \.summary)
       builder.field(for: \.intengibility)
       builder.field(for: \.inseparability)
       builder.field(for: \.variability)
@@ -292,6 +299,7 @@ extension Service: Migration {
       builder.field(for: \.pricing)
       builder.field(for: \.nobillable)
       builder.field(for: \.negotiable)
+      builder.field(for: \.address)
       builder.field(for: \.locationID)
       builder.field(for: \.geoPerimeter)
       builder.field(for: \.openOn)
@@ -307,6 +315,12 @@ extension Service: Migration {
       builder.reference(from: \Service.organizationID, to: \Organization.id, onUpdate: .noAction, onDelete: .cascade)
       builder.reference(from: \Service.locationID, to: \Place.id, onUpdate: .noAction, onDelete: .setNull)
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Service.name)_id_seq RESTART WITH 5000").all()
+    }
+    return sTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

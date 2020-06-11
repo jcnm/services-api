@@ -29,13 +29,13 @@ public extension Schedule {
     return sch.fullResponse(user: user, service: service)
   }
   
-  func midResponse() -> Schedule.MidPublicResponse
+  func midResponse(user: User.ShortPublicResponse) -> Schedule.MidPublicResponse
   {
-    return Schedule.MidPublicResponse(id: self.id!, ref: self.ref, orgScheduleARef: self.orgScheduleARef, orgScheduleBRef: self.orgScheduleBRef, label: self.label, serviceID: self.serviceID, ownerID: self.ownerID, state: self.state, description: self.description, activities: nil, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
+    return Schedule.MidPublicResponse(id: self.id!, ref: self.ref, orgScheduleARef: self.orgScheduleARef, orgScheduleBRef: self.orgScheduleBRef, label: self.label, serviceID: self.serviceID, owner: user, state: self.state, description: self.description, activities: nil, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
   }
   
-  static func midResponse(sch: Schedule) -> MidPublicResponse {
-    return sch.midResponse()
+  static func midResponse(sch: Schedule, user: User.ShortPublicResponse) -> MidPublicResponse {
+    return sch.midResponse(user: user)
   }
   
   func shortResponse() -> ShortPublicResponse
@@ -118,7 +118,7 @@ public extension Schedule {
     /// Date time in the morning of the begining of work
     public var serviceID: Service.ID
     /// Schedule definition author
-    public var ownerID: User.ID
+    public var owner: User.ShortPublicResponse
     /// State of the schedule (validated by the responsable of the service)
     public var state: ObjectStatus.RawValue
     /// Schedule description

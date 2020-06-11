@@ -97,7 +97,7 @@ public final class User:  AdoptedModel {
   /// User state if staging, online etc
   public var state: ObjectStatus.RawValue
   /// Associated profil
-  public var profileID: Contact.ID?
+  public var profileID: Contact.ID
   /// main organization for this user
   public var mainOrganizationID: Organization.ID?
   /** Creation date */
@@ -109,7 +109,7 @@ public final class User:  AdoptedModel {
   
   /// Creates a new `User`.
   public init(login: String, email: String, passwordHash: String,
-              profile: Contact.ID? = nil, staff: StaffUserRole = .defaultValue,
+              profile: Contact.ID, staff: StaffUserRole = .defaultValue,
               state: ObjectStatus = .defaultValue, avatar: String? = nil,
               orgUserRef: String? = nil, createdAt : Date = Date(),
               updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
@@ -164,7 +164,7 @@ extension User: TokenAuthenticatable { /// See `TokenAuthenticatable`.
 /// Allows `User` to be used as a Fluent migration.
 extension User: Migration { /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(User.self, on: conn) { builder in
+    let uTable = AdoptedDatabase.create(User.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.orgUserRef)
@@ -185,7 +185,14 @@ extension User: Migration { /// See `Migration`.
       builder.unique(on: \.ref)
       builder.unique(on: \.orgUserRef)
       builder.reference(from: \User.profileID, to: \Contact.id, onUpdate: .noAction, onDelete: .noAction)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(User.name)_id_seq RESTART WITH 1000").all()
+    }
+    return uTable
+
   }
   
   public static func revert(on conn: Database.Connection) -> Future<Void> {
@@ -212,11 +219,22 @@ extension User: Migration { /// See `Migration`.
     return children(\Schedule.ownerID)
   }
   // this user's related profile link
-  var profile: Parent<User, Contact>? {
+  var profile: Parent<User, Contact> {
     return parent(\.profileID)
   }
+// this user's related assets link
+var assets: Children<User, Asset> {
+  return children(\Asset.authorID)
 }
-
+// this user's related scores link
+var scores: Children<User, Score> {
+  return children(\Score.authorID)
+}
+// this user's related scores link
+var comments: Children<User, Score> {
+  return children(\Score.authorID)
+}
+}
 
 /// Administrative operation
 public extension User {

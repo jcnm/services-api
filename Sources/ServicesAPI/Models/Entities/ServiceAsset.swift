@@ -73,7 +73,7 @@ public final class ServiceAsset: AdoptedPivot {
 extension ServiceAsset: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(ServiceAsset.self, on: conn)
+    let saTable = AdoptedDatabase.create(ServiceAsset.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.label)
@@ -94,7 +94,14 @@ extension ServiceAsset: Migration {
       builder.reference(from: \ServiceAsset.serviceID,
                         to: \Service.id,
                         onUpdate: .noAction, onDelete: .setNull)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(ServiceAsset.name)_id_seq RESTART WITH 10000").all()
+    }
+    return saTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

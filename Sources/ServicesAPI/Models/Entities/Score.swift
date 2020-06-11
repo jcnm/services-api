@@ -92,7 +92,7 @@ public final class Score: AdoptedModel {
 extension Score: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Score.self, on: conn)
+    let sTable = AdoptedDatabase.create(Score.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -124,7 +124,13 @@ extension Score: Migration {
       builder.reference(from: \Score.serviceID,
                         to: \Service.id,
                         onUpdate: .noAction, onDelete: .setNull)
+   }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Score.name)_id_seq RESTART WITH 10000").all()
     }
+    return sTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

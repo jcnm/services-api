@@ -108,7 +108,7 @@ public final class Asset: AdoptedModel {
 extension Asset: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Asset.self, on: conn)
+    let aTable = AdoptedDatabase.create(Asset.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -144,7 +144,14 @@ extension Asset: Migration {
       builder.reference(from: \Asset.duplicatedID,
                         to: \Asset.id,
                         onUpdate: .noAction, onDelete: .setNull)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Asset.name)_id_seq RESTART WITH 10000").all()
+    }
+    return aTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

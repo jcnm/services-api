@@ -5,10 +5,8 @@
 //  Created by Jacques Charles NJANDA MBIADA on 30/12/2019.
 //
 
-import Foundation
 import Vapor
 import Fluent
-
 
 extension Organization : Content { }
 
@@ -24,13 +22,13 @@ public extension Organization {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
     
-    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, siren: org.siren, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description.sanitizedHtml, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, siren: org.siren, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
   
   static func fullResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse {
     return org.fullResponse(sect: sect, uorg: uorg, parent: parent)
   }
-  
+
   func midResponse(sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
     let org = self
     let id = org.id, createdAt = org.createdAt
@@ -38,7 +36,12 @@ public extension Organization {
     if let uo = uorg, let iduo = uo.id {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
-    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, description: org.description, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    let summary = org.summary ?? org.description.resume()
+    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, summary: summary, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+  }
+  
+  static func midResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
+    return org.midResponse(sect: sect, uorg: uorg, parent: parent)
   }
 
   func shortResponse() -> Organization.ShortPublicResponse {
@@ -232,8 +235,8 @@ public extension Organization {
     public var juridicCatLabel: String?
     /// Organization juridic for type.
     public var juridicCatCode: Int?
-    /// Organization's description.
-    public var description: String
+    /// Organization's description summary.
+    public var summary: String
     /// Organization siret number.
     public var siret: String?
     /// Organization tva number.

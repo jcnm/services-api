@@ -69,21 +69,38 @@ public extension Service {
     /// Service price
     public var price: String 
     /// Organization kind.
-    public var target: ServiceTarget
+    public var target: String
     /// Service Parent Service ID.
     public var parentID: Service.ID?
     /// Service industry ID.
-    public var industryID: Industry.ID 
+    public var industryID: Industry.ID
     /// Organization's description.
     public var description: String
-    /// location.
-    public var location: Place.ID?
+    /// address.
+    public var address: String
     /// activity perimeter.
     public var activityPerimeter: Int?
     /// activity begin date.
     public var serviceOpenedAt: String?
     /// activity ended date.
     public var serviceEndedAt: String?
+    
+    /// location's hourse number.
+    public var place_number: String?
+    /// location's road name.
+    public var place_street: String?
+    /// location's complement of address
+    public var place_addressComp: String?
+    /// location's city name
+    public var place_cityName: String?
+    /// location's zip code
+    public var place_zip: String?
+    /// location's state name.
+    public var place_state: String?
+    /// location's country name.
+    public var place_country: String?
+    /// location's longitude.
+    public var place_position: [String]?
   }
   
   struct UpdateService : Content {

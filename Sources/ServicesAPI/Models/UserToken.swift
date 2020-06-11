@@ -11,14 +11,22 @@ import FluentPostgreSQL
 import Vapor
 
 // 60 sec * 60  = 1h * 48h = 2 jours
-let oneWeekInterval = TimeInterval(60 * 60 * 24 )
+let oneWeekInterval = TimeInterval(60 * 60 * 24 * 7)
+let oneDayInterval = TimeInterval(60 * 60 * 24 )
+let halfDayInterval = TimeInterval(60 * 60 * 12)
+let sixHoursInterval = TimeInterval(60 * 60 * 6)
+let fourHoursInterval = TimeInterval(60 * 60 * 4)
+let oneHourInterval = TimeInterval(60 * 60 )
+let halHourInterval = TimeInterval(60 * 30)
 let tenMinuteInterval = TimeInterval(60 * 10)
-let kExpirationTokenDurationInMinute = oneWeekInterval
+let oneMinuteInterval = TimeInterval(60)
+let tenSecInterval = TimeInterval(10)
+let kExpirationTokenDurationInMinute = oneMinuteInterval // halfDayInterval
 
 /// An ephermal authentication token that identifies a registered user.
 public final class UserToken: AdoptedModel {
   public static let name = "utoken"
-
+  
   /// See `Model`.
   static public var deletedAtKey: TimestampKey? { return \.expiresOn }
   
@@ -80,13 +88,20 @@ extension UserToken: Token {
 extension UserToken: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(UserToken.self, on: conn) { builder in
+    let utTable =  AdoptedDatabase.create(UserToken.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.token)
       builder.field(for: \.user)
       builder.field(for: \.expiresOn)
       builder.reference(from: \.user, to: \User.id)
+      
     }
+
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(UserToken.name)_id_seq RESTART WITH 50").all()
+    }
+    return utTable
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

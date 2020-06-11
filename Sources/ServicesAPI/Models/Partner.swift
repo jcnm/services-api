@@ -81,7 +81,7 @@ public final class Partner: AdoptedModel {
 extension Partner: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Partner.self, on: conn) { builder in
+    let pVersion = AdoptedDatabase.create(Partner.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.name)
@@ -105,6 +105,12 @@ extension Partner: Migration {
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
     }
+    // Only for SQL BASE
+    // TODO generalize this query
+    if type(of: conn) == PostgreSQLConnection.self {
+      _ = conn.raw("ALTER SEQUENCE \(Partner.name)_id_seq RESTART WITH 1000").all()
+    }
+    return pVersion
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

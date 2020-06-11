@@ -82,7 +82,7 @@ public final class Contract: AdoptedModel {
 extension Contract: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Contract.self, on: conn)
+    let cTable = AdoptedDatabase.create(Contract.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -106,7 +106,14 @@ extension Contract: Migration {
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
       builder.reference(from: \Contract.orderID, to: \Order.id, onUpdate: .noAction, onDelete: .noAction)
+
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Contract.name)_id_seq RESTART WITH 1000").all()
+    }
+    return cTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

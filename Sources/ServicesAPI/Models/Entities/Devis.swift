@@ -27,7 +27,7 @@ public final class Devis:     AdoptedModel {
   /// Devis's  statut.
   public var status:     ObjectStatus.RawValue
   /// Devis's  draft.
-  public var draft:      Bool
+  public var draft:      Int // zero mens not a draft, otherwise, incremente draft iteration
   /// Contract's unique réference into the organization whom emit the Contract.
   public var orgASigned: Bool
   /// Contract's unique réference into the organization whom validate the Contract.
@@ -41,7 +41,7 @@ public final class Devis:     AdoptedModel {
   public var deletedAt: Date?
 
   public init(label: String, service: Service.ID,
-              status: ObjectStatus, draft: Bool = true,
+              status: ObjectStatus, draft: Int = 1,
               orgASigned: Bool = false, orgBSigned: Bool = false,
               createdAt : Date = Date(), updatedAt: Date = Date(),
               deletedAt : Date? = nil, id: ObjectID? = nil) {
@@ -64,7 +64,7 @@ public final class Devis:     AdoptedModel {
 extension Devis: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Devis.self, on: conn)
+    let dTable = AdoptedDatabase.create(Devis.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -73,14 +73,21 @@ extension Devis: Migration {
       builder.field(for: \.orgASigned)
       builder.field(for: \.orgBSigned)
       builder.field(for: \.status)
-      
+      builder.field(for: \.draft)
       builder.field(for: \.createdAt)
       builder.field(for: \.updatedAt)
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
       builder.reference(from: \Devis.serviceID, to: \Service.id, onUpdate: .noAction, onDelete: .noAction)
+      
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Devis.name)_id_seq RESTART WITH 5000").all()
+    }
+    return dTable
+
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {
