@@ -1,8 +1,8 @@
 //
-//  UserUpdateController.swift
+//  UserFetchController.swift
 //  
 //
-//  Created by Jacques Charles NJANDA MBIADA on 11/11/2019.
+//  Created by Jacques Charles NJANDA MBIADA on 09/06/2020.
 //
 
 import Foundation
@@ -13,224 +13,294 @@ import FluentPostgreSQL
 import Authentication
 import CoreFoundation
 
-/// - MARK - CREATE AND AUTHENTICATE USERS
-public class UserUpdateController {
+/// - MARK - USERS ACCOUNT FETCHING
+public class UserFetchController {
   
   public init() { }
   
-  /// Creates a new user.
-  public func create(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // decode request content
-    return try req.content.decode(User.Create.self)
-      .flatMap { cuser -> Future<User> in
-        // verify that passwords match
-        guard cuser.password == cuser.verifyPassword else {
-          throw Abort(.badRequest, reason: "passwords missmatch")
-        }
-        
-        let hash = try BCrypt.hash(cuser.password)
-        let logNick = cuser.login ?? String(cuser.email.split(separator: "@").first!).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "-", with: "_")
-        let cont = Contact(givenName: "", familyName: "")
-        cont.nickname = logNick
-        cont.ckind = .defaultValue
-        return cont.create(on: req).flatMap { (contact) -> Future<User> in
-          let u = User(login: logNick, email: cuser.email, passwordHash: hash, profile: nil, staff: cuser.staff?.staff ?? StaffUserRole.user, state: .defaultValue)
-          u.profileID = contact.id
-          try u.validate()
-          return u.create(on:req)
-        }
-    }.catchMap({ (error) -> (User) in
-      if let err = error as? PostgreSQLError {
-        let log = try req.make(Logger.self)
-        log.error("Error identifier : " + err.identifier)
-        log.error("Error causes : " + err.possibleCauses.debugDescription)
-        log.error("Error reason : " + err.reason)
-        log.error("Error fullIdentifier : " + err.fullIdentifier)
-        
-        log.error(err.localizedDescription)
-        let skeleton = User(login: "", email: "", passwordHash: "")
-        return skeleton
-      }
-      else {
-        let log = try req.make(Logger.self)
-        log.error("Error identifier : " + error.localizedDescription)
-        
-        log.error(error.localizedDescription)
-        throw error
-      }
-    }).flatMap({ (u) in
-      if u.login.isEmpty
-        &&  u.passwordHash.isEmpty && u.email.isEmpty {
-        let res = u.fullResponse(req, [LabeledValue<String>(label: "10", value: "Impossible de créer l'utilisateur renseigné")])
-        return res
-      }
-      return u.fullResponse(req)
-    })
-    
+  /// Show the authentificated user's full information.
+  public func account(_ req: Request) throws -> Future<User.FullPublicResponse> {
+    return try self.showAccoundAPI(req)
   }
   
-}
-
-/// - MARK - USER UPDATE CONTROLLER
-extension UserUpdateController {
-  /// Update an user using User.Update
-  public func updateUser(_ req: Request) throws -> Future<User.ShortPublicResponse> {
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { uToUpdate -> Future<User.ShortPublicResponse> in
-        let _ = try UserController.checkLoginRelated(req, uToUpdate)
-        
-        return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> Future<User.ShortPublicResponse> in
-          guard try uRequest.id == uToUpdate.requireID() else {
-            throw Abort(HTTPResponseStatus.forbidden)
-          }
-          if let log = uRequest.login {
-            uToUpdate.login = log
-            print("Login updated to \(log)")
-          }
-          if let uk = uRequest.staff {
-            uToUpdate.staff = uk
-            print("User kind updated to \(uk)")
-          }
-          if let state = uRequest.state {
-            uToUpdate.state = state
-            print("User state updated to \(state)")
-          }
-          
-          // ...ALTER TABLE user ADD avatar TEXT;
-          if let img = uRequest.avatar {
-            try self.savePicture(img, uToUpdate)
-          }
-          return uToUpdate.save(on: req).flatMap({ req.future($0.shortResponse()) })
-        })
-        
-    }
-  }
-  
-  /// Update an user using User.Update
-  public func updateDetails(_ req: Request) throws -> Future<User.ShortPublicResponse> {
-    // decode request parameter (u/:id)
-    let u = try UserController.logged(req)
-    return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> EventLoopFuture<User.ShortPublicResponse> in
-      guard try uRequest.id == u.requireID() else {
-        throw Abort(HTTPResponseStatus.forbidden)
-      }
-      if let log = uRequest.login {
-        u.login = log
-        print("Login updated to \(log)")
-      }
-      if let uk = uRequest.staff {
-        u.staff = uk
-        print("User kind updated to \(uk)")
-      }
-      if let state = uRequest.state {
-        u.state = state
-        print("User state updated to \(state)")
-      }
-      
-      // ...ALTER TABLE user ADD avatar TEXT;
-      if let img = uRequest.avatar {
-        try self.savePicture(img, u)
-      }
-      return u.save(on: req).flatMap({ req.future($0.shortResponse()) })
-    })
-  }
-  
-  /// Update an user using User.Update
-  public func updateProfile(_ req: Request) throws -> Future<User.ShortPublicResponse> {
-    // decode request parameter (u/:id)
-    let u = try UserController.logged(req)
-    return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> EventLoopFuture<User.ShortPublicResponse> in
-      guard try uRequest.id == u.requireID() else {
-        throw Abort(HTTPResponseStatus.forbidden)
-      }
-      if let log = uRequest.login {
-        u.login = log
-        print("Login updated to \(log)")
-      }
-      if let uk = uRequest.staff {
-        u.staff = uk
-        print("User kind updated to \(uk)")
-      }
-      if let state = uRequest.state {
-        u.state = state
-        print("User state updated to \(state)")
-      }
-      
-      // ...ALTER TABLE user ADD avatar TEXT;
-      if let img = uRequest.avatar {
-        try self.savePicture(img, u)
-      }
-      return u.save(on: req).flatMap({ req.future($0.shortResponse()) })
-    })
-  }
-  
-  private func savePicture(_ img: File, _ user: User) throws {
-    let home:URL = URL(fileURLWithPath: Config.rootUpdloadedFiles, isDirectory: true)
-    let subLoggedUserPath = user.ref + Config.APIWEP.profilePictureWEP
-    var path =
-      home.appendingPathComponent(Config.rootUpdloadedImagesFiles, isDirectory: true)
-        .appendingPathComponent(subLoggedUserPath, isDirectory: true)
-    path.appendPathComponent(img.filename.hash.description + "." + (img.ext ?? ".png"), isDirectory: false)
-    // TODO Catch
-    try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-    // TODO Catch
-    try img.data.write(to: path) // save picture on disk
-    user.avatar = path.absoluteString // save picture on user
-  }
-  
-  /// Create User Profile Picture
-  public func updateProfileVcard(_ req: Vapor.Request) throws -> Future<String> {
+  /**
+   * returns full information of the given `User`
+   */
+  public func showAccoundAPI(_ req: Request) throws -> Future<User.FullPublicResponse> {
     // fetch auth'd user
-    let userAuth = try req.requireAuthenticated(User.self)
-    print(req.debugDescription)
-    return try req.parameters.next(User.self).flatMap{ uToUpdate -> Future<String> in
-      guard try uToUpdate.requireID() == userAuth.requireID() else {
-        throw Abort(HTTPResponseStatus.forbidden)
-      }
-      return try req.content.decode(User.Update.self).flatMap{ (uRequest) in
-        guard try uRequest.id == uToUpdate.requireID() else {
-          throw Abort(HTTPResponseStatus.forbidden)
-        }
-        if let img = uRequest.avatar {
-          try self.savePicture(img, uToUpdate)
-          return uToUpdate.save(on: req).map({ $0.avatar! })
-        } else {
-          throw Abort(HTTPResponseStatus.notAcceptable)
-        }
-      }
-    }
-    
+    let uAuth = try req.requireAuthenticated(User.self)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/orders ## Listing orders of logged user \(uAuth.login)")
+    return try show(req, for: uAuth)
+  }
+  /**
+   * returns full information of the given `User`
+   */
+  public func show(_ req: Request, for designedUser: User) throws -> Future<User.FullPublicResponse> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!) ## Return full information of the given user \(designedUser.login)")
+    return designedUser.fullResponse(req)
   }
   
+  /**
+   * User's profile throught /users/:id/profile
+   */
+  public func profileAccountAPI(_ req: Request) throws -> Future<Contact> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/profile ## Return \(uAuth.login)'s profile")
+    return uAuth.profile.get(on: req)
+  }
+  
+  /**
+   * list of `Service` for the logged user
+   */
+  public func servicesAccountAPI(_ req: Request) throws -> Future<[Service]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/services ## Listing service of logged user \(uAuth.login)")
+    return try services(req, for: uAuth)
+  }
+  /**
+   * list of `Service` for the given user
+   */
+  public func services(_ req: Request, for designedUser: User) throws -> Future<[Service]>  {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/services ## Listing services of user \(designedUser.login)")
+    var filter = FilterNavigation<Service>()
+    // let meta = PageMeta(req)
+    let rFilter = try filter.apply(designedUser.services.query(on: req), from: req)
+    return rFilter.all()
+  }
+  
+  /**
+   * list of `Order` for the logged user
+   */
+  public func ordersAccountAPI(_ req: Request) throws -> Future<[Order]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/orders ## Listing orders of logged user \(uAuth.login)")
+    return try orders(req, for: uAuth)
+  }
+  /**
+   * list of `Order` for the given user
+   */
+  public func orders(_ req: Request, for designedUser: User) throws -> Future<[Order]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/orders ## Listing orders of user \(designedUser.login)")
+    var filter = FilterNavigation<Order>()
+    return try filter.apply(designedUser.orders.query(on: req), from: req).all()
+  }
+  
+  /**
+   * list of `Organization` for the logged user
+   */
+  public func organizationsAccountAPI(_ req: Request) throws -> Future<[Organization]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/organizations ## Listing organizations of logged user \(uAuth.login)")
+    return try organizations(req, for: uAuth)
+  }
+  /**
+   * list of `Organization` for the given user
+   */
+  public func organizations(_ req: Request, for designedUser: User) throws -> Future<[Organization]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/organizations ## Listing organizations of user \(designedUser.login)")
+    var filter = FilterNavigation<Organization>()
+    return try filter.apply(designedUser.organizations.query(on: req), from: req).all()
+  }
+  
+  /**
+   * list of `Schedule` for the logged user
+   */
+  public func schedulesAccountAPI(_ req: Request) throws -> Future<[Schedule]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/schedules ## Listing schedules of logged user \(uAuth.login)")
+    return try schedules(req, for: uAuth)
+  }
+  /**
+   * list of `Schedule` for the given user
+   */
+  public func schedules(_ req: Request, for designedUser: User) throws -> Future<[Schedule]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/schedules ## Listing schedules of user \(designedUser.login)")
+    var filter = FilterNavigation<Schedule>()
+    return try filter.apply(designedUser.schedules.query(on: req), from: req).all()
+  }
+  
+  /**
+   * list of `Asset` for the logged user
+   */
+  public func assetsAccountAPI(_ req: Request) throws -> Future<[Asset]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/assets ## Listing assets of logged user \(uAuth.login)")
+    return try assets(req, for: uAuth)
+  }
+  /**
+   * list of `Asset` for the given user
+   */
+  public func assets(_ req: Request, for designedUser: User) throws -> Future<[Asset]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/assets ## Listing assets of user \(designedUser.login)")
+    var filter = FilterNavigation<Asset>()
+    return try filter.apply(designedUser.assets.query(on: req), from: req).all()
+  }
+//
+//  /**
+//   * list of `Activity` for the logged user
+//   */
+//  public func activitiesAccountAPI(_ req: Request) throws -> Future<[Activity]> {
+//    let uAuth = try UserController.logged(req)
+//    let logger = try  req.make(Logger.self)
+//    logger.info("##WEP GET /account/activities ## Listing activities of logged user \(uAuth.login)")
+//    return try activities(req, for: uAuth)
+//  }
+//  /**
+//   * list of `Activity` for the given user
+//   */
+//  public func activities(_ req: Request, for designedUser: User) throws -> Future<[Activity]> {
+//    let logger = try  req.make(Logger.self)
+//    logger.info("##WEF GET .../\(designedUser.id!)/activities ## Listing activities of user \(designedUser.login)")
+//    var filter = FilterNavigation<Asset>()
+//    return try filter.apply(designedUser.activities.query(on: req), from: req).all()
+//  }
+
+  /**
+   * list of `Score` for the logged user
+   */
+  public func scoresAccountAPI(_ req: Request) throws -> Future<[Score]> {
+    let uAuth = try UserController.logged(req)
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /account/scores ## Listing scores of logged user \(uAuth.login)")
+    return try scores(req, for: uAuth)
+  }
+  /**
+   * list of `Score` for the given user
+   */
+  public func scores(_ req: Request, for designedUser: User) throws -> Future<[Score]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF GET .../\(designedUser.id!)/scores ## Listing scores of user \(designedUser.login)")
+    var filter = FilterNavigation<Asset>()
+    return try filter.apply(designedUser.scores.query(on: req), from: req).all()
+  }
+
+  /// Show the authentificated user.
+  public func delete(_ req: Request) throws -> Future<User.FullPublicResponse> {
+    // fetch auth'd user
+    let _ = try req.requireAuthenticated(User.self)
+    throw Abort(HTTPResponseStatus.notImplemented)
+  }
 }
 
-/// - MARK - GET USER INFOS
-extension UserUpdateController {
+/// - MARK - USERS ENDPOINT FETCHING
+extension UserFetchController {
+  
   /// List all users.
   public func list(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
-    let user = try req.requireAuthenticated(User.self)
-    var meta = PageMeta()
-    meta.config(from: req)
-    guard user.id != nil else {
-      throw Abort(HTTPResponseStatus.unauthorized)
-    }
-    //    let users = User.query(on: req).join(\Profile.id, to: \User.id).alsoDecode(Profile.self).all()
-    //    return users.flatMap({(uar) -> EventLoopFuture<[User.Response]> in
-    //      let uresp = uar.compactMap({ (u) -> Future<User.Response> in
-    //        return u.0.response(req, with: u.1)
-    //      }).flatten(on: req)
-    //      return uresp
-    //    })
     var filter = FilterNavigation<User.ShortPublicResponse>()
-    
     let users = filter.apply(User.query(on: req), from: req).all()
     return users.flatMap({(u) -> Future<[User.ShortPublicResponse]> in
       return u.compactMap({ req.future($0.shortResponse())}).flatten(on: req)
     })
   }
+  ///returns full information of the given `User` throught /users/:id
+  public func showAPI(_ req: Request) throws -> Future<User.FullPublicResponse> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP GET /users/:id ## Listing services of a given user")
+    // decode request parameter (users/:id)
+    do {
+      return try req.parameters.next(User.self)
+        .flatMap { targetedUser -> Future<User.FullPublicResponse> in
+          return try self.show(req, for: targetedUser)
+        }
+      } catch let err {
+      print("*************************")
+      print("\n\n\nError info : \(err)")
+      throw err
+    }
+  }
+  /// User's profile throught /users/:id/profile
+  public func profileAPI(_ req: Request) throws -> Future<Contact> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/profil ## Returns profile of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return targetedUser.profile.get(on: req)
+    }
+  }
+  /// User's services listing throught /users/:id/services
+  public func servicesAPI(_ req: Request) throws -> Future<[Service]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/services ## Listing services of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.services(req, for: targetedUser)
+    }
+  }
+  /// User's orders listing throught /users/:id/orders
+  public func ordersAPI(_ req: Request) throws -> Future<[Service]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/orders ## Listing orders of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.services(req, for: targetedUser)
+    }
+  }
+  /// User's organizations listing throught /users/:id/organizations
+  public func organizationsAPI(_ req: Request) throws -> Future<[Organization]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/organizations ## Listing organizations of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.organizations(req, for: targetedUser)
+    }
+  }
+  /// User's schedules listing throught /users/:id/schedules
+  public func schedulesAPI(_ req: Request) throws -> Future<[Schedule]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/schedules ## Listing schedules of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.schedules(req, for: targetedUser)
+    }
+  }
+  /// User's assets listing throught /users/:id/assets
+  public func assetsAPI(_ req: Request) throws -> Future<[Asset]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/assets ## Listing schedules of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.assets(req, for: targetedUser)
+    }
+  }
+
+  /// User's scores listing throught /users/:id/scores
+  public func scoresAPI(_ req: Request) throws -> Future<[Score]> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP /users/:id/scores ## Listing scores of a given user")
+    // decode request parameter (/users/:id)
+    return try req.parameters.next(User.self)
+      .flatMap { targetedUser in
+        return try self.scores(req, for: targetedUser)
+    }
+  }
+
+
+}
+
+/// - MARK - USER LOOK UP
+extension UserFetchController {
   
-  public func lookupAssociated(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
+  public func lookupUsers(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
     let logger = try  req.make(Logger.self)
     logger.info(req.http.debugDescription)
     let user = try UserController.logged(req)
@@ -247,16 +317,16 @@ extension UserUpdateController {
       let usersBuild = User.query(on: req)
         .join(\Contact.id, to: \User.profileID).alsoDecode(Contact.self)
         .group(.or) {
-          $0.filter(\User.login,        .ilike, qry)
-            .filter(\User.email,        .ilike, qry)
-            .filter(\User.orgUserRef,   .ilike, qry)
-            .filter(\User.ref,          .ilike, qry)
-            .filter(\Contact.nickname,  .ilike, qry)
-            .filter(\Contact.givenName, .ilike, qry)
-            .filter(\Contact.familyName,      .ilike, qry)
-            .filter(\Contact.departmentName,  .ilike, qry)
-            .filter(\Contact.jobTitle,        .ilike, qry)
-            .filter(\Contact.middleName,      .ilike, qry)
+          $0.filter(User.SearchField.login,        .ilike, qry)
+            .filter(User.SearchField.email,        .ilike, qry)
+            .filter(User.SearchField.orgUserRef,   .ilike, qry)
+            .filter(User.SearchField.ref,          .ilike, qry)
+            .filter(User.SearchField.nickname,  .ilike, qry)
+            .filter(User.SearchField.givenName, .ilike, qry)
+            .filter(User.SearchField.familyName,      .ilike, qry)
+            .filter(User.SearchField.departmentName,  .ilike, qry)
+            .filter(User.SearchField.jobTitle,        .ilike, qry)
+            .filter(User.SearchField.middleName,      .ilike, qry)
       }
       .group(.or){
         $0.filter(\User.deletedAt, .equal, nil)
@@ -310,148 +380,69 @@ extension UserUpdateController {
     
   }
   
-  /**
-   * list of `Order` for the logged user
-   */
-  public func ordersForLoggedUser(_ req: Request) throws -> Future<[Order]> {
-    let uAuth = try UserController.logged(req)
-    var filter = FilterNavigation<Order>()
-    return try filter.apply(uAuth.orders.query(on: req), from: req).all()
-  }
-  
-  /**
-   * list of `Order` for the given user
-   */
-  public func ordersForUser(_ req: Request) throws -> Future<[Order]> {
-    let _ = try UserController.logged(req)
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { designedUser -> Future<[Order]> in
-        var filter = FilterNavigation<Order>()
-        return try filter.apply(designedUser.orders.query(on: req), from: req).all()
-    }
-  }
-  
-  /**
-   * list of `Service` for the logged user
-   */
-  public func servicesForLoggedUser(_ req: Request) throws -> Future<[Service]> {
-    let uAuth = try UserController.logged(req)
-    var filter = FilterNavigation<Service>()
-    return try filter.apply(uAuth.services.query(on: req), from: req).all()
-  }
-  
-  /**
-   * list of `Service` for the given user
-   */
-  public func servicesForUser(_ req: Request) throws -> Future<[Service]> {
-    let _ = try UserController.logged(req)
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { designedUser -> Future<[Service]> in
-        var filter = FilterNavigation<Service>()
-        return try filter.apply(designedUser.services.query(on: req), from: req).all()
-    }
-  }
-  
-  /// Show an user.
-  public func show(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // fetch auth'd user
-    let _ = try req.requireAuthenticated(User.self)
-    
-    // decode request parameter (users/:id)
-    do {
-      guard let userID = req.parameters.values.first else {
-        throw Abort(HTTPResponseStatus.badRequest)
-      }
-      // If the given id is zero then return the current authenticated user
-      if userID.value == "0" { //|| userID.value.last == "!" {
-        return try self.account(req)
-      } else {
-        let resp = try req.parameters.next(User.self)
-        return resp.flatMap { u -> Future<User.FullPublicResponse> in
-          return u.fullResponse(req)
-        }
-      }
-    } catch let err {
-      print("*************************")
-      print("\n\n\nError info : \(err)")
-      throw err
-    }
-  }
-  
-  /// Show the authentificated user.
-  public func account(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // fetch auth'd user
-    let u = try req.requireAuthenticated(User.self)
-    return u.fullResponse(req)
-  }
-  
-  /// Show the authentificated user.
-  public func delete(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // fetch auth'd user
-    let _ = try req.requireAuthenticated(User.self)
-    throw Abort(HTTPResponseStatus.notImplemented)
-  }
-  
-  
 }
 
 /// - MARK - USERS ROUTES
-extension UserController: RouteCollection {
+extension UserFetchController: RouteCollection {
   public func boot(router: Router) throws {
-    /*************************** PUBLIC SECTION *************************
-     ***
-     *******************************************************************/
-    /** Public user end point api spec */
-    // Creation of a new user
-    router.post(Config.APIWEP.signupWEP, use: create)
-    
-    /*************************** PUBLIC SECTION *************************
-     ***
-     *******************************************************************/
-    /** Public user end point api spec */
-    // Creation of a new user
-    // basic / password auth protected routes
-    let basic = router.grouped(User.basicAuthMiddleware(using: BCryptDigest()))
     // bearer / token auth protected routes
     let bearer = router.grouped(User.tokenAuthMiddleware())
-    
-    basic.post(Config.APIWEP.loginWEP, use: { try self.login($0)})
-    
     /**
      ** Logged User end point api spec - 1
      */
     let accoundGroup = bearer.grouped(Config.APIWEP.accountWEP)
-    accoundGroup.get(use: account)
-    accoundGroup.get(Config.APIWEP.lookupWEP, Config.APIWEP.usersWEP, use: { try self.lookupAssociated($0) })
-    accoundGroup.post(Config.APIWEP.detailsWEP, use: updateDetails(_:)) // update account
-    accoundGroup.post(Config.APIWEP.profilesWEP, use: updateProfile(_:)) // update profile accound
+    accoundGroup.get(use: account(_:)) // The logged user account's informations
+    accoundGroup.get(Config.APIWEP.showWEP, use: showAccoundAPI(_:)) // Logged user information
+    accoundGroup.get(Config.APIWEP.profilesWEP, use: profileAccountAPI(_:)) // My profiles
+    accoundGroup.get(Config.APIWEP.servicesWEP, use: servicesAccountAPI(_:)) // Attached Services
+    accoundGroup.get(Config.APIWEP.ordersWEP, use:  ordersAccountAPI(_:)) // Every order passed (could be multiple by contract)
+    accoundGroup.get(Config.APIWEP.organizationsWEP, use: organizationsAccountAPI(_:)) // Attached organzation even as a client
+    accoundGroup.get(Config.APIWEP.schedulesWEP, use:  schedulesAccountAPI(_:)) // Schedule I programmed
+    accoundGroup.get(Config.APIWEP.assetsWEP, use:  assetsAccountAPI(_:)) // Assets I configured
+//    accoundGroup.get(Config.APIWEP.activitiesWEP, use:  delete(_:)) // Activities I configured
+    accoundGroup.get(Config.APIWEP.placesWEP, use: delete(_:)) // Places I submited
+    accoundGroup.get(Config.APIWEP.devisWEP, use:  delete(_:)) // Every devis passed
+    accoundGroup.get(Config.APIWEP.contractsWEP, use: delete(_:)) // Every contract signed
+    accoundGroup.get(Config.APIWEP.billingsWEP, use:  delete(_:)) // Programmed and already passed billing
+    accoundGroup.get(Config.APIWEP.cardsWEP, use:  delete(_:))  //
+    accoundGroup.get(Config.APIWEP.teamsWEP, use: delete(_:)) // Attached teams (organizations where I work)
+    accoundGroup.get(Config.APIWEP.paymentsWEP, use:  delete(_:)) // Registered payment method
+    accoundGroup.get(Config.APIWEP.loginsWEP, use:  delete(_:)) // Log in history
+    accoundGroup.get(Config.APIWEP.scoresWEP, use:  scoresAccountAPI(_:)) // Every notation I made
+    accoundGroup.get(Config.APIWEP.commentsWEP, use:  scoresAccountAPI(_:)) // Every comment I made
+    accoundGroup.get(Config.APIWEP.feedbacksWEP, use:  delete(_:)) // Every feed back I made
     
-    let userLogInGroup = bearer.grouped(Config.APIWEP.usersWEP)
-    userLogInGroup.get(User.parameter, use: show(_:))
-    userLogInGroup.post(User.parameter, use: updateDetails(_:))
-    userLogInGroup.delete(User.parameter, use: delete(_:))
-    userLogInGroup.get(User.parameter, Config.APIWEP.servicesWEP, use: delete(_:))
-    userLogInGroup.get(User.parameter, Config.APIWEP.organizationsWEP, use:  delete(_:)) // Attached organzation even as a client
-    userLogInGroup.get(User.parameter, Config.APIWEP.schedulesWEP, use:  delete(_:)) // Schedule I programmed
-    userLogInGroup.get(User.parameter, Config.APIWEP.profilesWEP, use: delete(_:)) // My profiles
-    userLogInGroup.get(User.parameter, Config.APIWEP.assetsWEP, use:  delete(_:)) // Assets I configured
-    userLogInGroup.get(User.parameter, Config.APIWEP.activitiesWEP, use:  delete(_:)) // Activities I configured
-    userLogInGroup.get(User.parameter, Config.APIWEP.placesWEP, use: delete(_:)) // Places I submited
-    userLogInGroup.get(User.parameter, Config.APIWEP.ordersWEP, use:  delete(_:)) // Every order passed (could be multiple by contract)
-    userLogInGroup.get(User.parameter, Config.APIWEP.devisWEP, use:  delete(_:)) // Every devis passed
-    userLogInGroup.get(User.parameter, Config.APIWEP.contractsWEP, use: delete(_:)) // Every contract signed
-    userLogInGroup.get(User.parameter, Config.APIWEP.billingsWEP, use:  delete(_:)) // Programmed and already passed billing
-    userLogInGroup.get(User.parameter, Config.APIWEP.cardsWEP, use:  delete(_:))  // 
-    userLogInGroup.get(User.parameter, Config.APIWEP.teamsWEP, use: delete(_:)) // Attached teams (organizations where I work)
-    userLogInGroup.get(User.parameter, Config.APIWEP.paymentsWEP, use:  delete(_:)) // Registered payment method
-    userLogInGroup.get(User.parameter, Config.APIWEP.loginsWEP, use:  delete(_:)) // Log in history
-    userLogInGroup.get(User.parameter, Config.APIWEP.scoresWEP, use:  delete(_:)) // Every notation I made
-    userLogInGroup.get(User.parameter, Config.APIWEP.commentsWEP, use:  delete(_:)) // Every comment I made
-    userLogInGroup.get(User.parameter, Config.APIWEP.feedbacksWEP, use:  delete(_:)) // Every feed back I made
+    let lookupGroup   = accoundGroup.grouped(Config.APIWEP.lookupWEP)
+    lookupGroup.get(Config.APIWEP.usersWEP, use: { try self.lookupUsers($0) })  // lookup users through logged user scope
+    lookupGroup.get(Config.APIWEP.organizationsWEP, use: delete(_:)) // lookup organizations through logged user scope
+    lookupGroup.get(Config.APIWEP.servicesWEP, use: delete(_:)) // lookup services through logged user scope
+    lookupGroup.get(Config.APIWEP.schedulesWEP, use: delete(_:)) // lookup schedules through logged user scope
+    lookupGroup.get(Config.APIWEP.placesWEP, use: delete(_:)) // lookup places through logged user scope
+    lookupGroup.get(Config.APIWEP.activitiesWEP, use: delete(_:)) // lookup activities through logged user scope
+    lookupGroup.get(Config.APIWEP.ordersWEP, use: delete(_:)) // lookup orders through logged user scope
     
-    userLogInGroup.get(Config.APIWEP.lookupWEP, use: { try self.lookupAssociated($0) })
+    let usersGroup = bearer.grouped(Config.APIWEP.usersWEP)
+    usersGroup.get(use: list(_:)) // The user list
+    usersGroup.get(User.parameter, use: showAPI(_:)) // get user's informations
+    usersGroup.get(User.parameter, Config.APIWEP.profilesWEP, use: profileAPI(_:)) // A profile
+    usersGroup.get(User.parameter, Config.APIWEP.servicesWEP, use: servicesAPI(_:))
+    usersGroup.get(User.parameter, Config.APIWEP.ordersWEP, use:  ordersAPI(_:)) // Every order passed (could be multiple by contract)
+    usersGroup.get(User.parameter, Config.APIWEP.organizationsWEP, use:  organizationsAPI(_:)) // Attached organzation even as a client
+    usersGroup.get(User.parameter, Config.APIWEP.schedulesWEP, use:  schedulesAPI(_:)) // Schedule I programmed
+    usersGroup.get(User.parameter, Config.APIWEP.assetsWEP, use:  assetsAPI(_:)) // Assets configured
+//    usersGroup.get(User.parameter, Config.APIWEP.activitiesWEP, use:  delete(_:)) // Activities configured
+    
+    usersGroup.get(User.parameter, Config.APIWEP.placesWEP, use: delete(_:)) // Places submited
+    usersGroup.get(User.parameter, Config.APIWEP.devisWEP, use:  delete(_:)) // Every devis passed
+    usersGroup.get(User.parameter, Config.APIWEP.contractsWEP, use: delete(_:)) // Every contract signed
+    usersGroup.get(User.parameter, Config.APIWEP.billingsWEP, use:  delete(_:)) // Programmed and already passed billing
+    usersGroup.get(User.parameter, Config.APIWEP.cardsWEP, use:  delete(_:))  //
+    usersGroup.get(User.parameter, Config.APIWEP.teamsWEP, use: delete(_:)) // Attached teams (organizations where I work)
+    usersGroup.get(User.parameter, Config.APIWEP.paymentsWEP, use:  delete(_:)) // Registered payment method
+    usersGroup.get(User.parameter, Config.APIWEP.loginsWEP, use:  delete(_:)) // Log in history
+    usersGroup.get(User.parameter, Config.APIWEP.scoresWEP, use:  scoresAPI(_:)) // Every notation I made
+    usersGroup.get(User.parameter, Config.APIWEP.commentsWEP, use:  scoresAPI(_:)) // Every comment I made
+    usersGroup.get(User.parameter, Config.APIWEP.feedbacksWEP, use:  delete(_:)) // Every feed back I made
     
   }
   

@@ -17,69 +17,94 @@ import CoreFoundation
 public final class UserController {
   
   public init() { }
-
+  /// Fetch logged user throw if it can't
   public static func logged(_ req: Request) throws -> User {
     let logger = try  req.make(Logger.self)
     logger.info("Origin :\(String(describing: req.http.headers.firstValue(name: HTTPHeaderName.referer))) \n Client IP: \(String(describing: req.http.channel!.remoteAddress))")
     // fetch auth'd user
     let user = try req.requireAuthenticated(User.self)
     guard try user.requireID() != 0 else {
+      if try req.hasSession() { try req.destroySession() }
       throw Abort(HTTPResponseStatus.unauthorized)
     }
     return user
   }
   
-  public static func checkLoginRelated(_ req: Request, _ specifiedUser: User) throws -> User {
+  /// Check that access is the same user
+  public static func same(user: User, for req: Request) throws -> Bool {
     // fetch auth'd user
-    let user = try logged(req)
-    guard try specifiedUser.requireID() == user.requireID() else {
-      throw Abort(HTTPResponseStatus.forbidden)
+    let uAuth = try UserController.logged(req)
+    guard try user.requireID() == uAuth.requireID() else {
+      return false
     }
-    return user
+    return true
   }
   
   /// Logs a user in, returning a token for accessing protected endpoints.
   public func login(_ req: Request, _ signers: [(Request) throws -> Future<User.FullLoggedResponse>] = []) throws -> Future<User.FullLoggedResponse> {
+    let logger = try req.make(Logger.self)
+    logger.info("##WEF POST /login ## Login lokup strategy.")
     if !signers.isEmpty {
       for fn in signers {
         let logUser = try? fn(req)
         if let fullUser = logUser {
           return fullUser
+        }
       }
-    }
     }
     return try loginBasic(req)
   }
   
-  
   /// Logs a user in, returning a token for accessing protected endpoints.
-  public func loginAPI(_ req: Request) throws -> Future<User.FullLoggedResponse> {
-    return try login(req)
+  public func loginAPI(_ req: Request) throws ->
+    Future<User.FullLoggedResponse> {
+      let logger = try  req.make(Logger.self)
+      logger.info("##WEP POST /login ## User log in >>>")
+      return try login(req)
+  }
+  
+  
+  /// Logs a user in, returntry ing a token for accessing protected endpoints.
+  public func logoutAPI(_ req: Request) throws ->
+    Future<User.Logout> {
+      let uAuth = try UserController.logged(req)
+      let logger = try  req.make(Logger.self)
+      logger.info("##WEP POST /logout ## User log out \(uAuth.login) >>>")
+      return try uAuth.authTokens.query(on: req).all()
+        .map { (utokens) ->User.Logout in
+        utokens.forEach { (utoken) in
+          utoken.expiresOn = Date()
+          _ = utoken.update(on: req)
+        }
+        logger.info("##WEP POST /logout ## User \(uAuth.login), was logged out.")
+        return User.Logout(id: uAuth.id!, login: uAuth.login, msg: "Logged well done", code: "101")
+
+      }
   }
   
 
-  
   /// Logs a user in, returning a token for accessing protected endpoints.
   public func loginBasic(_ req: Request) throws -> Future<User.FullLoggedResponse> {
     // get user auth'd by basic auth middleware
-    let user = try UserController.logged(req)
-    
+    let uAuth = try UserController.logged(req)
     let logger = try req.make(Logger.self)
-    logger.info("\(String(describing: user.id)) - \"\(String(describing: user.login))\" is connected for a token")
+    logger.info("##WEF POST /login ## Basic login succeed for \(uAuth.login)")
+    logger.info("Creation token for user \(uAuth.id!)")
     // create new token for this user
-    let token = try UserToken.create(userID: user.requireID())
-    logger.info("\(String(describing: user.id)) - \"\(String(describing: user.login))\" has a new token witch expire on \(String(describing: token.expiresOn))")
+    let token = try UserToken.create(userID: uAuth.requireID())
+    logger.info("\(uAuth.id!) - \"\(uAuth.login)\" has a new token witch expire on \(String(describing: token.expiresOn))")
     // TODO expire the rest of token
     // save and return token
     return token.save(on: req).flatMap { tok in // Log the saving token
-      logger.info("\(String(describing: user.id)) - \"\(String(describing: user.login))\" token \"\(String(describing: token.id))\" for user \"\(token.user)\" saved")
-      return user.fullLoggedResponse(req, tok)
+      logger.info("\(uAuth.id) - \"\(uAuth.login)\" token \"\(token.id!)\" for user \"\(token.user)\" saved")
+      return uAuth.fullLoggedResponse(req, tok)
     }
-    
   }
   
   /// Creates a new user.
-  public func create(_ req: Request) throws -> Future<User.FullPublicResponse> {
+  public func createAPI(_ req: Request) throws -> Future<User.FullPublicResponse> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEP POST /login ## User creation >>>")
     // decode request content
     return try req.content.decode(User.Create.self)
       .flatMap { cuser -> Future<User> in
@@ -92,10 +117,11 @@ public final class UserController {
         let logNick = cuser.login ?? String(cuser.email.split(separator: "@").first!).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "-", with: "_")
         let cont = Contact(givenName: "", familyName: "")
         cont.nickname = logNick
-        cont.ckind = .defaultValue
-        return cont.create(on: req).flatMap { (contact) -> Future<User> in
-          let u = User(login: logNick, email: cuser.email, passwordHash: hash, profile: nil, staff: cuser.staff?.staff ?? StaffUserRole.user, state: .defaultValue)
-          u.profileID = contact.id
+        cont.ckind = .person(.unknown)
+        return cont.create(on: req)
+          .flatMap { (contact) -> Future<User> in
+            let u = User(login: logNick, email: cuser.email, passwordHash: hash, profile: cont.id!, staff: cuser.staff?.staff ?? StaffUserRole.user, state: .defaultValue)
+          u.profileID = contact.id!
           try u.validate()
           return u.create(on:req)
         }
@@ -108,7 +134,7 @@ public final class UserController {
         log.error("Error fullIdentifier : " + err.fullIdentifier)
         
         log.error(err.localizedDescription)
-        let skeleton = User(login: "", email: "", passwordHash: "")
+        let skeleton = User(login: "", email: "", passwordHash: "", profile: 0)
         return skeleton
       }
       else {
@@ -131,295 +157,6 @@ public final class UserController {
   
 }
 
-/// - MARK - USER UPDATE CONTROLLER
-extension UserController {
-  /// Update an user using User.Update
-  public func updateUser(_ req: Request) throws -> Future<User.ShortPublicResponse> {
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { uToUpdate -> Future<User.ShortPublicResponse> in
-        let _ = try UserController.checkLoginRelated(req, uToUpdate)
-        
-        return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> Future<User.ShortPublicResponse> in
-          guard try uRequest.id == uToUpdate.requireID() else {
-            throw Abort(HTTPResponseStatus.forbidden)
-          }
-          if let log = uRequest.login {
-            uToUpdate.login = log
-            print("Login updated to \(log)")
-          }
-          if let uk = uRequest.staff {
-            uToUpdate.staff = uk
-            print("User kind updated to \(uk)")
-          }
-          if let state = uRequest.state {
-            uToUpdate.state = state
-            print("User state updated to \(state)")
-          }
-          
-          // ...ALTER TABLE user ADD avatar TEXT;
-          if let img = uRequest.avatar {
-            try self.savePicture(img, uToUpdate)
-          }
-          return uToUpdate.save(on: req).flatMap({ req.future($0.shortResponse()) })
-        })
-        
-    }
-  }
-  
-  /// Update an user using User.Update
-  public func update(_ req: Request) throws -> Future<User.ShortPublicResponse> {
-    // decode request parameter (u/:id)
-    let u = try UserController.logged(req)
-    return try req.content.decode(User.Update.self).flatMap({ (uRequest) -> EventLoopFuture<User.ShortPublicResponse> in
-      guard try uRequest.id == u.requireID() else {
-        throw Abort(HTTPResponseStatus.forbidden)
-      }
-      if let log = uRequest.login {
-        u.login = log
-        print("Login updated to \(log)")
-      }
-      if let uk = uRequest.staff {
-        u.staff = uk
-        print("User kind updated to \(uk)")
-      }
-      if let state = uRequest.state {
-        u.state = state
-        print("User state updated to \(state)")
-      }
-      
-      // ...ALTER TABLE user ADD avatar TEXT;
-      if let img = uRequest.avatar {
-        try self.savePicture(img, u)
-      }
-      return u.save(on: req).flatMap({ req.future($0.shortResponse()) })
-    })
-  }
-  
-  private func savePicture(_ img: File, _ user: User) throws {
-    let home:URL = URL(fileURLWithPath: Config.rootUpdloadedFiles, isDirectory: true)
-    let subLoggedUserPath = user.ref + Config.APIWEP.profilePictureWEP
-    var path =
-      home.appendingPathComponent(Config.rootUpdloadedImagesFiles, isDirectory: true)
-        .appendingPathComponent(subLoggedUserPath, isDirectory: true)
-    path.appendPathComponent(img.filename.hash.description + "." + (img.ext ?? ".png"), isDirectory: false)
-    // TODO Catch
-    try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-    // TODO Catch
-    try img.data.write(to: path) // save picture on disk
-    user.avatar = path.absoluteString // save picture on user
-  }
-  
-  /// Create User Profile Picture
-  public func updateProfileVcard(_ req: Vapor.Request) throws -> Future<String> {
-    // fetch auth'd user
-    let userAuth = try req.requireAuthenticated(User.self)
-    print(req.debugDescription)
-    return try req.parameters.next(User.self).flatMap{ uToUpdate -> Future<String> in
-      guard try uToUpdate.requireID() == userAuth.requireID() else {
-        throw Abort(HTTPResponseStatus.forbidden)
-      }
-      return try req.content.decode(User.Update.self).flatMap{ (uRequest) in
-        guard try uRequest.id == uToUpdate.requireID() else {
-          throw Abort(HTTPResponseStatus.forbidden)
-        }
-        if let img = uRequest.avatar {
-          try self.savePicture(img, uToUpdate)
-          return uToUpdate.save(on: req).map({ $0.avatar! })
-        } else {
-          throw Abort(HTTPResponseStatus.notAcceptable)
-        }
-      }
-    }
-    
-  }
-  
-}
-
-/// - MARK - GET USER INFOS
-extension UserController {
-  /// List all users.
-  public func list(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
-    let user = try req.requireAuthenticated(User.self)
-    var meta = PageMeta()
-    meta.config(from: req)
-    guard user.id != nil else {
-      throw Abort(HTTPResponseStatus.unauthorized)
-    }
-    //    let users = User.query(on: req).join(\Profile.id, to: \User.id).alsoDecode(Profile.self).all()
-    //    return users.flatMap({(uar) -> EventLoopFuture<[User.Response]> in
-    //      let uresp = uar.compactMap({ (u) -> Future<User.Response> in
-    //        return u.0.response(req, with: u.1)
-    //      }).flatten(on: req)
-    //      return uresp
-    //    })
-    var filter = FilterNavigation<User.ShortPublicResponse>()
-    
-    let users = filter.apply(User.query(on: req), from: req).all()
-    return users.flatMap({(u) -> Future<[User.ShortPublicResponse]> in
-      return u.compactMap({ req.future($0.shortResponse())}).flatten(on: req)
-    })
-  }
-  
-  public func lookupAssociated(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
-    let logger = try  req.make(Logger.self)
-    logger.info(req.http.debugDescription)
-    let user = try UserController.logged(req)
-    logger.info("Getting User search initiated by \(user.id!) (\(user.login))")
-    let meta = PageMeta(req)
-    var qry = ""
-    if let qsrch = try? req.query.get(String.self, at: Config.SearchEngine.paramsQuery) {
-      qry = "%"+qsrch+"%"
-    }
-    if qry.isEmpty {
-      return req.future([])
-    }
-    if user.staff.staff.isAdministrator || user.staff.staff.isBigBrother {
-          let usersBuild = User.query(on: req)
-        .join(\Contact.id, to: \User.profileID).alsoDecode(Contact.self)
-        .group(.or) {
-        $0.filter(\User.login,        .ilike, qry)
-          .filter(\User.email,        .ilike, qry)
-          .filter(\User.orgUserRef,   .ilike, qry)
-          .filter(\User.ref,          .ilike, qry)
-          .filter(\Contact.nickname,  .ilike, qry)
-          .filter(\Contact.givenName, .ilike, qry)
-          .filter(\Contact.familyName,      .ilike, qry)
-          .filter(\Contact.departmentName,  .ilike, qry)
-          .filter(\Contact.jobTitle,        .ilike, qry)
-          .filter(\Contact.middleName,      .ilike, qry)
-      }
-      .group(.or){
-        $0.filter(\User.deletedAt, .equal, nil)
-          .filter(\User.deletedAt, .greaterThan, Date())
-      }
-
-      logger.debug("Getting User search from an administrator (\(user.staff.staff.isAdministrator)")
-
-      return usersBuild.all().flatMap({(usrs: [(User, Contact)]) -> Future<[User.QuickSearch]> in
-        return usrs.compactMap({
-          req.future(User.QuickSearch(id: $0.0.id!, login: $0.0.login, ref: $0.0.ref, avatar: $0.0.avatar ?? "http://localhost:8080/imgs/profil.png", kind: $0.1.ckind, givenName: $0.1.givenName, familyName: $0.1.familyName, nickname: $0.1.nickname, jobTitle: $0.1.jobTitle, departmentName: $0.1.departmentName) )}).flatten(on: req)
-      })
-    }
-    let query = """
-    SELECT DISTINCT "user"."id", "user"."login", "user"."ref", "user"."email", "user"."orgUserRef", "user"."ref", "contact"."nickname",
-    "contact"."givenName", "contact"."familyName", "contact"."departmentName", "contact"."jobTitle", "contact"."middleName",
-    "contact"."note", "contact"."previousFamilyName"
-    FROM "user"
-    INNER JOIN "contact" ON "user"."profileID" = "contact"."id"
-    LEFT JOIN "uorganization" ON "user"."id" = "uorganization"."userID"
-    INNER JOIN "organization" ON "organization"."id" = "uorganization"."organizationID"
-    LIMIT \(meta.limit) OFFSET \(meta.offset)
-    WHERE ("uorganization"."organizationID"
-    IN
-    (
-    SELECT DISTINCT "uorganization"."organizationID"
-    FROM "uorganization"
-    WHERE "uorganization"."userID" = \(user.id!))
-    )
-    AND (
-    "user"."login"                    ILIKE '\(qry)'
-    OR "user"."email"                 ILIKE '\(qry)'
-    OR "user"."orgUserRef"            ILIKE '\(qry)'
-    OR "user"."ref"                   ILIKE '\(qry)'
-    OR "contact"."nickname"           ILIKE '\(qry)'
-    OR "contact"."givenName"          ILIKE '\(qry)'
-    OR "contact"."familyName"         ILIKE '\(qry)'
-    OR "contact"."departmentName"     ILIKE '\(qry)'
-    OR "contact"."jobTitle"           ILIKE '\(qry)'
-    OR "contact"."middleName"         ILIKE '\(qry)'
-    OR "contact"."note"               ILIKE '\(qry)'
-    OR "contact"."previousFamilyName" ILIKE '\(qry)'
-    OR "organization"."label"         ILIKE '\(qry)'
-    OR "organization"."slogan"        ILIKE '\(qry)'
-    OR "organization"."shortLabel"    ILIKE '\(qry)'
-    )
-    AND
-    ( "user"."deletedAt" IS NULL OR "user"."deletedAt" > NOW() )
-    """
-    return req.withNewConnection(to: .psql) { $0.raw( query ).all(decoding: User.QuickSearch.self) }
-    
-  }
-  
-  /**
-   * list of `Order` for the logged user
-   */
-  public func ordersForLoggedUser(_ req: Request) throws -> Future<[Order]> {
-    let uAuth = try UserController.logged(req)
-    var filter = FilterNavigation<Order>()
-    return try filter.apply(uAuth.orders.query(on: req), from: req).all()
-  }
-  
-  /**
-   * list of `Order` for the given user
-   */
-  public func ordersForUser(_ req: Request) throws -> Future<[Order]> {
-    let _ = try UserController.logged(req)
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { designedUser -> Future<[Order]> in
-        var filter = FilterNavigation<Order>()
-        return try filter.apply(designedUser.orders.query(on: req), from: req).all()
-    }
-  }
-  
-  /**
-   * list of `Service` for the logged user
-   */
-  public func servicesForLoggedUser(_ req: Request) throws -> Future<[Service]> {
-    let uAuth = try UserController.logged(req)
-    var filter = FilterNavigation<Service>()
-    return try filter.apply(uAuth.services.query(on: req), from: req).all()
-  }
-  
-  /**
-   * list of `Service` for the given user
-   */
-  public func servicesForUser(_ req: Request) throws -> Future<[Service]> {
-    let _ = try UserController.logged(req)
-    // decode request parameter (u/:id)
-    return try req.parameters.next(User.self).flatMap
-      { designedUser -> Future<[Service]> in
-        var filter = FilterNavigation<Service>()
-        return try filter.apply(designedUser.services.query(on: req), from: req).all()
-    }
-  }
-  
-  /// Show an user.
-  public func show(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // fetch auth'd user
-    let _ = try req.requireAuthenticated(User.self)
-    
-    // decode request parameter (users/:id)
-    do {
-      guard let userID = req.parameters.values.first else {
-        throw Abort(HTTPResponseStatus.badRequest)
-      }
-      // If the given id is zero then return the current authenticated user
-      if userID.value == "0" { //|| userID.value.last == "!" {
-        return try self.account(req)
-      } else {
-        let resp = try req.parameters.next(User.self)
-        return resp.flatMap { u -> Future<User.FullPublicResponse> in
-          return u.fullResponse(req)
-        }
-      }
-    } catch let err {
-      print("*************************")
-      print("\n\n\nError info : \(err)")
-      throw err
-    }
-  }
-  
-  /// Show the authentificated user.
-  public func account(_ req: Request) throws -> Future<User.FullPublicResponse> {
-    // fetch auth'd user
-    let u = try req.requireAuthenticated(User.self)
-    return u.fullResponse(req)
-  }
-  
-}
-
 /// - MARK - USERS ROUTES
 extension UserController: RouteCollection {
   public func boot(router: Router) throws {
@@ -428,26 +165,20 @@ extension UserController: RouteCollection {
      *******************************************************************/
     /** Public user end point api spec */
     // Creation of a new user
-    router.post(Config.APIWEP.signupWEP, use: create)
+    router.post(Config.APIWEP.signupWEP, use: createAPI(_:))
+    
+    /*************************** LOGGED SECTION *************************
+     ***
+     *******************************************************************/
+    /** Public user end point api spec */
+    // Creation of a new user
     // basic / password auth protected routes
     let basic = router.grouped(User.basicAuthMiddleware(using: BCryptDigest()))
     // bearer / token auth protected routes
-    
     let bearer = router.grouped(User.tokenAuthMiddleware())
-    basic.post(Config.APIWEP.loginWEP, use: loginAPI)
-    bearer.get(Config.APIWEP.lookupWEP, Config.APIWEP.usersWEP, use: { try self.lookupAssociated($0) })
-    
-    /**
-     ** Logged User end point api spec - 1
-     */
-    let accoundGroup = bearer.grouped(Config.APIWEP.accountWEP)
-    accoundGroup.get(use: account)
-    accoundGroup.patch(Config.APIWEP.detailsWEP, use: update) // update account
-    accoundGroup.patch(Config.APIWEP.profilesWEP, use: update) // update profile accound
-    
-    let userLogInGroup = bearer.grouped(Config.APIWEP.userWEP)
-    userLogInGroup.get(User.parameter, use: show)
-    
+    /// Login user used basic information at least
+    basic.post(Config.APIWEP.loginWEP, use: loginAPI(_:))
+    bearer.get(Config.APIWEP.logoutWEP, use: logoutAPI(_:))
   }
   
   
