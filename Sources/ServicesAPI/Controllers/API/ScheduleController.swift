@@ -63,7 +63,7 @@ extension ScheduleController {
             schToUpdate.updatedAt = Date()
             
             return schToUpdate.update(on: req).map { (sch) -> (Schedule.MidPublicResponse) in
-              let midResp = sch.midResponse()
+              let midResp = sch.midResponse(user: user.shortResponse())
               logger.info("Schedule updated as mid format : {\(midResp)}")
               return midResp
             }

@@ -20,33 +20,77 @@ public final class OrganizationController {
   public init() { }
   
   public func create(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
-    let _ = try UserController.logged(req)
+    let _       = try UserController.logged(req)
     // decode request content
-    let re = try req.content.decode(Organization.CreateOrganization.self)
-    print("CreateOrganization recupéré")
-    print(re)
+    let re      = try req.content.decode(Organization.CreateOrganization.self)
+    let logger  = try  req.make(Logger.self)
+    logger.debug("CreateOrganization recupéré")
     return re.flatMap { (oc) -> Future<Organization.FullPublicResponse> in
-      let uId = oc.userID
+      let uId         = oc.userID
       print(oc)
       print("#################@")
-      let user = User.find(uId, on: req)
-      let sector = Sector.find(oc.sectorID, on: req)
-      let parent = oc.parentID == nil ? nil : Organization.find(oc.parentID!, on: req)
+      let user        = User.find(uId, on: req)
+      let sector      = Sector.find(oc.sectorID, on: req)
+      let parent      = oc.parentID == nil ? nil : Organization.find(oc.parentID!, on: req)
+      let fixedTva    = oc.tva ?? ""
+      let tva         = fixedTva.isEmpty ? nil : fixedTva
+      let fixedcTva   = oc.communityTVA ?? ""
+      let ctva        = fixedcTva.isEmpty ? nil : fixedcTva
+      let rcsFixed    = oc.rcs ?? ""
+      let rcs         = rcsFixed.isEmpty ? nil : rcsFixed
+      //        let orgRefFixed   = oc.organizationRef ?? ""
+      //        let orgRef        = orgRefFixed.isEmpty ? nil : orgRefFixed
+      let fixedBrand  = oc.brand ?? ""
+      let brand       = fixedBrand.isEmpty ? nil : fixedBrand
+      let fixedSigle  = oc.sigle ?? ""
+      let sigle       = fixedSigle.isEmpty ? nil : fixedSigle
+      let fixedjuridicCatCode   = oc.juridicCatCode ?? 0
+      let juridicCatCode        = fixedjuridicCatCode == 0 ? nil : fixedjuridicCatCode
+      let fixedparentID         = oc.parentID ?? 0
+      let parentID              = fixedparentID == 0 ? nil : fixedparentID
+      let fixedjuridicCatLabel  = oc.juridicCatLabel ?? ""
+      let juridicCatLabel       = fixedjuridicCatLabel.isEmpty ? nil : fixedjuridicCatLabel
+      let fixedpublicPart       = oc.sigle ?? ""
+      let publicPart            = fixedpublicPart.isEmpty ? nil : fixedpublicPart
+      let fixedinsurance        = oc.insurance ?? ""
+      let insurance             = fixedinsurance.isEmpty ? nil : fixedinsurance
+      let fixedinsuranceName    = oc.insuranceName ?? ""
+      let insuranceName         = fixedinsuranceName.isEmpty ? nil : fixedinsuranceName
+      let fixedcapital          = oc.capital ?? ""
+      let capital               = fixedcapital.isEmpty ? nil : fixedcapital
+      let fixedmarket           = oc.market ?? ""
+      let market                = fixedmarket.isEmpty ? nil : fixedmarket
+      let fixednafCode          = oc.nafCode ?? ""
+      let nafCode               = fixednafCode.isEmpty ? nil : fixednafCode
+      let fixednafLabel         = oc.nafLabel ?? ""
+      let nafLabel              = fixednafLabel.isEmpty ? nil : fixednafLabel
+      let fixedmarketValue      = oc.marketValue ?? ""
+      let marketValue           = fixedmarketValue.isEmpty ? nil : fixedmarketValue
+      let fixedslogan           = oc.slogan ?? ""
+      let slogan                = fixedslogan.isEmpty ? nil : fixedslogan
+      let fixedStatus           = oc.status ?? ""
+      let status                = fixedStatus.isEmpty ? nil : fixedStatus
+      
+      let dateForm              = DateFormatter()
+      dateForm.dateFormat       = "yyyy-MM-dd"
+      let activityStartedAt     = dateForm.date(from: oc.activityStartedAt ?? "")
+      let activityEndedAt       = dateForm.date(from: oc.activityEndedAt ?? "")
+      let siret = oc.siret == "00000000000000" ? nil : oc.siret
+      let siren = siret == nil ? nil : String(oc.siret.prefix(9))
+      let orga = Organization(label: oc.legalName, slogan: slogan, description: oc.description, sector: oc.sectorID, kind: juridicCatCode, money: oc.currency, state: ObjectStatus.await, size: oc.size, parent: parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: siren, siret: siret, tva: tva, communityTVA: ctva, activityStartedAt: activityStartedAt, activityEndedAt: activityEndedAt, brand: brand, sigle: sigle, orgGender: oc.juridicForm, juridicCatCode: juridicCatCode, juridicCatLabel: juridicCatLabel, publicPart: publicPart, insurance: insurance, insuranceName: insuranceName, nafCode: nafCode, nafLabel: nafLabel, capital: capital, market: market, marketValue: marketValue, status: status, rcs: rcs)
+      
       return user.and(sector).flatMap { (u, sect) -> Future<Organization.FullPublicResponse> in
-        let dateForm = DateFormatter()
-        dateForm.dateFormat = "yyyy-MM-dd"
         guard let sec = sect else {
           print("@@@@@@@@@@@@Unknown sector")
           throw Abort(HTTPResponseStatus.badRequest)
         }
-        let orga = Organization(label: oc.legalName, slogan: oc.slogan, description: oc.description, sector: oc.sectorID, kind: oc.juridicCatCode, money: oc.currency, state: ObjectStatus.await, size: oc.size, parent: oc.parentID, shortLabel: oc.shortLabel, organizationRef: nil, siren: nil, siret: oc.siret, tva: oc.tva, communityTVA: oc.communityTVA, activityStartedAt: dateForm.date(from: oc.activityStartedAt ?? ""), activityEndedAt: dateForm.date(from: oc.activityEndedAt ?? ""), brand: oc.brand, sigle: oc.sigle, orgGender: oc.juridicForm, juridicCatCode: oc.juridicCatCode, juridicCatLabel: oc.juridicCatLabel, publicPart: oc.publicPart, insurance: oc.insurance, insuranceName: oc.insuranceName, nafCode: oc.nafCode, nafLabel: oc.nafLabel, capital: oc.capital, market: oc.market, marketValue: oc.marketValue, status: oc.status, rcs: oc.rcs)
         
         /// Save the organization
         return orga.save(on: req).flatMap { (org) -> Future<Organization.FullPublicResponse> in
-          print("@@@@@@@@@@@@Organization saved with succes")
+          logger.debug("@@@@@@@@@@@@Organization saved with succes")
           print(org)
           let uog = UserOrganization(organization: org.id!, user: uId, role: oc.userRole)
-          print("What about UserOrganization")
+          logger.debug("What about UserOrganization")
           print(uog)
           /// Save the relation between the orgnization and the user
           return uog.save(on: req).flatMap {
@@ -84,18 +128,17 @@ extension OrganizationController {
             guard org.id == orgToUpdate.id else {
               fatalError("Organization to updated differs")
             }
-            
-            orgToUpdate.okind = org.okind
-            orgToUpdate.legalName = org.legalName
-            orgToUpdate.slogan = org.slogan
-            orgToUpdate.state = org.state
-            orgToUpdate.shortLabel = org.shortLabel
-            orgToUpdate.money = org.money
-            orgToUpdate.sectorID = org.sectorID
-            orgToUpdate.parentID = org.parentID
-            orgToUpdate.description = org.description
-            orgToUpdate.updatedAt = Date()
-            
+            orgToUpdate.okind         = org.okind
+            orgToUpdate.legalName     = org.legalName
+            orgToUpdate.slogan        = org.slogan
+            orgToUpdate.state         = org.state
+            orgToUpdate.shortLabel    = org.shortLabel
+            orgToUpdate.money         = org.money
+            orgToUpdate.sectorID      = org.sectorID
+            orgToUpdate.parentID      = org.parentID
+            orgToUpdate.description   = org.description
+            orgToUpdate.updatedAt     = Date()
+            orgToUpdate.summary       = org.description.resume()
             return orgToUpdate.update(on: req)
         }
     }
@@ -142,17 +185,17 @@ extension OrganizationController {
     let org = try req.parameters.next(Organization.self)
     return org.flatMap { (orga) -> Future<Organization.FullPublicResponse> in
       //        let industries = Industry.query(on: req).filter(\Industry.sectorID, .equal, orga.sectorID).all()
-      let members = try orga.members.query(on: req).alsoDecode(UserOrganization.self).all()
-      let services = try orga.services.query(on: req).all()
-      let children = try orga.organizations.query(on: req)
+      let members     = try orga.members.query(on: req).alsoDecode(UserOrganization.self).all()
+      let services    = try orga.services.query(on: req).all()
+      let children    = try orga.organizations.query(on: req)
         .join(\Sector.id, to: \Organization.sectorID)
         .alsoDecode(Sector.self).all()
-      let parent = orga.parent?.get(on: req)
-      let sector = orga.sector.get(on: req)
+      let parent  = orga.parent?.get(on: req)
+      let sector  = orga.sector.get(on: req)
       return sector.and(members).and(services)
         .flatMap { (sec_mems, servs) -> Future<Organization.FullPublicResponse> in
           let (sec, uuos) = sec_mems
-          var orgFull = Organization.fullResponse(org: orga, sect: sec, uorg: nil, parent: nil)
+          var orgFull     = Organization.fullResponse(org: orga, sect: sec, uorg: nil, parent: nil)
           orgFull.members = []
           if !servs.isEmpty {
             orgFull.services = []
@@ -186,9 +229,9 @@ extension OrganizationController {
   
   
   public func organizationsOf(user: User, req: Request) throws
-    -> (PageMeta, Future<OffsetPaginator<Organization.FullPublicResponse>>) {
+    -> (PageMeta, Future<OffsetPaginator<Organization.MidPublicResponse>>) {
       guard try user.requireID() != 0 else {
-        throw Abort(HTTPResponseStatus.badRequest)
+        throw Abort(HTTPResponseStatus.unauthorized)
       }
       let meta = PageMeta(req)
       //          let qryNav = meta.apply(, from: req)
@@ -216,17 +259,20 @@ extension OrganizationController {
       }
       
       let qry = query //meta.apply(query, from: req)
-      let trans = try qry.transform(on: req)
+      let trans = qry.transform(on: req)
       { (obj) ->
-        Organization.FullPublicResponse in
+        Future<Organization.MidPublicResponse> in
         let org         = obj.0.0
         let uorg        = obj.0.1
         let sect        = obj.1
-        
-        let ofpr = Organization.fullResponse(org: org, sect: sect, uorg: uorg)
-        return ofpr
+        let promise = req.eventLoop.newPromise(Organization.MidPublicResponse.self)
+        DispatchQueue.global().async {
+          let ofpr = org.midResponse(sect: sect, uorg: uorg, parent: nil)
+          promise.succeed(result: ofpr)
+        }
+        return promise.futureResult
       }
-      let pag = try trans.paginate(for: req, type: OffsetPaginator<Organization.FullPublicResponse>.self)
+      let pag = try trans.paginate(for: req, type: OffsetPaginator<Organization.MidPublicResponse>.self)
       return (meta, pag)
   }
   
@@ -238,11 +284,11 @@ extension OrganizationController {
   //      return pag
   //   }
   
-  /// Getting organization child of a given organization through /organizations/orgaID/organizations
-  public func organizationOfOrg(_ req: Request) throws ->
-    Future<OffsetPaginator<Organization.FullPublicResponse>> {
+  /// Getting organization's childs of a given organization through /organizations/orgaID/organizations
+  public func organizationsOfOrg(_ req: Request) throws ->
+    Future<OffsetPaginator<Organization.MidPublicResponse>> {
       return try req.parameters.next(Organization.self).flatMap
-        { org -> Future<OffsetPaginator<Organization.FullPublicResponse>> in
+        { org -> Future<OffsetPaginator<Organization.MidPublicResponse>> in
           guard try org.requireID() != 0 else {
             throw Abort(HTTPResponseStatus.badRequest)
           }
@@ -260,12 +306,12 @@ extension OrganizationController {
           }
           
           let trans = try qry.transform(on: req)
-          { (obj:(Organization, Sector)) -> Organization.FullPublicResponse in
+          { (obj:(Organization, Sector)) -> Organization.MidPublicResponse in
             let org         = obj.0
             let sect        = obj.1
-            return Organization.fullResponse(org: org, sect: sect, uorg: nil, parent: nil)
+            return org.midResponse(sect: sect, uorg: nil, parent: nil)
           }
-          return try trans.paginate(for: req, type: OffsetPaginator<Organization.FullPublicResponse>.self)
+          return try trans.paginate(for: req, type: OffsetPaginator<Organization.MidPublicResponse>.self)
       }
   }
   

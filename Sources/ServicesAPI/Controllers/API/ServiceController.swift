@@ -22,10 +22,13 @@ public final class ServiceController {
     let user = try UserController.logged(req)
     let logger = try req.make(Logger.self)
     logger.info("Service create initiated by \(user.id!) (\(user.login))")
+    print(req.http.headers)
+    print(req.http.body)
     let serviceCS = try req.content.decode(Service.CreateService.self)
     return serviceCS.flatMap { (scs) -> Future<Service.ShortPublicResponse> in
       logger.info("Service content decoded \(scs.shortLabel)")
       let giventAuthor = scs.userID
+      print(scs)
       // XXXX
       // TODO: Control upon connected user and right to create a service for the giventAuthor
       // TODO control if connected user has right to create service on this organization
@@ -40,7 +43,7 @@ public final class ServiceController {
           let negServ = nil != scs.freeService ? (scs.freeService! == "on" ? true : false) : false
           let service =
             Service(label: scs.label, billing: scs.billingMode, description: scs.description, industry: scs.industryID, price: Float(scs.price + ".99"), shortLabel: scs.shortLabel, organization: scs.organizationID, author: scs.userID, parent: scs.parentID, orgServiceRef: scs.orgServiceRef,
-                    nobillable: freeServ, negotiable: negServ, locationID: scs.location, geoPerimeter: scs.activityPerimeter ?? 1,
+                    nobillable: freeServ, negotiable: negServ, address: scs.address, locationID: nil, geoPerimeter: scs.activityPerimeter ?? 1,
                     openOn: servStart, endOn: servEnd, createdAt: Date(), updatedAt: nil, deletedAt: nil, id: nil)
           return service.save(on: req).map { (serv) -> Service.ShortPublicResponse in
             return serv.shortResponse()
@@ -162,7 +165,8 @@ extension ServiceController {
           let author    = serv.author.get(on: req)
           let industry  = serv.industry.get(on: req)
           let children  = try serv.services.query(on: req).all()
-          let schedule  = try serv.schedules.query(on: req).all()
+          let schedule  = try serv.schedules.query(on: req)
+            .join(\User.id, to: \Schedule.ownerID).alsoDecode(User.self).all()
           //        let assets    = try serv.assets.query(on: req).all()
           let scores    = try serv.scores.query(on: req) /// And then navigate between comments...
             .join(\User.id, to: \Score.authorID)
@@ -201,15 +205,8 @@ extension ServiceController {
                     retRes.children!.append(ser.shortResponse())
                   }
                   
-                  let lschd = try scheds.map { (scd: Schedule) -> Future<Schedule.MidPublicResponse> in
-                    logger.debug("Linking schedule \(scd.id!) \(String(describing: scd.label))")
-                    var scdFR = scd.midResponse()
-                    return try scd.activities.query(on: req).all().map { (actis) -> Schedule.MidPublicResponse in
-                      logger.debug("Linking activities count(\(actis.count)) for the schedule \(scd.id!) \(String(describing: scd.label))")
-                      scdFR.activities = actis
-                      return scdFR
-                    }
-                  }
+                  let tempFunc = { try self.mapSchedule(req: req, logger: logger, scd: $0) }
+                  let lschd = try scheds.map(tempFunc)
                   
                   return lschd.flatten(on: req).map{ (schs) -> Service.FullPublicResponse in
                     retRes.schedules = schs
@@ -229,6 +226,16 @@ extension ServiceController {
     }
   }
   
+  fileprivate func mapSchedule(req: Request, logger: Logger, scd: (Schedule, User)) throws
+    -> Future<Schedule.MidPublicResponse> {
+    logger.debug("Linking schedule \(scd.0.id!) \(String(describing: scd.0.label))")
+    var scdFR = scd.0.midResponse(user: scd.1.shortResponse())
+    return try scd.0.activities.query(on: req).all().map { (actis) -> Schedule.MidPublicResponse in
+      logger.debug("Linking activities count(\(actis.count)) for the schedule \(scd.0.id!) \(String(describing: scd.0.label))")
+      scdFR.activities = actis
+      return scdFR
+    }
+  }
   /**
    
    */
@@ -241,7 +248,8 @@ extension ServiceController {
     let author    = serv.author.get(on: req)
     let industry  = serv.industry.get(on: req)
     let children  = try serv.services.query(on: req).all()
-    let schedule  = try serv.schedules.query(on: req).all()
+    let schedule  = try serv.schedules.query(on: req)
+     .join(\User.id, to: \Schedule.ownerID).alsoDecode(User.self).all()
     let assets    = try serv.assets.query(on: req)
       .filter(\ServiceAsset.serviceID == serv.id!)
       .alsoDecode(ServiceAsset.self)
@@ -283,16 +291,9 @@ extension ServiceController {
               retRes.children!.append(ser.shortResponse())
             }
             
-            let lschd = try scheds.map { (scd: Schedule) -> Future<Schedule.MidPublicResponse> in
-              logger.debug("Linking schedule \(scd.id!) \(String(describing: scd.label))")
-              var scdFR = scd.midResponse()
-              return try scd.activities.query(on: req).all().map { (actis) -> Schedule.MidPublicResponse in
-                logger.debug("Linking activities count(\(actis.count)) for the schedule \(scd.id!) \(String(describing: scd.label))")
-                scdFR.activities = actis
-                return scdFR
-              }
-            }
-            
+            let tempFunc = { try self.mapSchedule(req: req, logger: logger, scd: $0) }
+            let lschd = try scheds.map(tempFunc)
+
             return lschd.flatten(on: req).map{ (schs) -> Service.FullPublicResponse in
               retRes.schedules = schs
               logger.info("Linking schedules to the retrieving service")
@@ -401,7 +402,7 @@ extension ServiceController {
 //     GROUP BY service_id
 //    ) st ON st.service_id = "service".id
 //  WHERE ("service"."deletedAt" IS NULL OR "service"."deletedAt" > NOW() )
-//    AND "organization"."id" = \(Config.Static.bbMainOrgID)
+//    AND "organization"."id" = \(Config.bbMainOrgID)
 //    AND ("service"."status" = \(ObjectStatus.online.rawValue) OR "service"."status" = \(ObjectStatus.review.rawValue))
 //    ORDER BY aGeneral \(meta.direction)
 //    LIMIT \(meta.limit) OFFSET \(meta.offset)
@@ -437,7 +438,7 @@ extension ServiceController {
 //      .join(.leftOuter, |subScore| => "st", on: "st.service_id = service.id")
 //      .where(|\Service.deletedAt == nil || \Service.deletedAt > Fn.now()|
 //        && |\Service.status == ObjectStatus.online.rawValue || \Service.status == ObjectStatus.review.rawValue|
-//        && \Organization.id == Config.Static.bbMainOrgID)
+//        && \Organization.id == Config.bbMainOrgID)
 //      .orderBy(.asc("aGeneral"))
 //      .limit(meta.limit)
 //      .offset(meta.offset)
@@ -460,8 +461,8 @@ extension ServiceController {
       .group(.or) {
         $0.filter(\Service.status == ObjectStatus.online.rawValue)
         $0.filter(\Service.status == ObjectStatus.review.rawValue)
-        //          .filter(\Organization.id == Config.Static.bbMainOrgID)
-        //          .filter(\Organization.id == Config.Static.bbMainOrgID)
+        //          .filter(\Organization.id == Config.bbMainOrgID)
+        //          .filter(\Organization.id == Config.bbMainOrgID)
     }
     
     logger.info("Getting Index Services applaying filters")

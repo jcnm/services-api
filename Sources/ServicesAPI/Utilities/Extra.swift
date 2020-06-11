@@ -10,7 +10,7 @@ import Crypto
 import FluentPostgreSQL
 import Vapor
 import AppKit
-import Fuzi
+//import Fuzi
 import SwiftSoup
 
 public typealias  ObjectID        = Int
@@ -85,8 +85,8 @@ public enum ObjectStatus: Int, Codable, ReflectionDecodable, CaseIterable, RawRe
   
   case stash      = 0 // Object is submetted but not yet evaluated
   case online     = 1 //
-  case await      = 2 // Awaiting confirmation from an other
-  case review     = 4 // Online and was reviewed
+  case await      = 2 // Picked by a moderator for review
+  case review     = 4 // In reviewing
   case rejected   = 6 // Offline because rejected
   case signaled   = 10
   case offline    = 12
@@ -112,11 +112,11 @@ public enum ObjectStatus: Int, Codable, ReflectionDecodable, CaseIterable, RawRe
   public var textual: String {
     switch self {
       case .stash:
-        return "Mise en analyse"
+        return "Mise en attente"
       case .online:
         return "En ligne"
       case .await:
-        return "En attente de validation"
+        return "En attente d'analyse"
       case .review:
         return "En revue"
       case .rejected:
