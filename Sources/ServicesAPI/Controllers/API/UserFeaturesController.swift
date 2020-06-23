@@ -34,7 +34,7 @@ extension UserFeaturesController: RouteCollection {
     /** Public user end point api spec */
     // Creation of a new user
         // bearer / token auth protected routes
-    let bearer = router.grouped(User.tokenAuthMiddleware())
+//    let bearer = router.grouped(User.tokenAuthMiddleware())
   }
   
   

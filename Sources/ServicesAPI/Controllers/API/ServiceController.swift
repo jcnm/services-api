@@ -45,7 +45,7 @@ public final class ServiceController {
             Service(label: scs.label, billing: scs.billingMode, description: scs.description, industry: scs.industryID, price: Float(scs.price + ".99"), shortLabel: scs.shortLabel, organization: scs.organizationID, author: scs.userID, parent: scs.parentID, orgServiceRef: scs.orgServiceRef,
                     nobillable: freeServ, negotiable: negServ, address: scs.address, locationID: nil, geoPerimeter: scs.activityPerimeter ?? 1,
                     openOn: servStart, endOn: servEnd, createdAt: Date(), updatedAt: nil, deletedAt: nil, id: nil)
-          return service.save(on: req).map { (serv) -> Service.ShortPublicResponse in
+          return service.createOverload(on: req).map { (serv) -> Service.ShortPublicResponse in
             return serv.shortResponse()
           }
       }
@@ -81,7 +81,7 @@ extension ServiceController {
             
             serToUpdate.updatedAt     = Date()
             
-            return serToUpdate.update(on: req)
+            return serToUpdate.updateOverload(on: req)
         }
     }
   }

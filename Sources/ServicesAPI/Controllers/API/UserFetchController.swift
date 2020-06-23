@@ -199,7 +199,7 @@ public class UserFetchController {
 extension UserFetchController {
   
   /// List all users.
-  public func list(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
+  public func listAPI(_ req: Request) throws -> Future<[User.ShortPublicResponse]> {
     var filter = FilterNavigation<User.ShortPublicResponse>()
     let users = filter.apply(User.query(on: req), from: req).all()
     return users.flatMap({(u) -> Future<[User.ShortPublicResponse]> in
@@ -300,10 +300,11 @@ extension UserFetchController {
 /// - MARK - USER LOOK UP
 extension UserFetchController {
   
-  public func lookupUsers(_ req: Request, of: User? = nil) throws -> Future<[User.QuickSearch]> {
+  public func lookupUsers(_ req: Request, of designedUser: User? = nil)
+    throws -> Future<[User.QuickSearch]> {
     let logger = try  req.make(Logger.self)
     logger.info(req.http.debugDescription)
-    let user = try UserController.logged(req)
+    let user = try (designedUser ?? UserController.logged(req))
     logger.info("Getting User search initiated by \(user.id!) (\(user.login))")
     let meta = PageMeta(req)
     var qry = ""
@@ -422,7 +423,7 @@ extension UserFetchController: RouteCollection {
     lookupGroup.get(Config.APIWEP.ordersWEP, use: delete(_:)) // lookup orders through logged user scope
     
     let usersGroup = bearer.grouped(Config.APIWEP.usersWEP)
-    usersGroup.get(use: list(_:)) // The user list
+    usersGroup.get(use: listAPI(_:)) // The user list
     usersGroup.get(User.parameter, use: showAPI(_:)) // get user's informations
     usersGroup.get(User.parameter, Config.APIWEP.profilesWEP, use: profileAPI(_:)) // A profile
     usersGroup.get(User.parameter, Config.APIWEP.servicesWEP, use: servicesAPI(_:))

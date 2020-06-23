@@ -31,7 +31,7 @@ public final class UserController {
   }
   
   /// Check that access is the same user
-  public static func same(user: User, for req: Request) throws -> Bool {
+  public static func authUserIs(user: User, for req: Request) throws -> Bool {
     // fetch auth'd user
     let uAuth = try UserController.logged(req)
     guard try user.requireID() == uAuth.requireID() else {
@@ -39,6 +39,14 @@ public final class UserController {
     }
     return true
   }
+   
+   /// Logs a user in, returning a token for accessing protected endpoints.
+   public func loginAPI(_ req: Request) throws ->
+     Future<User.FullLoggedResponse> {
+       let logger = try  req.make(Logger.self)
+       logger.info("##WEP POST /login ## User log in >>>")
+       return try login(req)
+   }
   
   /// Logs a user in, returning a token for accessing protected endpoints.
   public func login(_ req: Request, _ signers: [(Request) throws -> Future<User.FullLoggedResponse>] = []) throws -> Future<User.FullLoggedResponse> {
@@ -55,15 +63,6 @@ public final class UserController {
     return try loginBasic(req)
   }
   
-  /// Logs a user in, returning a token for accessing protected endpoints.
-  public func loginAPI(_ req: Request) throws ->
-    Future<User.FullLoggedResponse> {
-      let logger = try  req.make(Logger.self)
-      logger.info("##WEP POST /login ## User log in >>>")
-      return try login(req)
-  }
-  
-  
   /// Logs a user in, returntry ing a token for accessing protected endpoints.
   public func logoutAPI(_ req: Request) throws ->
     Future<User.Logout> {
@@ -72,17 +71,16 @@ public final class UserController {
       logger.info("##WEP POST /logout ## User log out \(uAuth.login) >>>")
       return try uAuth.authTokens.query(on: req).all()
         .map { (utokens) ->User.Logout in
-        utokens.forEach { (utoken) in
-          utoken.expiresOn = Date()
-          _ = utoken.update(on: req)
-        }
-        logger.info("##WEP POST /logout ## User \(uAuth.login), was logged out.")
-        return User.Logout(id: uAuth.id!, login: uAuth.login, msg: "Logged well done", code: "101")
-
+          utokens.forEach { (utoken) in
+            utoken.expiresOn = Date()
+            _ = utoken.update(on: req)
+          }
+          logger.info("##WEP POST /logout ## User \(uAuth.login), was logged out.")
+          return User.Logout(id: uAuth.id!, login: uAuth.login, msg: "Logged well done", code: "101")
       }
   }
   
-
+  
   /// Logs a user in, returning a token for accessing protected endpoints.
   public func loginBasic(_ req: Request) throws -> Future<User.FullLoggedResponse> {
     // get user auth'd by basic auth middleware
@@ -96,7 +94,7 @@ public final class UserController {
     // TODO expire the rest of token
     // save and return token
     return token.save(on: req).flatMap { tok in // Log the saving token
-      logger.info("\(uAuth.id) - \"\(uAuth.login)\" token \"\(token.id!)\" for user \"\(token.user)\" saved")
+      logger.info("\(uAuth.id!) - \"\(uAuth.login)\" token \"\(token.id!)\" for user \"\(token.user)\" saved")
       return uAuth.fullLoggedResponse(req, tok)
     }
   }
@@ -104,27 +102,11 @@ public final class UserController {
   /// Creates a new user.
   public func createAPI(_ req: Request) throws -> Future<User.FullPublicResponse> {
     let logger = try  req.make(Logger.self)
-    logger.info("##WEP POST /login ## User creation >>>")
+    logger.info("##WEP POST /signup ## User creation >>>")
     // decode request content
     return try req.content.decode(User.Create.self)
       .flatMap { cuser -> Future<User> in
-        // verify that passwords match
-        guard cuser.password == cuser.verifyPassword else {
-          throw Abort(.badRequest, reason: "passwords missmatch")
-        }
-        
-        let hash = try BCrypt.hash(cuser.password)
-        let logNick = cuser.login ?? String(cuser.email.split(separator: "@").first!).replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "-", with: "_")
-        let cont = Contact(givenName: "", familyName: "")
-        cont.nickname = logNick
-        cont.ckind = .person(.unknown)
-        return cont.create(on: req)
-          .flatMap { (contact) -> Future<User> in
-            let u = User(login: logNick, email: cuser.email, passwordHash: hash, profile: cont.id!, staff: cuser.staff?.staff ?? StaffUserRole.user, state: .defaultValue)
-          u.profileID = contact.id!
-          try u.validate()
-          return u.create(on:req)
-        }
+        return try self.create(req, with: cuser)
     }.catchMap({ (error) -> (User) in
       if let err = error as? PostgreSQLError {
         let log = try req.make(Logger.self)
@@ -136,8 +118,7 @@ public final class UserController {
         log.error(err.localizedDescription)
         let skeleton = User(login: "", email: "", passwordHash: "", profile: 0)
         return skeleton
-      }
-      else {
+      } else {
         let log = try req.make(Logger.self)
         log.error("Error identifier : " + error.localizedDescription)
         
@@ -154,7 +135,34 @@ public final class UserController {
     })
     
   }
-  
+  /// Creates a new user.
+  public func create(_ req: Request, with cuser: User.Create) throws -> Future<User> {
+    let logger = try  req.make(Logger.self)
+    logger.info("##WEF POST /signup ## User creating \(cuser.login ?? cuser.email)")
+    // verify that passwords match
+    guard cuser.password == cuser.verifyPassword else {
+      throw Abort(.badRequest, reason: "passwords missmatch")
+    }
+    let hash = try BCrypt.hash(cuser.password)
+    let logNick = cuser.login ?? String(cuser.email.split(separator: "@").first!)
+      .replacingOccurrences(of: ".", with: "").replacingOccurrences(of: "-", with: "_")
+    let cont = Contact(givenName: "", familyName: "")
+    cont.nickname = logNick
+    cont.ckind = .person(.unknown)
+    /// WARNING TODO : GENIRIC this .psql
+    return req.transaction(on: .psql) { (conn) -> Future<User>  in
+    return cont.create(on: req)
+      .flatMap { (contact) -> Future<User> in
+        let u = User(login: logNick, email: cuser.email, passwordHash: hash, profile: cont.id!, staff: cuser.staff?.staff ?? StaffUserRole.user, state: .defaultValue)
+        u.profileID = contact.id!
+        u.newEmail = u.email
+        u.emailChangeToken = Utils.newRef(kUserReferenceBasePrefix, size: kReferenceDefaultLength * 4)
+        u.emailChangeDate  = Date().addingTimeInterval(60*60*24*28) // 30 days to activate
+        try u.validate()
+        return u.create(on:req)
+    }
+    }
+  }
 }
 
 /// - MARK - USERS ROUTES
@@ -180,6 +188,4 @@ extension UserController: RouteCollection {
     basic.post(Config.APIWEP.loginWEP, use: loginAPI(_:))
     bearer.get(Config.APIWEP.logoutWEP, use: logoutAPI(_:))
   }
-  
-  
 }
