@@ -38,7 +38,9 @@ public extension Int {
 }
 
 // A sector on indistry activity
-final public class Sector: Industrial, AdoptedModel {
+final public class Sector: Industrial, AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.sector.rawValue
+
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }

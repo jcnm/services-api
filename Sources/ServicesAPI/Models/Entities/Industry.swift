@@ -13,7 +13,9 @@ let kIndustryReferenceBasePrefix  = "IND"
 let kIndustryReferenceLength      = kReferenceDefaultLength
 
 // An industry activity
-final public class Industry: Industrial, AdoptedModel {
+final public class Industry: Industrial, AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.industry.rawValue
+
   static public var createdAtKey: TimestampKey? { return \.createdAt }
   static public var updatedAtKey: TimestampKey? { return \.updatedAt }
   static public var deletedAtKey: TimestampKey? { return \.deletedAt }

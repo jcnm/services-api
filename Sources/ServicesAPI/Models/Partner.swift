@@ -14,7 +14,9 @@ let kPartnerReferenceBasePrefix  = "PAR"
 let kPartnerReferenceLength = 3
 
 /// A model to represent api backend version to every one.
-public final class Partner: AdoptedModel {
+public final class Partner: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.partner.rawValue
+
   public static let name = "partner"
   
   /// UserToken's unique identifier.
@@ -22,6 +24,8 @@ public final class Partner: AdoptedModel {
   /// Version name.
   public var name: String
   public var ref: String
+  /// Partner's unique slug réference.
+  public var slugPartner: String
   /// Sem Version Core.
   public var mainUrl: String
   public var versionAPI: String
@@ -39,7 +43,7 @@ public final class Partner: AdoptedModel {
   public var providerWebsite: String?
   public var providerEmail: String?
   public var providerNumber: String?
-
+  
   /// Created date.
   public var createdAt: Date
   /// Updated date.
@@ -50,11 +54,16 @@ public final class Partner: AdoptedModel {
   /// Creates a new `UserToken`.
   public init(mainUrl: String, endPointAPI:String, versionAPI: String, bearerToken: String,
               name: String, description: String, lastAPIUpdate: String, referedAppName: String,
-    asPathParam: Bool = true, paramQueryName: String? = nil, hooksPointAPI: String? = nil,
-    providerName: String = "", providerWebsite: String? = nil, providerEmail: String? = nil, providerNumber: String? = nil,
-    createdAt: Date = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
+              slug: String? = nil,
+              asPathParam: Bool = true, paramQueryName: String? = nil, hooksPointAPI: String? = nil,
+              providerName: String = "", providerWebsite: String? = nil, providerEmail: String? = nil, providerNumber: String? = nil,
+              createdAt: Date = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id             = id
     self.ref            = Utils.newRef(kPartnerReferenceBasePrefix, size: kPartnerReferenceLength)
+    let formatSlug      = "\(name) \(referedAppName)".lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugPartner    = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.name           = name
     self.mainUrl        = mainUrl
     self.endPointAPI    = endPointAPI
@@ -84,6 +93,7 @@ extension Partner: Migration {
     let pVersion = AdoptedDatabase.create(Partner.self, on: conn) { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugPartner)
       builder.field(for: \.name)
       builder.field(for: \.mainUrl)
       builder.field(for: \.endPointAPI)
@@ -104,6 +114,7 @@ extension Partner: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slugPartner)
     }
     // Only for SQL BASE
     // TODO generalize this query

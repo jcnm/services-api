@@ -14,7 +14,9 @@ let kAssetReferenceLength = kReferenceDefaultLength
 //
 
 // An service Asset
-public final class Asset: AdoptedModel {
+public final class Asset: AdoptedModel, Auditable {
+  public static var auditID = HistoryDataType.asset.rawValue
+
   public static let name = "asset"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -24,8 +26,10 @@ public final class Asset: AdoptedModel {
   public var id: ObjectID?
   /// Asset's unique réference.
   public var ref: String
+  /// Asset's unique slug réference.
+  public var slugAsset: String
   /// A potention planning day title
-  public var title: String?
+  public var title: String
   /// author of the asset
   public var authorID: User.ID
   /// Related organization ID
@@ -63,7 +67,8 @@ public final class Asset: AdoptedModel {
   
   /// Creates a new `Asset`.
   public init(author: User.ID, organization: Organization.ID, description: String, state: ObjectStatus,
-               cost: Double, fromDate: Date = Date(), toDate: Date? = nil, title: String? = nil, redeem: Bool = false,
+               cost: Double, fromDate: Date = Date(), toDate: Date? = nil,
+               title: String = "", slug: String? = nil, redeem: Bool = false,
               duplicated: Asset.ID? = nil, redeemCode: String? = nil,
               percent: Bool = false, toEveryService: Bool = false, forUsers: [User.ID] = [],
               forOrganizations: [Organization.ID] = [], forServices: [Service.ID],
@@ -71,6 +76,10 @@ public final class Asset: AdoptedModel {
               createdAt : Date = Date(), updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id               = id
     self.ref              = Utils.newRef(kServiceAssetReferenceBasePrefix, size: kServiceAssetReferenceLength)
+    let formatSlug        = title.lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugAsset = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.title            = title
     self.status           = state.rawValue
     self.organizationID   = organization
@@ -112,6 +121,7 @@ extension Asset: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugAsset)
       builder.field(for: \.title)
       builder.field(for: \.status)
       builder.field(for: \.cost)
@@ -135,6 +145,7 @@ extension Asset: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slugAsset)
       builder.reference(from: \Asset.organizationID,
                         to: \Organization.id,
                         onUpdate: .noAction, onDelete: .noAction)

@@ -10,7 +10,9 @@ import Fluent
 import Vapor
 
 /// A relation between organization and user.
-public final class ContactOrganization : AdoptedPivot {
+public final class ContactOrganization : AdoptedPivot , Auditable {
+public static var auditID = HistoryDataType.organizationcontact.rawValue
+
   /// See `Model`.
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }

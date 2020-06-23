@@ -11,10 +11,12 @@ import Vapor
 import Random
 import Crypto
 
-let kScheduleReferenceBasePrefix  = "CAL"
+let kScheduleReferenceBasePrefix  = "SCH"
 let kScheduleReferenceLength = 3
 // An service Schedule to attache plannings on
-public final class Schedule: AdoptedModel {
+public final class Schedule: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.schedule.rawValue
+
   public static let name = "schedule"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -23,6 +25,8 @@ public final class Schedule: AdoptedModel {
   public var id: ObjectID?
   /// Schedule's unique réference.
   public var ref: String
+  /// Schedule's unique slug réference.
+  public var slugSchedule: String
   /// Schedule's unique réference into the organization whom create the schedule.
   public var orgScheduleARef: String?
   /// Schedule's unique réference into the organization whom validate the schedule if different.
@@ -48,10 +52,14 @@ public final class Schedule: AdoptedModel {
   /// Creates a new `Service`.
   public init(label: String, owner: User.ID, service: Service.ID, state: ObjectStatus,
               orgRefA: String? = nil, orgRefB: String? = nil, description: String = "",
-              createdAt: Date = Date(), updatedAt: Date? = nil,
+              slug: String? = nil, createdAt: Date = Date(), updatedAt: Date? = nil,
               deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kScheduleReferenceBasePrefix, size: kScheduleReferenceLength)
+    let formatSlug    = label.lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugSchedule    = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.label      = label
     self.ownerID    = owner
     self.serviceID  = service
@@ -75,6 +83,7 @@ extension Schedule: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugSchedule)
       builder.field(for: \.label)
       builder.field(for: \.orgScheduleARef)
       builder.field(for: \.orgScheduleBRef)
@@ -88,7 +97,7 @@ extension Schedule: Migration {
       
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
-      builder.unique(on: \.orgScheduleARef)
+      builder.unique(on: \.slugSchedule)
       //      builder.unique(on: \.orgScheduleARef) // Cause to not save the seed
       //      builder.unique(on: \.orgScheduleBRef)
       builder.reference(from: \Schedule.serviceID, to: \Service.id, onUpdate: .noAction, onDelete: .cascade)

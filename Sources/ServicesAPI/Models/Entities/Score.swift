@@ -14,7 +14,9 @@ let kScoreReferenceLength = kReferenceDefaultLength
 //
 
 // An service Score
-public final class Score: AdoptedModel {
+public final class Score: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.score.rawValue
+
   public static let name = "score"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -24,6 +26,8 @@ public final class Score: AdoptedModel {
   public var id: ObjectID?
   /// Score's unique réference.
   public var ref: String
+  /// Score's unique slug réference.
+  public var slugScore: String
   /// author of the score
   public var authorID: User.ID
   /// Service ID
@@ -53,12 +57,17 @@ public final class Score: AdoptedModel {
   
   /// Creates a new `Asset`.
   public init(author: User.ID, general: Int, service: Service.ID, order: Order.ID? = nil,
-              comment: String? = nil, intengibility: Int? = nil, inseparability: Int? = nil,
+              comment: String? = nil, slug: String? = nil,
+              intengibility: Int? = nil, inseparability: Int? = nil,
               variability: Int? = nil, perishability: Int? = nil, ownership: Int? = nil,
               reliability: Int? = nil, disponibility: Int? = nil, pricing: Int? = nil, state: ObjectStatus,
               createdAt : Date = Date(), updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id               = id
     self.ref              = Utils.newRef(kScoreReferenceBasePrefix, size: kScoreReferenceLength)
+    let formatSlug        = createdAt.description
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugScore        = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.general          = general
     self.status           = state.rawValue
     self.intengibility    = intengibility
@@ -96,6 +105,7 @@ extension Score: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugScore)
       builder.field(for: \.authorID)
       builder.field(for: \.serviceID)
       builder.field(for: \.orderID)
@@ -115,6 +125,7 @@ extension Score: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slugScore)
       builder.reference(from: \Score.authorID,
                         to: \User.id,
                         onUpdate: .noAction, onDelete: .setDefault)

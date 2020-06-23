@@ -63,7 +63,7 @@ public extension Place {
     /// Reference to sector parent
     public var sector: Sector
     /// Create date.
-    public var createdAt: Date?
+    public var createdAt: Date
     /// Update date.
     public var updatedAt: Date?
     /// Deleted date.

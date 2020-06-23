@@ -21,29 +21,27 @@ public extension Service {
   func fullResponse(ind: Industry.ShortPublicResponse, user: User.ShortPublicResponse, org: Organization.ShortPublicResponse, parent: Service.ShortPublicResponse? = nil, place: Place? = nil) -> FullPublicResponse
   {
     let price = nil == self.price ? nil : String(format: "%.2f", self.price!)
-    return FullPublicResponse(id: self.id, label: self.label, ref: self.ref!, orgServiceRef: self.orgServiceRef, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, intengibility: self.intengibility, inseparability: self.inseparability, variability: self.variability, perishability: self.perishability, ownership: self.ownership, reliability: self.reliability, disponibility: self.disponibility, pricing: self.pricing, unbelliable: self.nobillable, negociable: self.negotiable, location: place, geoPerimeter: self.geoPerimeter, openOn: self.openOn, endOn: self.endOn, parent: parent, author: user, industry: ind, organization: org, scores: nil, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
+    return FullPublicResponse(id: self.id, label: self.label, ref: self.ref, slug: self.slug, orgServiceRef: self.orgServiceRef, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, intengibility: self.intengibility, inseparability: self.inseparability, variability: self.variability, perishability: self.perishability, ownership: self.ownership, reliability: self.reliability, disponibility: self.disponibility, pricing: self.pricing, unbelliable: self.nobillable, negociable: self.negotiable, location: place, geoPerimeter: self.geoPerimeter, openOn: self.openOn, endOn: self.endOn, parent: parent, author: user, industry: ind, organization: org, scores: nil, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
   }
   
   static func fullResponse(serv: Service, ind: Industry.ShortPublicResponse, user: User.ShortPublicResponse, org: Organization.ShortPublicResponse, parent: Service.ShortPublicResponse? = nil) -> FullPublicResponse {
     return serv.fullResponse(ind: ind, user: user, org: org, parent: parent)
   }
   
-  
   func midResponse(ind: Industry.ShortPublicResponse, user: User.ShortPublicResponse,
                    org: Organization.ShortPublicResponse, place: Place? = nil) -> MidPublicResponse
   {
     let price = nil == self.price ? nil : String(format: "%.2f", self.price!)
-    return MidPublicResponse(id: self.id, label: self.label, ref: self.ref!, orgServiceRef: self.orgServiceRef, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, intengibility: self.intengibility, inseparability: self.inseparability, variability: self.variability, perishability: self.perishability, ownership: self.ownership, reliability: self.reliability, disponibility: self.disponibility, pricing: self.pricing, unbelliable: self.nobillable, negociable: self.negotiable, location: place, geoPerimeter: self.geoPerimeter, openOn: self.openOn, endOn: self.endOn, parentID: self.parentID, author: user, industry: ind, organization: org, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
+    return MidPublicResponse(id: self.id, label: self.label, ref: self.ref, slug: self.slug, orgServiceRef: self.orgServiceRef, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, intengibility: self.intengibility, inseparability: self.inseparability, variability: self.variability, perishability: self.perishability, ownership: self.ownership, reliability: self.reliability, disponibility: self.disponibility, pricing: self.pricing, unbelliable: self.nobillable, negociable: self.negotiable, location: place, geoPerimeter: self.geoPerimeter, openOn: self.openOn, endOn: self.endOn, parentID: self.parentID, author: user, industry: ind, organization: org, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
   }
   
   static func midResponse(serv: Service, ind: Industry.ShortPublicResponse, user: User.ShortPublicResponse, org: Organization.ShortPublicResponse, parent: ShortPublicResponse? = nil) -> MidPublicResponse {
     return serv.midResponse(ind: ind, user: user, org: org)
   }
   
-  
   func shortResponse() -> ShortPublicResponse {
     let price = nil == self.price ? nil : String(format: "%.2f", self.price!)
-    return ShortPublicResponse(id: self.id, label: self.label, ref: self.ref!, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, authorID: self.authorID, industryID: self.industryID, organizationID: self.organizationID, updatedAt: self.updatedAt)
+    return ShortPublicResponse(id: self.id, label: self.label, ref: self.ref, slug: self.slug, state: self.status, billing: self.billing, target: self.target, description: self.description, shortLabel: self.shortLabel, price: price, authorID: self.authorID, industryID: self.industryID, organizationID: self.organizationID, updatedAt: self.updatedAt)
   }
   
   static func shortResponse(serv: Service) -> ShortPublicResponse {
@@ -217,6 +215,7 @@ public extension Service {
     public var label: String
     /// Service unique reference
     public var ref: String
+    public var slug: String
     /// Service organization reference
     public var orgServiceRef: String?
     /// State of the service (validated by the responsable / owner of the organization)
@@ -252,6 +251,7 @@ public extension Service {
     public var label: String
     /// Service unique reference
     public var ref: String
+    public var slug: String
     public var scoreAvg: ScoreAverage?
     /// Service organization reference
     public var orgServiceRef: String?
@@ -325,6 +325,7 @@ public extension Service {
     public var label: String
     /// Service unique reference
     public var ref: String
+    public var slug: String
     /// Service organization reference
     public var orgServiceRef: String?
     /// State of the service (validated by the responsable / owner of the organization)

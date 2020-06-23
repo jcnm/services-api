@@ -13,7 +13,9 @@ let kContractReferenceBasePrefix  = "CTR"
 let kContractReferenceLength      = kReferenceDefaultLength
 
 // A services contract
-public final class Contract: AdoptedModel {
+public final class Contract: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.contact.rawValue
+
   public static let name = "contract"
 
   /// Contract's unique identifier.
@@ -24,6 +26,8 @@ public final class Contract: AdoptedModel {
   public var label: String
   /// Contract's unique réference.
   public var ref: String
+  /// Contract's unique slug réference.
+  public var slugContract: String
   /// Contract's unique réference into the organization whom emit the Contract.
   public var orgContractARef: String?
   /// Contract's unique réference into the organization whom validate the Contract.
@@ -56,24 +60,27 @@ public final class Contract: AdoptedModel {
 
   public init(label: String, order: Order.ID, subject: String,
               execution: String, duration: String, payment: String,
-              endContract: String, litige: String, lang: String,
+              endContract: String, litige: String, lang: String, slug: String? = nil,
               createdAt : Date = Date(), updatedAt: Date? = nil,
               deletedAt : Date? = nil, id: ObjectID? = nil) {
-    self.id         = id
-    self.ref        = Utils.newRef(kContractReferenceBasePrefix, size: kContractReferenceLength)
-    self.orderID    = order
-    self.label      = label
-    self.subject    = subject
-    self.execution  = execution
-    self.duration   = duration
-    self.payment    = payment
+    self.id           = id
+    self.ref          = Utils.newRef(kContractReferenceBasePrefix, size: kContractReferenceLength)
+    let formatSlug    = "\(label) \(createdAt.description)".lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugContract = slug == nil ? formatSlug + "-" + self.ref : slug!
+    self.orderID      = order
+    self.label        = label
+    self.subject      = subject
+    self.execution    = execution
+    self.duration     = duration
+    self.payment      = payment
     self.endContract  = endContract
     self.litige       = litige
     self.lang         = lang
     self.createdAt    = createdAt
     self.updatedAt    = updatedAt
     self.deletedAt    = deletedAt
-    
   }
 }
 
@@ -86,6 +93,7 @@ extension Contract: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugContract)
       builder.field(for: \.orderID)
       builder.field(for: \.label)
       builder.field(for: \.orgContractARef)
@@ -105,6 +113,7 @@ extension Contract: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slugContract)
       builder.reference(from: \Contract.orderID, to: \Order.id, onUpdate: .noAction, onDelete: .noAction)
 
     }

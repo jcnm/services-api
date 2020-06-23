@@ -13,7 +13,9 @@ let kOrderItemReferenceBasePrefix   = "OI"
 let kOrderItemReferenceLength       = kReferenceDefaultLength
 
 // A service OrderItem
-public final class OrderItem: AdoptedPivot {
+public final class OrderItem: AdoptedPivot, Auditable {
+public static var auditID = HistoryDataType.orderitem.rawValue
+
   public typealias Left = Schedule
   public typealias Right = Order
   public static var leftIDKey: LeftIDKey = \.scheduleID

@@ -12,7 +12,8 @@
 //let kServiceScoreReferenceBasePrefix  = "SSC"
 //let kServiceScoreReferenceLength = kReferenceDefaultLength
 //
-//public final class ServiceScore: AdoptedPivot {
+//public final class ServiceScore: AdoptedPivot, Auditable {
+//public static var auditID = HistoryDataType.servicescore.rawValue
 //  public static let name = "servicescore"
 //  /// See `ModelPivot`.
 //  public typealias Left = Score

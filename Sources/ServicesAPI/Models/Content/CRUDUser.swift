@@ -46,6 +46,7 @@ public extension User {
   
   /// Data required to log a user.
   struct Login: Content {
+    public static let defaultContentType: MediaType = .multipart
     /// Does the user should be memorized for long term. yes/no, on/off; / true/false
     public var memorize: Bool?
     /// User's login name.
@@ -67,9 +68,10 @@ public extension User {
     /// User's desired password.
     public var code: String?
   }
-
+  
   /// Data required to create a user.
   struct Create: Content {
+    public static let defaultContentType: MediaType = .urlEncodedForm
     /// User's login name.
     public var login: String?
     /// Does the user should be directly authentificated. yes/no, on/off; / true/false
@@ -160,22 +162,36 @@ public extension User {
     /// Deleted date.
   }
   
-  /// Data required to create a user.
+  /// Data required to update  a password for a logged user.
   struct UpdatePassword: Content {
-    public var id: User.ID
+    public var id: User.ID?
     /// User's old password.
-    public var oldPassword: String
+    public var oldPassword: String?
+    /// User's old password.
+    public var token: String?
     /// User's desired new password.
     public var newPassword: String
     /// User's password repeated to ensure they typed it correctly.
     public var verifyPassword: String
   }
   
+  /// Data required to reset a user's password.
+  struct ResetPassword: Content {
+    public var email: String
+    /// User's old password.
+    public var oldPassword: String?
+    /// User's old password.
+    public var token: String?
+  }
+
   struct UpdateEmail: Content {
     public var id: User.ID
+    public var token: String?
+    public var login: String?
     /// User's email.
     public var oldemail: String
     public var email: String
+    public var verifyEmail: String
   }
   
   /// Public common representation update profile.
@@ -245,6 +261,15 @@ public extension User {
     public var phoneNumbers: [NamedURI]?
     public var places: [Place]?
     public var instantMessageAddresses: [NamedEmail]?
+  }
+  
+  /// Public common representation update of user data.
+  struct UpdateLogins: Content {
+    public var id: User.ID
+    public var login: String?
+    public var state: ObjectStatus.RawValue?
+    public var staff: StaffUserRole.RawValue?
+    
   }
   
   struct SearchField {

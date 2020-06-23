@@ -133,7 +133,9 @@ extension Int {
 }
 
 /// A relation between organization and user.
-public final class UserOrganization : AdoptedPivot {
+public final class UserOrganization : AdoptedPivot, Auditable {
+public static var auditID = HistoryDataType.userorganization.rawValue
+
   /// See `Model`.
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }

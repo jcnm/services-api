@@ -13,7 +13,9 @@ let kServiceAssetReferenceBasePrefix  = "SAS"
 let kServiceAssetReferenceLength      = kReferenceDefaultLength
 //
 // An service ServiceAsset
-public final class ServiceAsset: AdoptedPivot {
+public final class ServiceAsset: AdoptedPivot, Auditable {
+public static var auditID = HistoryDataType.serviceasset.rawValue
+
   public static let name  = "serviceasset"
   public typealias Left   = Service
   public typealias Right  = Asset

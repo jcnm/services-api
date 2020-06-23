@@ -12,7 +12,9 @@ import FluentPostgreSQL
 let kCurrencyReferenceBasePrefix  = "CUR"
 let kCurrencyReferenceLength = 3
 
-public final class Currency : AdoptedModel  {
+public final class Currency : AdoptedModel, Auditable {
+  public static var auditID = HistoryDataType.currency.rawValue
+
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }

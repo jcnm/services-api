@@ -9,7 +9,9 @@ import Foundation
 import Vapor
 import Fluent
 
-public final class Billing: AdoptedPivot {
+public final class Billing: AdoptedPivot, Auditable {
+public static var auditID = HistoryDataType.billing.rawValue
+
   public static let name = "billing"
   /// See `Model`.
   public typealias Left = Contract

@@ -24,7 +24,9 @@ let tenSecInterval = TimeInterval(10)
 let kExpirationTokenDurationInMinute = oneMinuteInterval // halfDayInterval
 
 /// An ephermal authentication token that identifies a registered user.
-public final class UserToken: AdoptedModel {
+public final class UserToken: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.usertoken.rawValue
+
   public static let name = "utoken"
   
   /// See `Model`.

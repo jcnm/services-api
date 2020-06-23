@@ -9,6 +9,9 @@ import Foundation
 import Vapor
 import FluentPostgreSQL
 
+let kContactReferenceBasePrefix  = "CNT"
+let kContactReferenceLength      = kReferenceDefaultLength
+
 public enum ContactKind: Codable  {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: Key.self)
@@ -125,16 +128,22 @@ public typealias EmailAddress = String
 //  var email:String
 //}
 
-public final class Contact: AdoptedModel {
+public final class Contact: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.contact.rawValue
+
   /** The identifier is unique among contacts on the device. It can be saved and used for fetching contacts next application launch. */
   public static let name = "contact"
-  public var createdAtKey: TimestampKey? { return \.createdAt }
+  public var createdAtKey: TimestampKey { return \.createdAt }
   public var updatedAtKey: TimestampKey? { return \.updatedAt }
   public var deletedAtKey: TimestampKey? { return \.deletedAt }
   
   /* General information */
   // Contact uniq identifier
   public var id: Contact.ID?
+  /// Contract's unique réference.
+  public var ref: String
+  /// Contact's unique slug réference.
+  public var slugContact: String
   public var note: String?
   public var imageData: Data?
   public var thumbnailImageData: Data?
@@ -173,10 +182,23 @@ public final class Contact: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
   
-  public init(givenName: String?, familyName: String?, nickname: String? = nil, ckind: ContactKind = .defaultValue, middleName: String? = nil, namePrefix: String? = nil, nameSuffix: String? = nil,  previousFamilyName: String? = nil, imageData: Data? = nil, thumbnailImageData: Data? = nil, imageDataAvailable: Bool = false, note: String? = nil, phoneNumbers: [NamedURI]? = nil, emailAddresses: [NamedEmail]? = nil, urlAddresses: [NamedURI]? = nil, socialProfiles: [NamedURI]? = nil, instantMessageAddresses: [NamedEmail]? = nil, places: [Place]? = nil, departmentName: String? = nil, jobTitle: String? = nil, birthday: Date? = nil,
-       dates: [LabeledValue<String>]? = nil,
-       createdAt: Date? = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
-    self.id             = id
+  public init(givenName: String?, familyName: String?, nickname: String? = nil,
+              ckind: ContactKind = .defaultValue, middleName: String? = nil,
+              namePrefix: String? = nil, nameSuffix: String? = nil,
+              previousFamilyName: String? = nil, slug: String? = nil, imageData: Data? = nil,
+              thumbnailImageData: Data? = nil, imageDataAvailable: Bool = false,
+              note: String? = nil, phoneNumbers: [NamedURI]? = nil,
+              emailAddresses: [NamedEmail]? = nil, urlAddresses: [NamedURI]? = nil,
+              socialProfiles: [NamedURI]? = nil, instantMessageAddresses: [NamedEmail]? = nil,
+              places: [Place]? = nil, departmentName: String? = nil, jobTitle: String? = nil,
+              birthday: Date? = nil, dates: [LabeledValue<String>]? = nil,
+              createdAt: Date = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
+    self.id               = id
+    self.ref              = Utils.newRef(kContactReferenceBasePrefix, size: kContactReferenceLength)
+    let formatSlug    = "\(createdAt.description)".lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugContact      = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.note           = note
     self.ckind          = ckind
     self.givenName      = givenName
@@ -228,6 +250,8 @@ extension Contact: Migration {
     {
       builder in
       builder.field(for: \.id, isIdentifier: true)
+      builder.field(for: \.ref)
+      builder.field(for: \.slugContact)
       builder.field(for: \.ckind)
       builder.field(for: \.namePrefix)
       builder.field(for: \.givenName)
@@ -257,7 +281,7 @@ extension Contact: Migration {
       builder.field(for: \.updatedAt)
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
-
+      builder.unique(on: \.slugContact)
     }
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for Post GreSQL DATABASE

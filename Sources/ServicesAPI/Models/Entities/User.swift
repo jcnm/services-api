@@ -72,12 +72,12 @@ extension Int {
   
 }
 /// A registered user, capable of owning todo items.
-public final class User:  AdoptedModel {
+public final class User:  AdoptedModel, Auditable {
+  public static var auditID = HistoryDataType.user.rawValue
+  public static let name = "user"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }
-  public static let name = "user"
-  
   /// Can be `nil` if the object has not been saved yet.
   public var id: User.ID?
   /// User's unique réference.
@@ -88,8 +88,20 @@ public final class User:  AdoptedModel {
   public var login: String
   /** User primary e-mail **/
   public var email: String
+  /** User old e-mail when needed to change **/
+  public var oldEmail: String?
+  /** User new e-mail when needed to change **/
+  public var newEmail: String?
+  public var emailChangeDate: Date?
+  public var emailChangeToken: String?
   /// BCrypt hash of the user's password.
   public var passwordHash: String
+  /// old BCrypt hash of the user's password.
+  public var oldPasswordHash: String?
+  /// new BCrypt hash of the user's password.
+  public var newPasswordHash: String?
+  public var passwordChangeDate: Date?
+  public var passwordChangeToken: String?
   /** User avatar uri */
   public var avatar: AbsolutePath?
   /** User staff status */
@@ -170,8 +182,16 @@ extension User: Migration { /// See `Migration`.
       builder.field(for: \.orgUserRef)
       builder.field(for: \.login )
       builder.field(for: \.email)
+      builder.field(for: \.oldEmail)
+      builder.field(for: \.newEmail)
+      builder.field(for: \.emailChangeToken)
+      builder.field(for: \.emailChangeDate)
       builder.field(for: \.state)
       builder.field(for: \.passwordHash)
+      builder.field(for: \.oldPasswordHash)
+      builder.field(for: \.newPasswordHash)
+      builder.field(for: \.passwordChangeToken)
+      builder.field(for: \.passwordChangeDate)
       builder.field(for: \.staff)
       builder.field(for: \.createdAt)
       builder.field(for: \.updatedAt)
@@ -183,25 +203,25 @@ extension User: Migration { /// See `Migration`.
       builder.unique(on: \.email)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
-      builder.unique(on: \.orgUserRef)
+      builder.unique(on: \.passwordChangeToken)
+      builder.unique(on: \.emailChangeToken)
       builder.reference(from: \User.profileID, to: \Contact.id, onUpdate: .noAction, onDelete: .noAction)
-
+      
     }
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for Post GreSQL DATABASE
       _ = conn.raw("ALTER SEQUENCE \(User.name)_id_seq RESTART WITH 1000").all()
     }
     return uTable
-
+    
   }
   
   public static func revert(on conn: Database.Connection) -> Future<Void> {
     return Database.delete(User.self, on: conn)
   }
-  
 }
 
- public extension User {
+public extension User {
   // this user's related organization link
   var organizations: Siblings<User, Organization, UserOrganization> {
     return siblings()
@@ -222,17 +242,33 @@ extension User: Migration { /// See `Migration`.
   var profile: Parent<User, Contact> {
     return parent(\.profileID)
   }
-// this user's related assets link
-var assets: Children<User, Asset> {
-  return children(\Asset.authorID)
+  // this user's related assets link
+  var assets: Children<User, Asset> {
+    return children(\Asset.authorID)
+  }
+  // this user's related scores link
+  var scores: Children<User, Score> {
+    return children(\Score.authorID)
+  }
+  // this user's related scores link
+  var comments: Children<User, Score> {
+    return children(\Score.authorID)
+  }
+/// Every place I created
+var places: Children<User, Place> {
+  return children(\Place.authorID)
 }
-// this user's related scores link
-var scores: Children<User, Score> {
-  return children(\Score.authorID)
+/// Every devis I created
+var devis: Children<User, Devis> {
+  return children(\Devis.authorID)
 }
-// this user's related scores link
-var comments: Children<User, Score> {
-  return children(\Score.authorID)
+/// Every devis I signed
+var receivedSignedDevis: Children<User, Devis> {
+  return children(\Devis.orgBSignator)
+}
+/// Every devis I signed
+var emittedSignedDevis: Children<User, Devis> {
+  return children(\Devis.orgASignator)
 }
 }
 

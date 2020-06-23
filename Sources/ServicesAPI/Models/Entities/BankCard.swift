@@ -42,7 +42,9 @@ public enum BCardKind: Int, Codable, CaseIterable {
 }
 
 // A services BankCard
-public final class BankCard: AdoptedModel {
+public final class BankCard: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.bankcard.rawValue
+
   public static let name = "bankcard"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }

@@ -30,7 +30,9 @@ public enum PaymentMethod: Int, Codable {
 }
 
 // A service Payment
-public final class Payment: AdoptedModel {
+public final class Payment: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.payment.rawValue
+
   public static let name = "payment"
   
   static public var createdAtKey: TimestampKey? { return \.createdAt }
@@ -40,6 +42,8 @@ public final class Payment: AdoptedModel {
   public var id: ObjectID?
   /// Schedule's unique réference.
   public var ref: String
+  /// Payment's unique slug réference.
+  public var slugPayment: String
   /// Schedule's unique réference.
   public var method: PaymentMethod.RawValue
   /// Organization Ref
@@ -66,11 +70,15 @@ public final class Payment: AdoptedModel {
   /// Creates a new `Payment`.
   public init(user: User.ID, organization: Organization.ID,
               card: BankCard.ID? = nil,  method: PaymentMethod = .defaultValue,
-              token: String? = nil, tokenURL: String? = nil,
+              slug: String? = nil, token: String? = nil, tokenURL: String? = nil,
               createdAt : Date = Date(), updatedAt: Date? = nil,
               deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kPaymentReferenceBasePrefix, size: kPaymentReferenceLength)
+    let formatSlug  = createdAt.description
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugPayment    = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.organizationID = organization
     self.authorID     = user
     self.method       = method.rawValue
@@ -88,6 +96,7 @@ extension Payment: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugPayment)
       builder.field(for: \.method)
       builder.field(for: \.authorID)
       builder.field(for: \.organizationRef)
@@ -100,14 +109,14 @@ extension Payment: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
-      builder.unique(on: \.organizationRef)
+      builder.unique(on: \.slugPayment)
       builder.reference(from: \Payment.organizationID, to: \Organization.id, onUpdate: .noAction, onDelete: .setNull)
       builder.reference(from: \Payment.cardID, to: \BankCard.id, onUpdate: .noAction, onDelete: .noAction)
     }
 
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for Post GreSQL DATABASE
-      _ = conn.raw("ALTER SEQUENCE \(Version.name)_id_seq RESTART WITH 500").all()
+      _ = conn.raw("ALTER SEQUENCE \(Payment.name)_id_seq RESTART WITH 500").all()
     }
     return pTable
   }

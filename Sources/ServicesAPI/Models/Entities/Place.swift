@@ -46,17 +46,19 @@ public enum PlaceKind: Int, Codable, CaseIterable {
   case country
   case continent
   case ocean
-
-public static var defaultValue: PlaceKind {
-  return .street
+  
+  public static var defaultValue: PlaceKind {
+    return .street
+  }
+  
+  public static var defaultRaw: PlaceKind.RawValue {
+    return defaultValue.rawValue
+  }
 }
 
-public static var defaultRaw: PlaceKind.RawValue {
-  return defaultValue.rawValue
-}
-}
+public final class Place: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.place.rawValue
 
-public final class Place: AdoptedModel {
   /** The identifier is unique among contacts on the device. It can be saved and used for fetching contacts next application launch. */
   public static let name = "place"
   public var createdAtKey: TimestampKey? { return \.createdAt }
@@ -66,7 +68,11 @@ public final class Place: AdoptedModel {
   /// Can be `nil` if the object has not been saved yet.
   public var id: Place.ID?
   /// Place's unique réference.
-  public var ref: String?
+  public var ref: String
+  /// Place's unique slug réference.
+  public var slugPlace: String
+  /// user ID who initiated the place.
+  public var authorID: User.ID
   /// Label or title of tha place
   public var label: String?
   /// Street kind (house, avenue, etc)
@@ -98,24 +104,33 @@ public final class Place: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
   
-  public init(label: String?, number: String, kind: PlaceKind, street: String, city: String, state: String?, postalCode: String, country: String, position: [Double] = [], subLocality: String? = nil, subAdministrativeArea: String? = nil, createdAt: Date? = Date(), updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
-    self.label    = label
-    self.id       = id
-    self.ref      = Utils.newRef(kPlaceReferenceBasePrefix, size: kPlaceReferenceLength)
-    self.number   = number
-    self.kind     = kind.rawValue
-    self.street   = street
-    self.city     = city
-    self.state    = state
-    self.postalCode = postalCode
-    self.country    = country
+  public init(author: User.ID, label: String?, number: String, kind: PlaceKind,
+              street: String, city: String, state: String?, postalCode: String,
+              country: String, slug: String? = nil, position: [Double] = [], subLocality: String? = nil,
+              subAdministrativeArea: String? = nil, createdAt: Date? = Date(),
+              updatedAt:Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
+    self.id             = id
+    self.ref            = Utils.newRef(kPlaceReferenceBasePrefix, size: kPlaceReferenceLength)
+    let wellformSlug    = "\(label ?? "") \(street) \(city) \(country)"
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugPlace    = slug == nil ? wellformSlug + "-"  + self.ref : slug!
+    self.authorID       = author
+    self.label          = label
+    self.number         = number
+    self.kind           = kind.rawValue
+    self.street         = street
+    self.city           = city
+    self.state          = state
+    self.postalCode     = postalCode
+    self.country        = country
     self.isoCountryCode = String(country.prefix(2))
     self.subLocality    = subLocality
+    self.createdAt      = createdAt
+    self.updatedAt      = updatedAt
+    self.deletedAt      = deletedAt
+    self.position       = position
     self.subAdministrativeArea = subAdministrativeArea
-    self.createdAt  = createdAt
-    self.updatedAt  = updatedAt
-    self.deletedAt  = deletedAt
-    self.position   = position
   }
 }
 
@@ -123,8 +138,11 @@ extension Place: Reflectable { }
 /// TODO Complete with full init
 extension Place: ReflectionDecodable {
   public static func reflectDecoded() throws -> (Place, Place) {
-    return (Place(label: nil, number: "", kind: .street, street: "", city: "", state: "", postalCode: "", country: ""),
-            Place(label: nil, number: "42", kind: .street, street: "==verity street", city: "city", state: "state", postalCode: "424242", country: "yes"))
+    return (Place(author: 0, label: nil, number: "", kind: .street, street: "",
+                  city: "", state: "", postalCode: "", country: ""),
+            Place(author: 0, label: nil, number: "42", kind: .street,
+                  street: "==verity street", city: "city", state: "state",
+                  postalCode: "424242", country: "yes"))
   }
   
   public static func reflectDecodedIsLeft(_ item: Place) throws -> Bool {
@@ -145,6 +163,8 @@ extension Place: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugPlace)
+      builder.field(for: \.authorID)
       builder.field(for: \.label)
       builder.field(for: \.number)
       builder.field(for: \.kind)
@@ -164,14 +184,16 @@ extension Place: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
-
+      builder.unique(on: \.slugPlace)
+      builder.reference(from: \Place.authorID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
+      
     }
     if type(of: conn) == PostgreSQLConnection.self {
-    // Only for Post GreSQL DATABASE
-    _ = conn.raw("ALTER SEQUENCE \(Place.name)_id_seq RESTART WITH 1000").all()
-  }
-  return pTable
-
+      // Only for Post GreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Place.name)_id_seq RESTART WITH 1000").all()
+    }
+    return pTable
+    
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

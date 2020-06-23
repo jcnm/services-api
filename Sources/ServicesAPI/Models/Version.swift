@@ -14,7 +14,9 @@ let kVersionReferenceBasePrefix     = "VER"
 let kVersionReferenceLength         = 3
 
 /// A model to represent api backend version to every one.
-public final class Version: AdoptedModel {
+public final class Version: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.version.rawValue
+
   public static let name = "version"
  
   /// UserToken's unique identifier.

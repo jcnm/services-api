@@ -145,7 +145,9 @@ public extension Int {
 }
 
 // An industry Service
-public final class Service: Servable, AdoptedModel {
+public final class Service: Servable, AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.service.rawValue
+
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }
@@ -153,7 +155,9 @@ public final class Service: Servable, AdoptedModel {
   /// Service's unique identifier.
   public var id: ObjectID?
   /// Service's unique réference.
-  public var ref: String?
+  public var ref: String
+  /// Service's unique slug réference.
+  public var slug: String
   /// Service's unique réference into the organization.
   public var orgServiceRef: String?
   /// Short label service
@@ -220,7 +224,7 @@ public final class Service: Servable, AdoptedModel {
   /// Creates a new `Service`.
   public init(label: String, billing: BillingPlan, description: String,
               industry: Industry.ID, price: Float?, shortLabel: String,
-              organization: Organization.ID, author: User.ID,
+              organization: Organization.ID, author: User.ID, slug: String? = nil,
               parent: Service.ID? = nil, orgServiceRef: String? = nil,
               state: ObjectStatus = ObjectStatus.defaultValue,
               pricing: Int = 0, disponibility: Int = 0, reliability: Int = 0,
@@ -232,6 +236,10 @@ public final class Service: Servable, AdoptedModel {
               deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kServiceReferenceBasePrefix, size: kServiceReferenceLength)
+    let formatSlug  = label.lowercased()
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slug       = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.orgServiceRef = orgServiceRef
     self.parentID   = parent
     self.label      = label
@@ -267,15 +275,46 @@ public final class Service: Servable, AdoptedModel {
   
 }
 
-
 /// Allows `Service` to be used as a Fluent migration.
 extension Service: Migration {
+  public func saveOverload(on conn: DatabaseConnectable) -> EventLoopFuture<Service> {
+    let created = self.id == nil
+    return self.save(on: conn).flatMap { (serv) -> Future<Service> in
+      let user = try UserController.logged(conn as! Request)
+      let entry = History(user: user.id!, objectID: serv.id!, data: self.description.convertToData(), slug: "\(serv.slug)-\(Utils.newRef(kServiceReferenceBasePrefix, size: kServiceReferenceLength))", operationKind: (created ? HistoryOperationType.create : HistoryOperationType.ufield), dataType: HistoryDataType.service, createdAt: Date(), deletedAt: nil)
+      return entry.create(on: conn).map { _ -> Service in
+        return serv
+      }
+    }
+  }
+  
+  public func createOverload(on conn: DatabaseConnectable) -> EventLoopFuture<Service> {
+    return self.create(on: conn).flatMap { (serv) -> Future<Service> in
+      let user = try UserController.logged(conn as! Request)
+      let entry = History(user: user.id!, objectID: serv.id!, data: self.description.convertToData(), slug: "\(serv.slug)-\(Utils.newRef(kServiceReferenceBasePrefix, size: kServiceReferenceLength))", operationKind: HistoryOperationType.create, dataType: HistoryDataType.service, createdAt: Date(), deletedAt: nil)
+      return entry.create(on: conn).map { _ -> Service in
+        return serv
+      }
+    }
+  }
+  
+  public func updateOverload(on conn: DatabaseConnectable) -> EventLoopFuture<Service> {
+    return self.update(on: conn).flatMap { (serv) -> Future<Service> in
+      let user = try UserController.logged(conn as! Request)
+      let entry = History(user: user.id!, objectID: serv.id!, data: self.description.convertToData(), slug: "\(serv.slug)-\(Utils.newRef(kServiceReferenceBasePrefix, size: kServiceReferenceLength))", operationKind: HistoryOperationType.ufield, dataType: HistoryDataType.service, createdAt: Date(), deletedAt: nil)
+      return entry.create(on: conn).map { _ -> Service in
+        return serv
+      }
+    }
+  }
+
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
     let sTable = AdoptedDatabase.create(Service.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slug)
       builder.field(for: \.orgServiceRef)
       builder.field(for: \.label)
       builder.field(for: \.status)
@@ -309,6 +348,7 @@ extension Service: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slug)
       builder.reference(from: \Service.authorID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Service.parentID, to: \Service.id, onUpdate: .noAction, onDelete: .setNull)
       builder.reference(from: \Service.industryID, to: \Industry.id, onUpdate: .noAction, onDelete: .noAction)

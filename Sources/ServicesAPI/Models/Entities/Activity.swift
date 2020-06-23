@@ -57,19 +57,19 @@ public enum DayOfWeek: Int, Codable, CaseIterable, ReflectionDecodable {
   public var textual: String {
     switch self {
       case .monday :
-      return "Lundi"
+        return "Lundi"
       case .tuesday :
-      return "Mardi"
+        return "Mardi"
       case .wednesday :
-      return "Mercredi"
+        return "Mercredi"
       case .thursday :
-      return "Jeudi"
+        return "Jeudi"
       case .friday :
-      return "Vendredi"
+        return "Vendredi"
       case .saturday :
-      return "Samedi"
+        return "Samedi"
       case .sunday :
-      return "Dimanche"
+        return "Dimanche"
     }
   }
   
@@ -102,7 +102,9 @@ public extension Int {
 }
 
 // An service Planning
-public final class Activity: AdoptedModel {
+public final class Activity: AdoptedModel , Auditable {
+  public static var auditID = HistoryDataType.activity.rawValue
+  
   public static let name = "activity"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -112,6 +114,8 @@ public final class Activity: AdoptedModel {
   public var id: ObjectID?
   /// Planning's unique réference.
   public var ref: String?
+  /// Activity's unique slug réference.
+  public var slugActivity: String
   /// A potention planning day title
   public var title: String?
   /// The day of the week in raw value
@@ -141,10 +145,14 @@ public final class Activity: AdoptedModel {
   public init(start: Time, duration: TimeInterval,
               dow: DayOfWeek, schedule: Schedule.ID,
               fromDate: Date = Date(), toDate: Date? = nil, title: String? = nil,
-              cost: Int = 0, factor: Double = 1, createdAt : Date = Date(),
+              cost: Int = 0, factor: Double = 1,  slug: String? = nil, createdAt : Date = Date(),
               updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id                 = id
     self.ref          = Utils.newRef(kPlanningReferenceBasePrefix, size: kPlanningReferenceLength)
+    let formatSlug    = fromDate.description
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugActivity = slug == nil ? formatSlug + "-" + self.ref! : slug!
     self.title        = title
     self.dow          = dow.rawValue
     self.cost         = cost
@@ -179,6 +187,7 @@ extension Activity: Migration {
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.title)
+      builder.field(for: \.slugActivity)
       builder.field(for: \.dow)
       builder.field(for: \.cost)
       builder.field(for: \.factor)
@@ -192,6 +201,7 @@ extension Activity: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
+      builder.unique(on: \.slugActivity)
       builder.reference(from: \Activity.scheduleID, to: \Schedule.id, onUpdate: .noAction, onDelete: .cascade)
     }
     if type(of: conn) == PostgreSQLConnection.self {
@@ -199,7 +209,7 @@ extension Activity: Migration {
       _ = conn.raw("ALTER SEQUENCE \(Activity.name)_id_seq RESTART WITH 10000").all()
     }
     return aTable
-
+    
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

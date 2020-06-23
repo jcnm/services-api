@@ -253,7 +253,9 @@ public extension Int {
 
 public typealias OrganizationJuridic = Int
 // An industry activity
-public final class Organization: AdoptedModel {
+public final class Organization: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.organization.rawValue
+
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }
@@ -262,6 +264,8 @@ public final class Organization: AdoptedModel {
   public var id: ObjectID?
   /// Organization's unique réference .
   public var ref: String
+  /// Organization's unique slug réference.
+  public var slugOrg: String
   /// Organization's unique réference into the organization.
   public var organizationRef: String?
   /// Organization Parent Organization.ID.
@@ -335,7 +339,7 @@ public final class Organization: AdoptedModel {
   /// Deleted date.
   public var deletedAt: Date?
   /// Creates a new `Organization`.
-  public init(label: String, slogan: String?, description: String,
+  public init(label: String,  slug: String? = nil, slogan: String?, description: String,
               sector: Sector.ID, kind: Int?, money: String,
               state: ObjectStatus, size: OrganizationSize = OrganizationSize.pe,
               parent: Organization.ID?, shortLabel: String,
@@ -352,6 +356,12 @@ public final class Organization: AdoptedModel {
               id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kOrganizationReferenceBasePrefix, size: kOrganizationReferenceLength)
+    let formatSlug  = "\(label) \(slogan ?? "") \(nafLabel ?? "") \(juridicCatLabel ?? "")"
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "-")
+      .replacingOccurrences(of: "/", with: "-")
+      .replacingOccurrences(of: "\\", with: "-")
+    self.slugOrg    = slug == nil ? formatSlug + "-"  + self.ref : slug!
     self.organizationRef  = organizationRef
     self.parentID         = parent
     self.legalName        = label
@@ -379,7 +389,6 @@ public final class Organization: AdoptedModel {
     self.insurance        = insurance
     self.insuranceName    = insuranceName
     self.summary        = description.resume()
-
   }
 }
 
@@ -391,6 +400,7 @@ extension Organization: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.slugOrg)
       builder.field(for: \.organizationRef)
       builder.field(for: \.parentID)
       builder.field(for: \.sectorID)
@@ -429,11 +439,11 @@ extension Organization: Migration {
       builder.field(for: \.deletedAt)
       builder.unique(on: \.id)
       builder.unique(on: \.ref)
-      builder.unique(on: \.organizationRef)
       builder.unique(on: \.tva)
       builder.unique(on: \.communityTVA)
       builder.unique(on: \.siret)
       builder.unique(on: \.siren)
+      builder.unique(on: \.slugOrg)
       builder.reference(from: \Organization.parentID,
                         to: \Organization.id,
                         onUpdate: .noAction, onDelete: .noAction)

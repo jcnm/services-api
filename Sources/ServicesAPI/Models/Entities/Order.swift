@@ -9,9 +9,13 @@ import Foundation
 import Vapor
 import FluentPostgreSQL
 
+let kOrderReferenceBasePrefix  = "ORD"
+let kOrderReferenceLength      = kReferenceDefaultLength
 
 // An service Order
-public final class Order: AdoptedModel {
+public final class Order: AdoptedModel, Auditable {
+public static var auditID = HistoryDataType.order.rawValue
+
   public static let name = "order"
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -19,7 +23,9 @@ public final class Order: AdoptedModel {
   /// Order's unique identifier.
   public var id: ObjectID?
   /// Order's unique réference.
-  public var ref: String?
+  public var ref: String
+  /// Order's unique slug réference.
+  public var slugOrder: String
   /// Order's unique réference into the organization A requiring services.
   public var organizationARef: String?
   /// Order's unique réference into the organization B validating services.
@@ -39,9 +45,16 @@ public final class Order: AdoptedModel {
   public var deletedAt: Date?
   
   /// Creates a new `Order`.
-  public init(client: User.ID, organization: Organization.ID, billing: Date? = nil, orgARef: String? = nil, orgBRef: String? = nil, createdAt : Date = Date(), updatedAt: Date? = nil,
+  public init(client: User.ID, organization: Organization.ID, slug: String? = nil,
+              billing: Date? = nil, orgARef: String? = nil, orgBRef: String? = nil,
+              createdAt : Date = Date(), updatedAt: Date? = nil,
               deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id               = id
+    self.ref              = Utils.newRef(kOrderReferenceBasePrefix, size: kOrderReferenceLength)
+    let formatSlug    = createdAt.description
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
+      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    self.slugOrder = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.billingDeadLine  = billing
     self.clientID         = client
     self.organizationID       = organization
@@ -61,6 +74,7 @@ extension Order: Migration {
     let oTable = AdoptedDatabase.create(Order.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
+      builder.field(for: \.slugOrder)
       builder.field(for: \.billingDeadLine)
       builder.field(for: \.ref)
       builder.field(for: \.organizationARef)
@@ -74,6 +88,7 @@ extension Order: Migration {
       builder.unique(on: \.ref)
       builder.unique(on: \.organizationARef)
       builder.unique(on: \.organizationBRef)
+      builder.unique(on: \.slugOrder)
       builder.reference(from: \Order.clientID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
     builder.reference(from: \Order.organizationID, to: \Organization.id, onUpdate: .noAction, onDelete: .noAction)
 
