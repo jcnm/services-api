@@ -1,20 +1,17 @@
 //
-//  Servable.swift
+//  Auditable.swift
 //  App
 //
-//  Created by Jacques Charles NJANDA MBIADA on 01/12/2019.
+//  Created by Jacques Charles NJANDA MBIADA on 17/06/2020.
 //
 
 import Foundation
 import Fluent
 import Vapor
 
-public protocol Servable {
-  var label : String {get set}
-  var shortLabel : String {get set}
-  var price : Float? {get set}
-  var billing: BillingPlan.RawValue {get set}
-  var description: String {get set}
-  var industryID: Industry.ID {get set}
-  var organizationID: Organization.ID {get set}
+public protocol Auditable: Content {
+  static var auditID : HistoryDataType.RawValue {get set}
+
 }
+
+

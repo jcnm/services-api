@@ -37,7 +37,7 @@ public typealias  AdoptedModel    = PostgreSQLModel
 public typealias  AdoptedPivot    = PostgreSQLPivot
 public typealias  AdoptedConnection = PostgreSQLConnection
 public typealias  AdoptedDatabase   = PostgreSQLDatabase
-public typealias  AdoptedDirection  = PostgreSQLDirection
+public typealias  AdoptedDirection  = PostgreSQLDirection 
 
 public typealias Tuple<F, S>    = (F, S)
 //public typealias StringTuple    = Tuple<String, String> // Not yet exportable to objc and not codable decodable
@@ -387,10 +387,16 @@ public class TrackedObject {
   /// Can be `nil` if the object has not been saved yet.
   public var id: ObjectID?
   /** Creation date */
-  public var createdAt: Date = Date()
+  public var createdAt: Date = Date() 
 }
 
 public class EditableObject: TrackedObject {
+  /** Updated date */
+  public var updatedAt: Date = Date()
+}
+
+/// Object that can be marked as deleted but still there until bash cleaner turns over
+public class DeletableObject: TrackedObject {
   /** Updated date */
   public var updatedAt: Date = Date()
 }

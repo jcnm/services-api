@@ -99,6 +99,7 @@ public extension Config {
     public static let accountWEP        = "account"
     public static let lookupWEP         = "lookup"
     public static let logoutWEP         = "logout"
+    public static let passwordWEP       = "pswd"
 
     public static let admWEP            = "adm"
     public static let uorgsWEP          = "uorgs"
@@ -124,7 +125,7 @@ public extension Config {
     public static let commentsWEP       = "comments"
     public static let feedbacksWEP      = "fbs"
     public static let paymentsWEP       = "payments"
-    public static let cardsWEP           = "cards"
+    public static let cardsWEP          = "cards"
     public static let detailsWEP        = "details"
     public static let helpsWEP          = "help"
     public static let cguWEP            = "cgu"
