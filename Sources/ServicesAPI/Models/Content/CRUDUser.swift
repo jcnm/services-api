@@ -23,7 +23,7 @@ public extension User {
   func fullLoggedResponse(_ req: Vapor.Request, _ token: UserToken? = nil,  _ err: [NamedURI]? = nil) -> Future<User.FullLoggedResponse> {
     
     let uresp = self.profile.get(on: req).map { p in
-      return User.FullLoggedResponse(id: self.id!, profile: p, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar, staff: self.staff, state: self.state, token: token?.token ?? "", expiresOn: token?.expiresOn, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: err)
+      return User.FullLoggedResponse(id: self.id!, profile: p, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar, staff: self.staff, state: self.state, token: token?.token ?? "", expiresOn: token?.expiresOn, createdAt: self.createdAt!, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: err)
     }
     return uresp
   }
@@ -31,13 +31,13 @@ public extension User {
   func fullResponse(_ req: Vapor.Request, _ err: [NamedURI]? = nil) -> Future<User.FullPublicResponse> {
     
     let uresp = self.profile.get(on: req).map { p in
-      return User.FullPublicResponse(id: self.id!, profile: p, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar, staff: self.staff, state: self.state, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: err)
+      return User.FullPublicResponse(id: self.id!, profile: p, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar, staff: self.staff, state: self.state, createdAt: self.createdAt!, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: err)
     }
     return uresp
   }
   
   func shortResponse() -> User.ShortPublicResponse {
-    return User.ShortPublicResponse(id: self.id!, login: self.login, ref: self.ref, avatar: self.avatar, staff: self.staff, createdAt: self.createdAt)
+    return User.ShortPublicResponse(id: self.id ?? 0, profileID: self.profileID, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar ?? "", staff: self.staff, createdAt: self.createdAt!)
   }
   
   func infos() -> [AnyHashable : Codable] {
@@ -183,7 +183,7 @@ public extension User {
     /// User's old password.
     public var token: String?
   }
-
+  
   struct UpdateEmail: Content {
     public var id: User.ID
     public var token: String?
@@ -319,18 +319,24 @@ public extension User {
   struct ShortPublicResponse: Content {
     /// User's unique identifier. Not optional since we only return users that exist in the DB.
     public var id: User.ID?
+    public var profileID: Contact.ID
     /// User's login name.
-    public var login: String?
+    public var login: String
+    /// User's email.
+    public var email: String
     public var ref: String
     /** User avatar uri */
     public var avatar: AbsolutePath?
     public var staff: StaffUserRole.RawValue?
     /** Created date */
-    public var createdAt: Date?
+    public var createdAt: Date
     /// Errors  codes and messages
     public var errors: [NamedURI]?
     /// Successes codes and messages
     public var succes: [NamedURI]?
+    public static func new(id: User.ID, profileID: Contact.ID, login: String, email: String, ref: String, avatar: String, staff: StaffUserRole.RawValue, createdAt: Date) -> ShortPublicResponse {
+          return ShortPublicResponse(id: id, profileID: profileID, login: login, email: email, ref: ref, avatar: avatar, staff: staff, createdAt: createdAt, errors:nil, succes: nil)
+        }
   }
   
   /// Public representation of user data.
@@ -338,7 +344,7 @@ public extension User {
     /// User's unique identifier. Not optional since we only return users that exist in the DB.
     public var id: User.ID
     /// User's attached profile.
-    public var profile: Contact?
+    public var profile: Contact
     /// User's login name.
     public var login: String
     /// User's email address.
@@ -353,7 +359,7 @@ public extension User {
     /** Channel used to sign this user &#x60;Channel&#x60;  */
     public var state: ObjectStatus.RawValue
     /** Created date */
-    public var createdAt: Date?
+    public var createdAt: Date
     /** Updated date */
     public var updatedAt: Date?
     /** Updated date */
@@ -364,7 +370,7 @@ public extension User {
     public var succes: [NamedURI]?
     
     func toShortPublicResponse() -> User.ShortPublicResponse {
-      User.ShortPublicResponse(id: self.id, login: self.login, ref: self.ref, avatar: self.avatar, staff: self.staff, createdAt: self.createdAt, errors: self.errors, succes: self.succes)
+      User.ShortPublicResponse(id: self.id, profileID: self.profile.id!, login: self.login, email: self.email, ref: self.ref, avatar: self.avatar, staff: self.staff, createdAt: self.createdAt, errors: self.errors, succes: self.succes)
     }
   }
   
@@ -373,7 +379,7 @@ public extension User {
     /// User's unique identifier. Not optional since we only return users that exist in the DB.
     public var id: User.ID
     /// User's attached profile.
-    public var profile: Contact?
+    public var profile: Contact
     /// User's login name.
     public var login: String
     /// User's email address.
@@ -392,7 +398,7 @@ public extension User {
     /// Expiration date. Token will no longer be valid after this point.
     public var expiresOn: Date?
     /** Created date */
-    public var createdAt: Date?
+    public var createdAt: Date
     /** Updated date */
     public var updatedAt: Date?
     /** Updated date */
@@ -403,11 +409,12 @@ public extension User {
     public var succes: [NamedURI]?
     
     public static func skeletonObject() -> Self {
-      return Self.init(id: 0, profile: nil, login: "", email: "", ref: "", orgUserRef: nil, avatar: nil, staff: StaffUserRole.defaultRaw, state: 0, token: nil, expiresOn: nil, createdAt: nil, updatedAt: nil, deletedAt: nil, errors: nil, succes: nil)
+      // Should never be able to produce anything
+      return Self.init(id: 0, profile: Contact(givenName: nil, familyName: nil), login: "", email: "", ref: "", orgUserRef: nil, avatar: nil, staff: StaffUserRole.defaultRaw, state: 0, token: nil, expiresOn: Date(), createdAt: Date(), updatedAt: nil, deletedAt: nil, errors: nil, succes: nil)
     }
     
     public func toShortPublicResponse() -> User.ShortPublicResponse {
-      User.ShortPublicResponse(id: self.id, login: self.login, ref: self.ref, avatar: self.avatar, staff: self.staff, createdAt: self.createdAt, errors: self.errors, succes: self.succes)
+      User.ShortPublicResponse(id: self.id, profileID: self.profile.id!, login: "", email: self.email,  ref: self.ref, avatar: self.avatar, staff: self.staff, createdAt: self.createdAt, errors: self.errors, succes: self.succes)
     }
     
   }
