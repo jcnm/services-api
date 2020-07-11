@@ -266,6 +266,14 @@ public static var auditID = HistoryDataType.organization.rawValue
   public var ref: String
   /// Organization's unique slug réference.
   public var slugOrg: String
+  /// User id.
+//  public var authorID: User.ID
+  /** Organization's logo */
+  public var logo: AbsolutePath?
+  /** Organization's background background */
+  public var background: AbsolutePath?
+  /** Organization's background wallpaper */
+  public var wallpaper: AbsolutePath?
   /// Organization's unique réference into the organization.
   public var organizationRef: String?
   /// Organization Parent Organization.ID.
@@ -352,6 +360,7 @@ public static var auditID = HistoryDataType.organization.rawValue
               insuranceName: String? = nil, nafCode: String? = nil,
               nafLabel: String? = nil, capital:  String? = nil, market: String? = nil,
               marketValue: String? = nil, status: String? = nil, rcs: String? = nil,
+              logo: String? = nil, background: String? = nil, wallpaper: String? = nil,
               createdAt: Date = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil,
               id: ObjectID? = nil) {
     self.id         = id
@@ -388,7 +397,10 @@ public static var auditID = HistoryDataType.organization.rawValue
     self.nafLabel         = nafLabel
     self.insurance        = insurance
     self.insuranceName    = insuranceName
-    self.summary        = description.resume()
+    self.summary          = description.resume()
+    self.logo             = logo
+    self.background       = background
+    self.wallpaper        = wallpaper
   }
 }
 
@@ -444,6 +456,9 @@ extension Organization: Migration {
       builder.unique(on: \.siret)
       builder.unique(on: \.siren)
       builder.unique(on: \.slugOrg)
+      builder.unique(on: \.logo)
+      builder.unique(on: \.background)
+      builder.unique(on: \.wallpaper)
       builder.reference(from: \Organization.parentID,
                         to: \Organization.id,
                         onUpdate: .noAction, onDelete: .noAction)
