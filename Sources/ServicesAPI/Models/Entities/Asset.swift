@@ -44,6 +44,8 @@ public final class Asset: AdoptedModel, Auditable {
   public var toDate: Date?
   // Cost by adding this asset, could be negatif
   public var cost: Double
+  // Available stock of this present asset
+  public var stock: Int
   /// The code if this is redeem
   public var redeemCode: String?
   // Determine if this a redeem
@@ -57,6 +59,9 @@ public final class Asset: AdoptedModel, Auditable {
   public var forServices: [Service.ID]
   public var forOrganizations: [Organization.ID]
   public var forUsers: [User.ID]
+//  public var forUserGroups: [ObjectID]
+//  public var forOrganizationGroups: [ObjectID]
+//  public var forServiceGroups: [ObjectID]
   public var toEveryService: Bool
   /// Create date.
   public var createdAt: Date?
@@ -67,7 +72,7 @@ public final class Asset: AdoptedModel, Auditable {
   
   /// Creates a new `Asset`.
   public init(author: User.ID, organization: Organization.ID, description: String, state: ObjectStatus,
-               cost: Double, fromDate: Date = Date(), toDate: Date? = nil,
+              cost: Double, stock: Int = -1, fromDate: Date = Date(), toDate: Date? = nil,
                title: String = "", slug: String? = nil, redeem: Bool = false,
               duplicated: Asset.ID? = nil, redeemCode: String? = nil,
               percent: Bool = false, toEveryService: Bool = false, forUsers: [User.ID] = [],
@@ -85,6 +90,7 @@ public final class Asset: AdoptedModel, Auditable {
     self.organizationID   = organization
     self.authorID         = author
     self.description      = description
+    self.stock            = stock
     self.redeem           = redeem
     self.redeemCode       = redeemCode
     self.duplicatedID     = duplicated
@@ -92,12 +98,12 @@ public final class Asset: AdoptedModel, Auditable {
     self.fromDate         = fromDate
     self.toDate           = toDate
     self.percent          = percent
-    self.toEveryService   = toEveryService
+    self.orderExceed      = orderExceed
+    self.orderBelow       = orderBelow
+    self.forServices      = forServices
     self.forOrganizations = forOrganizations
     self.forUsers         = forUsers
-    self.forServices      = forServices
-    self.orderBelow       = orderBelow
-    self.orderExceed      = orderExceed
+    self.toEveryService   = toEveryService
     self.createdAt        = createdAt
     self.updatedAt        = updatedAt
     self.deletedAt        = deletedAt
@@ -125,6 +131,7 @@ extension Asset: Migration {
       builder.field(for: \.title)
       builder.field(for: \.status)
       builder.field(for: \.cost)
+      builder.field(for: \.stock)
       builder.field(for: \.organizationID)
       builder.field(for: \.authorID)
       builder.field(for: \.description)
