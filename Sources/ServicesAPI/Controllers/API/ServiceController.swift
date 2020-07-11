@@ -110,6 +110,8 @@ extension ServiceController {
     
     let logger = try req.make(Logger.self)
     logger.debug("Getting Service from parameter \(serviceID)")
+    /// 1. write raw query to retrieve service tree from the given service id
+    /// Retrieve recursivly every linked parents service to this one serviceID
     let query = """
     WITH RECURSIVE recServ
     AS (SELECT DISTINCT sv.*, ("sv". "id"::text) as pidentkey
@@ -126,18 +128,24 @@ extension ServiceController {
     FROM recServ
     ORDER BY pidentkey ASC
     """
+    // 2. Performs query
+    let res = req.withNewConnection(to: .psql)
+    { $0.raw(query).all(decoding: Service.self) } // Decode Service from raw query
     
-    let res = req.withNewConnection(to: .psql) { $0.raw(query).all(decoding: Service.self) }
-    
+    // 3. dig into the future
     return res.flatMap { (services) -> Future<[Service.FullPublicResponse]> in
-      /// Create service of assets list
-      var serviceDico: [Service.ID: (Service, [Asset.ShortPublicResponse])] = [:]
-      let mutServices = services
+      /// 4. Create empty assets list by service index dico // assets indexed by service's id (mapAsset)
+      var mapAsset: [Service.ID: (Service, [Asset.ShortPublicResponse])] = [:]
+      let mutServices = services // mutable services
 //      let firstSv = mutServices.removeFirst()
+      // 5. Create an array of service id string
       let idents = mutServices.reduce(into: []) { (result: inout [String], service) in
-        result.append("\(service.id!)") ; serviceDico[service.id!] = (service, []) }
-//      idents.append("\(firstSv.id!)")
+        result.append("\(service.id!)") ; // append the service id into the array
+        mapAsset[service.id!] = (service, []) // add this service into the map with empty asset
+      }
+      // 6. create the string of identifer separated by comma
       let strIdents = idents.joined(separator: ",")
+      // 7. raw query of asset associeted to these services
       let qAssets = """
       SELECT DISTINCT sa.id id_link, sa.label, sa."orderID", sa."serviceID", sa.quantity, a.*
       FROM serviceasset sa
@@ -146,31 +154,34 @@ extension ServiceController {
       AND (a."toDate" > NOW() OR a."toDate" IS NULL) AND (a."fromDate" < NOW())
       AND sa."serviceID" IN (\(strIdents)) AND sa."orderID" IS NULL
       """
-//      serviceDico[firstSv.id!] = (firstSv, [])
+      // 8. Retrieve these asset bind directly to the short description
       let assets = req.withNewConnection(to: .psql) { $0.raw(qAssets).all(decoding: Asset.ShortPublicResponse.self) }
-      
+      // 9. returns services full response generation by order of child
       return assets.flatMap { (rawAss) -> Future<[Service.FullPublicResponse]> in
+        // 10. update map asset correspondace with the associeted linked asset
         rawAss.reduce((), { (_, servass) -> Void in
-          serviceDico[servass.serviceID!]!.1.append(servass) })
-        
+          // 10.1 look the service indice and the add this asset into
+          mapAsset[servass.serviceID!]!.1.append(servass) })
+        // Empty array of service full response
         var sFPR = [Future<Service.FullPublicResponse>]()
-        
-        let sortedDictionary = serviceDico.sorted() { $0.value.0.pidentkey! <= $1.value.0.pidentkey! }
+        // 11. sort the map service to asset by pidentkey asc (child first)
+        let sortedDictionary = mapAsset.sorted() { $0.value.0.pidentkey! <= $1.value.0.pidentkey! }
+        // servAsset is a pair of service and its assets
         for (_, servAsset) in sortedDictionary {
           let (serv, assets) = servAsset
-          logger.error("\n\n\n$$$$$$$$$$$$$$$$$$Processing service \(serv.label) === \(serv.id!) ")
-
-          let parent    = serv.parent?.get(on: req)
+          logger.error("\n\nProcessing service \(serv.label) === \(serv.id!) ")
+          // Retrieve complement informations about the services, almost everything
+//          let parent    = serv.parent?.get(on: req)
           let orga      = serv.organization.get(on: req)
           let author    = serv.author.get(on: req)
           let industry  = serv.industry.get(on: req)
           let children  = try serv.services.query(on: req).all()
-          let schedule  = try serv.schedules.query(on: req)
+          let schedules = try serv.schedules.query(on: req)
             .join(\User.id, to: \Schedule.ownerID).alsoDecode(User.self).all()
           //        let assets    = try serv.assets.query(on: req).all()
           let scores    = try serv.scores.query(on: req) /// And then navigate between comments...
-            .join(\User.id, to: \Score.authorID)
-            .filter(\Score.comment != nil)
+            .join(\User.id, to: \Score.authorID) // For every score, get the author
+            .filter(\Score.comment != nil) // Take only scored with comment
             .alsoDecode(User.self)
           let trans     = try scores.transform(on: req)
           { (s, u) -> Score.MidPublicResponse in s.midResponse(user: u) }
@@ -180,7 +191,7 @@ extension ServiceController {
             logger.debug("Getting Service children count \(servs.count)")
             
             let scoresStats = self.avgScores(req, serviceID: serv.id!)
-            return schedule.and(scoresStats).flatMap { (scheds, scsts) -> Future<Service.FullPublicResponse> in
+            return schedules.and(scoresStats).flatMap { (scheds, scsts) -> Future<Service.FullPublicResponse> in
               logger.debug("Getting Service schedule count \(scheds.count)")
               return industry.and(orga).and(author).flatMap { (indorg, auth) -> Future<Service.FullPublicResponse> in
                 let (ind, org) = indorg
@@ -193,12 +204,12 @@ extension ServiceController {
                   retRes.assets = assets
                   retRes.scores = sss
 
-                  if let pare = parent {
-                    _ = pare.map { (par) -> Void in
-                      logger.debug("Linking given parent  \(par.id!) \(par.label)")
-                      retRes.parent = par.shortResponse()
-                    }
-                  }
+//                  if let pare = parent {
+//                    _ = pare.map { (par) -> Void in
+//                      logger.debug("Linking given parent  \(par.id!) \(par.label)")
+//                      retRes.parent = par.shortResponse()
+//                    }
+//                  }
                   retRes.children = []
                   for ser in servs {
                     logger.debug("Linking child \(ser.id!) \(ser.label)")
@@ -315,6 +326,7 @@ extension ServiceController {
       logger.info("Getting Service initiated by \(uAuth.id!) (\(uAuth.login))")
       let meta = PageMeta(req)
       if let id = serviceID {
+        logger.info("Retrieving Service by \(id)")
         let sop = Service.find(id, on: req)
         return (meta, sop.flatMap { (evps) -> Future<Service.FullPublicResponse> in
           guard let serv = evps else {
@@ -323,10 +335,16 @@ extension ServiceController {
           return try self.serviceFullResponse(req: req, serv: serv)
         })
       }
-      let serv = try req.parameters.next(Service.self)
+      let str = try req.parameters.next(String.self)
+      logger.info("Retrieving Service by slug : \(str)")
+      let serv = Service.query(on: req).filter(\.slug == str).first()
+      
       return (meta,
-              serv.flatMap { serv -> Future<Service.FullPublicResponse> in
-                return try self.serviceFullResponse(req: req, serv: serv)})
+              serv.flatMap { ser -> Future<Service.FullPublicResponse> in
+                guard let srv = ser else {
+                  throw Abort(HTTPResponseStatus.badRequest)
+                }
+                return try self.serviceFullResponse(req: req, serv: srv)})
       
   }
   
@@ -362,23 +380,36 @@ extension ServiceController {
     return try ServiceController.list(req, of: uAutth).1
   }
   
+
+    
+    /**
+     * Main API poit to retrieve root services
+     *
+     */
+    
+    public func mainAPI(_ req: Request) throws -> Future<OffsetPaginator<Service.FullPublicResponse>> {
+      let logger = try  req.make(Logger.self)
+      let uAutth = try? req.requireAuthenticated(User.self)
+      if let usr = uAutth {
+        logger.info("Getting Index Full Service list ... initiated by user \(usr.id!) (\(usr.login))")
+      } else {
+        logger.info("Getting Index Full Services list ...  initiated anonymous user \(req.http.remotePeer.description) (\(String(describing: req.http.remotePeer.hostname)))")
+      }
+      
+      let  sers = try self.mainList(req, of: uAutth).1
+      return sers
+  }
+
   /**
    * List Service for Leaf Views
    *
    */
   
-  public static func indexList(_ req: Request) throws -> (PageMeta, Future<OffsetPaginator<Service.FullPublicResponse>>) {
+  public func mainList(_ req: Request, of loggedUser: User? = nil) throws -> (PageMeta, Future<OffsetPaginator<Service.FullPublicResponse>>) {
     let logger = try  req.make(Logger.self)
     let meta = PageMeta(req)
     var qry: QueryBuilder<AdoptedDatabase, Service>
-    let uAutth = try? req.requireAuthenticated(User.self)
-    if let u = uAutth, let b = try? u.requireID(), b != 0 {
-      logger.info("Getting Index Full Service list ... initiated by user \(u.id!) (\(u.login))")
-      
-    } else {
-      logger.info("Getting Index Full Services list ...  initiated anonymous user \(req.http.remotePeer.description) (\(String(describing: req.http.remotePeer.hostname)))")
-    }
-    /// TODO FIXME request notation scores average and count for every service retrieved
+/// TODO FIXME request notation scores average and count for every service retrieved
 //
 //    let qStr = """
 //  SELECT *
@@ -489,7 +520,7 @@ extension ServiceController {
   
   
   /**
-   * List Service for Leaf Views
+   * List of Service
    *
    */
   
@@ -647,7 +678,8 @@ extension ServiceController: RouteCollection {
     let servicesGroup         = bearer.grouped(Config.APIWEP.servicesWEP)
     let servicesAccountGroup  = accountGroup.grouped(Config.APIWEP.servicesWEP)
 
-    servicesGroup.get(use: list)
+//    servicesGroup.get(use: list)
+    servicesGroup.get(use: mainAPI)
     servicesAccountGroup.get(use: accountRelativeList)
     servicesAccountGroup.post(use: create)
     servicesAccountGroup.get(Service.parameter, use: { try self.show($0).1 } )
