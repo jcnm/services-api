@@ -37,7 +37,7 @@ public enum RoleKind: Int, Codable, ReflectionDecodable, CaseIterable  {
   case coo        = 25
   case cfo        = 27
   case ceo        = 32
-
+  
   public var stringRaw: String {
     switch self {
       case .unknown:
@@ -134,8 +134,8 @@ extension Int {
 
 /// A relation between organization and user.
 public final class UserOrganization : AdoptedPivot, Auditable {
-public static var auditID = HistoryDataType.userorganization.rawValue
-
+  public static var auditID = HistoryDataType.userorganization.rawValue
+  
   /// See `Model`.
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
@@ -213,7 +213,7 @@ extension UserOrganization: Migration {
       builder.reference(from: \.userID, to: \User.id)
       builder.reference(from: \.organizationID, to: \Organization.id)
     }
-
+    
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for Post GreSQL DATABASE
       _ = conn.raw("ALTER SEQUENCE \(UserOrganization.name)_id_seq RESTART WITH 500").all()

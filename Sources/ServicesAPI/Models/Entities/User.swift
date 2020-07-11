@@ -108,6 +108,8 @@ public final class User:  AdoptedModel, Auditable {
   public var staff: StaffUserRole.RawValue
   /// User state if staging, online etc
   public var state: ObjectStatus.RawValue
+  //  /// User role
+  //  public var role: UserRole
   /// Associated profil
   public var profileID: Contact.ID
   /// main organization for this user
@@ -254,22 +256,22 @@ public extension User {
   var comments: Children<User, Score> {
     return children(\Score.authorID)
   }
-/// Every place I created
-var places: Children<User, Place> {
-  return children(\Place.authorID)
-}
-/// Every devis I created
-var devis: Children<User, Devis> {
-  return children(\Devis.authorID)
-}
-/// Every devis I signed
-var receivedSignedDevis: Children<User, Devis> {
-  return children(\Devis.orgBSignator)
-}
-/// Every devis I signed
-var emittedSignedDevis: Children<User, Devis> {
-  return children(\Devis.orgASignator)
-}
+  /// Every place I created
+  var places: Children<User, Place> {
+    return children(\Place.authorID)
+  }
+  /// Every devis I created
+  var devis: Children<User, Devis> {
+    return children(\Devis.authorID)
+  }
+  /// Every devis I signed
+  var receivedSignedDevis: Children<User, Devis> {
+    return children(\Devis.orgBSignator)
+  }
+  /// Every devis I signed
+  var emittedSignedDevis: Children<User, Devis> {
+    return children(\Devis.orgASignator)
+  }
 }
 
 /// Administrative operation

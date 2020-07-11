@@ -20,14 +20,14 @@ public final class UserController {
   /// Fetch logged user throw if it can't
   public static func logged(_ req: Request) throws -> User {
     let logger = try  req.make(Logger.self)
-    logger.info("Origin :\(String(describing: req.http.headers.firstValue(name: HTTPHeaderName.referer))) \n Client IP: \(String(describing: req.http.channel!.remoteAddress))")
+    logger.info("===Origin :\(String(describing: req.http.headers.firstValue(name: HTTPHeaderName.referer))) \n Client IP: \(String(describing: req.http.channel!.remoteAddress))")
     // fetch auth'd user
-    let user = try req.requireAuthenticated(User.self)
-    guard try user.requireID() != 0 else {
+    let user = try? req.requireAuthenticated(User.self)
+    guard let usr = user else {
       if try req.hasSession() { try req.destroySession() }
       throw Abort(HTTPResponseStatus.unauthorized)
     }
-    return user
+    return usr
   }
   
   /// Check that access is the same user

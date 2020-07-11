@@ -209,7 +209,7 @@ extension OrganizationController {
             if (u.id == usr.id) {
               orgFull.userRole = Organization.UserRolePublicResponse(id: uo.id, role: uo.role, userID: uo.userID, organizationID:  uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
             }
-            orgFull.members!.append(Organization.UserRoleMemberPublicResponse(id: uo.id, role: uo.role, user: User.ShortPublicResponse(id: usr.id!, login: usr.login, ref:usr.ref, avatar: usr.avatar, staff: usr.staff, createdAt: usr.createdAt), organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt))
+            orgFull.members!.append(Organization.UserRoleMemberPublicResponse(id: uo.id, role: uo.role, user: User.ShortPublicResponse(id: usr.id!, profileID: usr.profileID, login: usr.login, email: usr.email, ref:usr.ref, avatar: usr.avatar, staff: usr.staff, createdAt: usr.createdAt!), organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt))
           }
           
           _ = children.map { (orgsecs) -> Void in
