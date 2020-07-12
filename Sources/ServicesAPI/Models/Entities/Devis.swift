@@ -14,30 +14,43 @@ let kDevisReferenceLength      = kReferenceDefaultLength
 
 // A services `Devis`
 public final class Devis:     AdoptedModel, Auditable {
-public static var auditID = HistoryDataType.devis.rawValue
-
+  public static var auditID     = HistoryDataType.devis.rawValue
   public static let name      = "devis"
   
   /// Devis's unique identifier.
-  public var id:         ObjectID?
+  public var id:          ObjectID?
   /// user ID who initiated Contract.
-  public var authorID: User.ID
-  /// Devis attached Order
-  public var serviceID:  Service.ID
-  /// Devis Label Ref
-  public var label:      String
-  /// Devis's unique réference.
-  public var ref:        String
+  public var authorID:    User.ID
   /// Devis's unique slug réference.
-  public var slugDevis: String
+  public var slugDevis:   String
+  /// Devis's unique réference into the organization whom create the schedule.
+  public var orgDevisARef: String?
+  /// Devis's unique réference into the organization whom validate the devis if different.
+  public var orgDevisBRef: String?
+  /// Devis attached Service
+  public var serviceID:   Service.ID
+  /// Devis attached Schedulle
+  public var scheduleID:   Schedule.ID?
+  /// Devis attached activity planning
+  public var activityID:   Activity.ID?
+  /// Service fees
+  public var serviceFeePercent: Int?
+  /// Gov TVA  fees
+  public var TVAPercent: Int?
+  /// Devis Label Ref
+  public var label:       String
+  /// Devis  commentExchange
+  public var comment:       String?
+  /// Devis's unique réference.
+  public var ref:         String
   /// Devis's  statut.
-  public var status:     ObjectStatus.RawValue
+  public var status:      ObjectStatus.RawValue
   /// Devis's  draft.
-  public var draft:      Int // zero mens not a draft, otherwise, incremente draft iteration
+  public var draft:       Int // zero mens not a draft, otherwise, incremente draft iteration
   /// Contract's unique réference into the organization whom emit the Contract.
-  public var orgASigned: Bool
+  public var orgASigned:  Bool
   /// Contract's unique réference into the organization whom validate the Contract.
-  public var orgBSigned: Bool
+  public var orgBSigned:  Bool
   /// user ID who signed the Contract.
   public var orgASignator: User.ID?
   /// user ID who signed the Contract.
@@ -93,7 +106,14 @@ extension Devis: Migration {
       builder.field(for: \.slugDevis)
       builder.field(for: \.authorID)
       builder.field(for: \.serviceID)
+      builder.field(for: \.scheduleID)
+      builder.field(for: \.activityID)
+      builder.field(for: \.serviceFeePercent)
+      builder.field(for: \.TVAPercent)
+      builder.field(for: \.orgDevisARef)
+      builder.field(for: \.orgDevisBRef)
       builder.field(for: \.label)
+      builder.field(for: \.comment)
       builder.field(for: \.orgASigned)
       builder.field(for: \.orgBSigned)
       builder.field(for: \.orgASignator)
@@ -109,6 +129,8 @@ extension Devis: Migration {
       builder.unique(on: \.slugDevis)
       builder.reference(from: \Devis.serviceID, to: \Service.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.authorID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
+      builder.reference(from: \Devis.scheduleID, to: \Schedule.id, onUpdate: .noAction, onDelete: .noAction)
+      builder.reference(from: \Devis.activityID, to: \Activity.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.orgASignator, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.orgBSignator, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.closedAuthorID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
@@ -125,7 +147,6 @@ extension Devis: Migration {
     return Database.delete(Devis.self, on: conn)
   }
 }
-
 
 /// Allows `Devis` to be used as a dynamic parameter in route definitions.
 extension Devis: Parameter { }
