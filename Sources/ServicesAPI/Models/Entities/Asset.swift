@@ -81,7 +81,7 @@ public final class Asset: AdoptedModel, Auditable {
               createdAt : Date = Date(), updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id               = id
     self.ref              = Utils.newRef(kServiceAssetReferenceBasePrefix, size: kServiceAssetReferenceLength)
-    let formatSlug        = title.lowercased()
+    let formatSlug        = "\(createdAt.description) \(title.isEmpty ? "" : "-" + title))".lowercased()
       .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
       .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
     self.slugAsset = slug == nil ? formatSlug + "-" + self.ref : slug!
