@@ -12,6 +12,14 @@ import Crypto
 //
 public let kReferenceDefaultLength = 5
 
+
+func serviceFeePercent(for price: Int) -> Int {
+  if price < 1500 {
+    return 1500
+  }
+  return 2200
+}
+
 public struct Utils {
   
   public static func newRef(_ prefix: String, size: Int = kReferenceDefaultLength, on: Date? = Date()) -> String {
@@ -68,7 +76,7 @@ public struct PageMeta : Content {
   public var q:        String                = Config.SearchEngine.Default.queryString
   public var namedData:  [String:[NamedEmail]] = [:]
   public var params:     [String:String]       = [:]
-  
+
   public mutating func config(from req: Request) {
     do {
       let logger    = try req.make(Logger.self)

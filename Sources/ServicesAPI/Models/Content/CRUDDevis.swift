@@ -14,19 +14,40 @@ extension Devis: Content { }
 
 // MARK: Content for public usage
 public extension Devis {
+  
+  func shortResponse(service: Service.ShortPublicResponse?, organization: Organization.ShortPublicResponse ) -> Devis.ShortPublicResponse {
+    return ShortPublicResponse(id: self.id!, authorID: self.authorID, organizationSs: nil, organizationClient: organization, organizationID: self.organizationID, slugDevis: self.slugDevis, orgDevisARef: self.orgDevisARef, orgDevisBRef: self.orgDevisBRef, service: service, serviceID: self.serviceID, scheduleID: self.scheduleID, activityID: self.activityID, assets: nil, discount: nil, serviceFeePercent: self.serviceFeePercent, TVAPercent: self.TVAPercent, price: self.price, label: self.label, comment: self.comment, ref: self.ref, status: self.status, draft: self.draft, orgASigned: self.orgASigned, orgBSigned: self.orgBSigned, closedAuthorID: self.closedAuthorID, createdAt: self.createdAt!, updatedAt: self.updatedAt, deletedAt: self.deletedAt)
+  }
+  
+  func fullResponse(auth: User.ShortPublicResponse, org: Organization.ShortPublicResponse, serv: Service.FullPublicResponse?,
+                           servs: [Service.FullPublicResponse], sch: Schedule.MidPublicResponse?, act: Activity.ShortPublicResponse?,
+                           signatora: User.ShortPublicResponse?, signatorb: User.ShortPublicResponse?, closed: User.ShortPublicResponse?) -> Devis.FullPublicResponse {
+    return FullPublicResponse(id: self.id!, author: auth, slugDevis: self.slugDevis, organizationClient: org, orgDevisARef: self.orgDevisARef, orgDevisBRef: self.orgDevisBRef, service: serv , services: servs, schedule: sch, activity: act, serviceFeePercent: self.serviceFeePercent, TVAPercent: self.TVAPercent, price: self.price, label: self.label, comment: self.comment,  ref: self.ref, status: self.status, draft: self.draft, orgASigned: self.orgASigned, orgBSigned: self.orgBSigned, orgASignator: signatora, orgBSignator: signatorb, closedAuthorID: closed, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt)
+  }
+
   /// Public common representation create
   struct Create: Content {
-    public var serviceID: Service.ID?
+    public var serviceID: Service.ID
+    public var organizationID: Organization.ID
     public var appliedSchedule: Schedule.ID?
+    public var appliedActivity: Activity.ID?
     public var percentTVA: Double
     public var orgDevisARef: String?
-    public var readed: String
-    public var acceptCGUCGV: String
+    public var readed: OnOff
+    public var acceptCGUCGV: OnOff
+    public var label: String
+    // Submit the devis with comment specification
+    public var comment: String?
+    // Submit new computed price
+    public var price: Double
 
-    // Profile section
-    public var quantity: [Int: Int]?
-    public var idLink:  [Int: ServiceAsset.ID]?
-    public var idAsset: [Int: Asset.ID]?
+    // Profile section -> TODO rename quantities
+    public var quantity: [ServiceAsset.ID: Int]
+    public var idLink:  [ServiceAsset.ID: ServiceAsset.ID]
+    public var idAsset:  [ServiceAsset.ID: Asset.ID]
+    public var initialQuantity:  [ServiceAsset.ID: Int]
+    public var attachedService:  [ServiceAsset.ID: Service.ID]
+
   }
   
   /// Public common representation update of user data.
@@ -94,9 +115,15 @@ public extension Devis {
   /// Public representation of user data.
   struct ShortPublicResponse: Content {
   /// Devis's unique identifier.
-  public var id:          ObjectID?
+  public var id:          ObjectID
   /// user ID who initiated Contract.
   public var authorID:    User.ID
+  /// organization A . // service definer //can be fin in service.organization
+  public var organizationSs:  Organization.ShortPublicResponse?
+  /// organization B . // client definer
+  public var organizationClient:  Organization.ShortPublicResponse
+  /// organization ID.
+  public var organizationID:  Organization.ID
   /// Devis's unique slug réference.
   public var slugDevis:   String
   /// Devis's unique réference into the organization whom create the schedule.
@@ -104,18 +131,26 @@ public extension Devis {
   /// Devis's unique réference into the organization whom validate the devis if different.
   public var orgDevisBRef: String?
   /// Devis attached Service
-  public var serviceID:   Service.ID
+    public var service:   Service.ShortPublicResponse?
+  /// Devis attached Service ID
+    public var serviceID:   Service.ID?
   /// Devis attached Schedulle
   public var scheduleID:   Schedule.ID?
   /// Devis attached activity planning
   public var activityID:   Activity.ID?
+  public var assets: [Asset.Response.ShortPublic]?
+  public var discount: Asset.Response.ShortPublic?
   /// Service fees
-  public var serviceFeePercent: Int
+  public var serviceFeePercent: Int?
   /// Gov TVA  fees
-  public var TVAPercent: Int
+  public var TVAPercent: Int?
+  /// Computed Price
+  public var price: Double
   /// Devis Label Ref
   public var label:       String
-  /// Devis's unique réference.
+  /// Devis  commentExchange
+  public var comment:       String?
+    /// Devis's unique réference.
   public var ref:         String
   /// Devis's  statut.
   public var status:      ObjectStatus.RawValue
@@ -129,7 +164,7 @@ public extension Devis {
   public var closedAuthorID: User.ID?
   
   /// Create date.
-  public var createdAt: Date?
+  public var createdAt: Date
   /// Update date.
   public var updatedAt: Date?
   /// Deleted date.
@@ -139,33 +174,45 @@ public extension Devis {
   /// Public representation of user data.
   struct FullPublicResponse: Content {
     /// Devis's unique identifier.
-    public var id:          ObjectID?
+    public var id:          ObjectID
     /// user  who initiated Contract.
     public var author:    User.ShortPublicResponse
     /// Devis's unique slug réference.
     public var slugDevis:   String
+    /// organization A . // service definer //can be fin in service.organization
+    public var organizationSs:  Organization.ShortPublicResponse?
+    /// organization B . // client definer
+    public var organizationClient:  Organization.ShortPublicResponse
     /// Devis's unique réference into the organization whom create the schedule.
     public var orgDevisARef: String?
     /// Devis's unique réference into the organization whom validate the devis if different.
     public var orgDevisBRef: String?
     /// Devis attached Service
-    public var service:   Service
+    public var service:   Service.FullPublicResponse?
+    /// Devis attached Service
+    public var services:   [Service.FullPublicResponse]
     /// Devis attached Schedulle
-    public var schedule:   Schedule.ShortPublicResponse?
+    public var schedule:   Schedule.MidPublicResponse?
     /// Devis attached activity planning
     public var activity:   Activity.ShortPublicResponse?
+    public var assets: [Asset.Response.ShortPublic]?
+    public var discount: Asset.Response.ShortPublic?
     /// Service fees
-    public var serviceFeePercent: Int
+    public var serviceFeePercent: Int?
     /// Gov TVA  fees
-    public var TVAPercent: Int
+    public var TVAPercent: Int?
+    /// Computed price
+    public var price: Double
     /// Devis Label Ref
     public var label:       String
+    /// Devis  commentExchange
+    public var comment:       String?
     /// Devis's unique réference.
     public var ref:         String
     /// Devis's  statut.
     public var status:      ObjectStatus.RawValue
     /// Devis's  draft.
-    public var draft:       Int // zero mens not a draft, otherwise, incremente draft iteration
+    public var draft:       Int // zero means not a draft, otherwise, incremente draft iteration
     /// Contract's unique réference into the organization whom emit the Contract.
     public var orgASigned:  Bool
     /// Contract's unique réference into the organization whom validate the Contract.
@@ -176,8 +223,6 @@ public extension Devis {
     public var orgBSignator: User.ShortPublicResponse?
     /// user ID who closed the Contract.
     public var closedAuthorID: User.ShortPublicResponse?
-    /// Devis full commentExchange Ref
-    public var comment:       String
 
     /// Create date.
     public var createdAt: Date?

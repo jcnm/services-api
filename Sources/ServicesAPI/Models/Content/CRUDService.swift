@@ -305,7 +305,7 @@ public extension Service {
     public var organization: Organization.ShortPublicResponse
     public var children: [Service.ID]?
     public var schedules: [Schedule.ID]?
-    public var assets: [Asset.ShortPublicResponse]?
+    public var assets: [Asset.Response.ShortPublic]?
     public var scores: OffsetPaginator<Score.MidPublicResponse>?
     /// Create date.
     public var createdAt: Date?
@@ -378,7 +378,7 @@ public extension Service {
     public var organization: Organization.ShortPublicResponse
     public var children: [Service.ShortPublicResponse]?
     public var schedules: [Schedule.MidPublicResponse]?
-    public var assets: [Asset.ShortPublicResponse]?
+    public var assets: [Asset.Response.ShortPublic]?
     public var scores: OffsetPaginator<Score.MidPublicResponse>?
     /// Create date.
     public var createdAt: Date?

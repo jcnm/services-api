@@ -68,6 +68,58 @@ public enum ChannelKind: Int, Codable {
 /**
  *
  ObjectStatus defines object status of a given object.
+ off      = 0 // Object is submetted but not yet evaluated
+ on     = 1 //
+ await      = 2 // Awaiting confirmation from an other
+ review     = 4 // Online and was reviewed
+ rejected   = 6 // Offline because rejected
+ signaled   = 10
+ offline    = 12
+ * */
+
+public enum OnOff: String, Codable, ReflectionDecodable, CaseIterable, RawRepresentable {
+  public static func reflectDecoded() throws -> (OnOff, OnOff) {
+    (off, on)
+  }
+  
+  
+  case off      = "off" // On state
+  case on     = "on" //
+  public func isOn() -> Bool {
+    return self == .on
+  }
+  
+  public func isOff() -> Bool {
+    return self == .off
+  }
+  
+  public static var defaultValue: OnOff {
+    return .off
+  }
+  
+  public static var defaultRaw: OnOff.RawValue {
+    return defaultValue.rawValue
+  }
+  
+  public var textual: String {
+    switch self {
+      case .off:
+        return "off"
+      case .on:
+        return "on"
+    }
+  }
+
+  public var description: String { self.textual }
+}
+
+extension OnOff: Equatable {
+  
+}
+
+/**
+ *
+ ObjectStatus defines object status of a given object.
  stash      = 0 // Object is submetted but not yet evaluated
  online     = 1 //
  await      = 2 // Awaiting confirmation from an other

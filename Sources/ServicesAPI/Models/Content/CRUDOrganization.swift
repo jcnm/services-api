@@ -13,7 +13,7 @@ extension Organization : Content { }
 /// Allows `Organization` to be encoded to and decoded from HTTP messages.
 public extension Organization {
   
-  func fullResponse(sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse
+  func fullResponse(sect: Sector, currency: Currency?, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse
   {
     let org = self
     let id = org.id, createdAt = org.createdAt
@@ -22,14 +22,14 @@ public extension Organization {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
     
-    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description.sanitizedHtml, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, siren: org.siren, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.FullPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref , organizationRef: org.organizationRef, slogan: org.slogan, kind: org.okind, state: org.state, currency: currency, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, publicPart: org.publicPart, status: org.status, description: org.description.sanitizedHtml, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, siren: org.siren, nafCode: org.nafCode, nafLabel: org.nafLabel, capital: org.capital, market: org.market, marketValue: org.marketValue, insurance: org.insurance, insuranceName: org.insuranceName, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
   
-  static func fullResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse {
-    return org.fullResponse(sect: sect, uorg: uorg, parent: parent)
+  static func fullResponse(org: Organization, sect: Sector, currency: Currency?, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> FullPublicResponse {
+    return org.fullResponse(sect: sect, currency: currency, uorg: uorg, parent: parent)
   }
 
-  func midResponse(sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
+  func midResponse(sect: Sector, currency: Currency?, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
     let org = self
     let id = org.id, createdAt = org.createdAt
     var ur:Organization.UserRolePublicResponse?
@@ -37,18 +37,15 @@ public extension Organization {
       ur = Organization.UserRolePublicResponse(id: iduo, role: uo.role, userID: uo.userID, organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt)
     }
     let summary = org.summary ?? org.description.resume()
-    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, kind: org.okind, state: org.state, money: org.money, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, summary: summary, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
+    return Organization.MidPublicResponse(id: id, userRole: ur, shortLabel: org.shortLabel, legalName: org.legalName, ref: kOrganizationReferenceBasePrefix + org.ref, logo: self.logo ?? "", kind: org.okind, state: org.state, currency: currency, parentID: org.parentID, parent: parent, sector: Sector.ShortPublicResponse(id: sect.id, kind: sect.skind, citi: sect.citi, scian: sect.scian, nace: sect.nace, title: sect.title, updatedAt: sect.updatedAt), sectorID: sect.id!, brand: org.brand, sigle: org.sigle, size: org.osize, juridicForm: org.juridicForm, summary: summary, siret: org.siret, tva: org.tva, communityTVA: org.communityTVA, activityStartedAt: org.activityStartedAt, activityEndedAt: org.activityEndedAt, createdAt: createdAt, updatedAt: org.updatedAt)
   }
   
-  static func midResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
-    return org.midResponse(sect: sect, uorg: uorg, parent: parent)
+  static func midResponse(org: Organization, sect: Sector, currency: Currency?, uorg: UserOrganization? = nil, parent: Organization.ShortPublicResponse? = nil) -> MidPublicResponse {
+    return org.midResponse(sect: sect, currency: currency, uorg: uorg, parent: parent)
   }
 
   func shortResponse() -> Organization.ShortPublicResponse {
-    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, legalName: self.legalName, ref: self.ref, kind: self.okind, money: self.money, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
-  }
-  static func midResponse(org: Organization, sect: Sector, uorg: UserOrganization? = nil, parent: Organization? = nil) -> MidPublicResponse {
-    return org.midResponse(sect: sect, uorg: uorg, parent: parent?.shortResponse())
+    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, legalName: self.legalName, ref: self.ref, logo: self.logo ?? "", kind: self.okind, currencyID: self.currencyID, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
   }
   
   struct CreateOrganization: Content  {
@@ -67,7 +64,7 @@ public extension Organization {
     /// Organization's description.
     public var description: String
     /// Organization's description.
-    public var currency: String
+    public var currencyID: Currency.ID
     /// Organization sector id.
     public var sectorID: Sector.ID
     /// Organization size type.
@@ -177,11 +174,18 @@ public extension Organization {
     public var legalName: String
     /// full référence for this organization.
     public var ref: String
+    public var logo: AbsolutePath
+    /** Organization's background background */
+    public var background: AbsolutePath?
+    /** Organization's background wallpaper */
+    public var wallpaper: AbsolutePath?
+    /// Contacts
+    public var contacts: [Contact.ShortPersonPublicResponse]?
     /// Organization kind.
     public var kind: Int?
     public var communityTVA: String?
     /// Organization's description.
-    public var money: String
+    public var currencyID: Currency.ID
     /// Reference to sector
     public var sectorID: Sector.ID
     /// Organization Parent Organization.ID.
@@ -209,12 +213,19 @@ public extension Organization {
     public var legalName: String
     /// full référence for this organization.
     public var ref: String
+    public var logo: AbsolutePath
+    /** Organization's background background */
+    public var background: AbsolutePath?
+    /** Organization's background wallpaper */
+    public var wallpaper: AbsolutePath?
+    /// Contacts
+    public var contacts: [Contact.ShortPersonPublicResponse]?
     /// Organization kind.
     public var kind: Int?
     /// Organization's title string.
     public var state: ObjectStatus.RawValue
     /// Organization's description.
-    public var money: String
+    public var currency: Currency?
     /// Organization Parent Organization.ID.
     public var parentID: Organization.ID?
     /// Organization Parent object.
@@ -277,6 +288,11 @@ public extension Organization {
     public var legalName: String
     /// full référence for this organization.
     public var ref: String
+    public var logo: AbsolutePath?
+    /** Organization's background background */
+    public var background: AbsolutePath?
+    /** Organization's background wallpaper */
+    public var wallpaper: AbsolutePath?
     /// Organization's unique réference into the organization.
     public var organizationRef: String?
     /// Organization slogan.
@@ -286,7 +302,7 @@ public extension Organization {
     /// Organization's title string.
     public var state: ObjectStatus.RawValue
     /// Organization's description.
-    public var money: String
+    public var currency: Currency?
     /// Organization Parent Organization.ID.
     public var parentID: Organization.ID?
     /// Organization Parent object.

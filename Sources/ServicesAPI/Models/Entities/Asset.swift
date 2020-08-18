@@ -26,6 +26,8 @@ public final class Asset: AdoptedModel, Auditable {
   public var id: ObjectID?
   /// Asset's unique réference.
   public var ref: String
+  /// Asset's unique réference across organization owner.
+  public var oref: String?
   /// Asset's unique slug réference.
   public var slugAsset: String
   /// A potention planning day title
@@ -46,6 +48,12 @@ public final class Asset: AdoptedModel, Auditable {
   public var cost: Double
   // Available stock of this present asset
   public var stock: Int
+  // What sort of asset is this
+  public var kind: Int
+  // What unit is used here (iso unit)
+  public var unit: Int
+  // Sepecifique tva fator 100 18.2 = 1820
+  public var tva: Int?
   /// The code if this is redeem
   public var redeemCode: String?
   // Determine if this a redeem
@@ -73,7 +81,7 @@ public final class Asset: AdoptedModel, Auditable {
   /// Creates a new `Asset`.
   public init(author: User.ID, organization: Organization.ID, description: String, state: ObjectStatus,
               cost: Double, stock: Int = -1, fromDate: Date = Date(), toDate: Date? = nil,
-               title: String = "", slug: String? = nil, redeem: Bool = false,
+              title: String = "", slug: String? = nil, redeem: Bool = false,
               duplicated: Asset.ID? = nil, redeemCode: String? = nil,
               percent: Bool = false, toEveryService: Bool = false, forUsers: [User.ID] = [],
               forOrganizations: [Organization.ID] = [], forServices: [Service.ID],
@@ -86,6 +94,10 @@ public final class Asset: AdoptedModel, Auditable {
       .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
     self.slugAsset = slug == nil ? formatSlug + "-" + self.ref : slug!
     self.title            = title
+    self.oref             = nil
+    self.kind             = 1
+    self.tva              = nil
+    self.unit             = 0
     self.status           = state.rawValue
     self.organizationID   = organization
     self.authorID         = author
@@ -127,6 +139,10 @@ extension Asset: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
+      builder.field(for: \.oref)
+      builder.field(for: \.kind)
+      builder.field(for: \.tva)
+      builder.field(for: \.unit)
       builder.field(for: \.slugAsset)
       builder.field(for: \.title)
       builder.field(for: \.status)
@@ -178,12 +194,18 @@ extension Asset: Migration {
 }
 
 public extension Asset {
-  /// Fluent relation to the servuces siblings
+  /// Fluent relation to the services siblings
   var services: Siblings<Asset, Service, ServiceAsset> {
     // Controle to add
     return siblings()
   }
-    
+
+  /// Fluent relation to the devis siblings
+  var devis: Siblings<Asset, Devis, DevisAsset> {
+    // Controle to add
+    return siblings()
+  }
+
     func organizations(req: Request) -> Future<[Organization]>? {
       if self.forOrganizations.isEmpty {
         return nil

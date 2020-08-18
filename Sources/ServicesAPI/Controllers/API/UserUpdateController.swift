@@ -13,13 +13,8 @@ import FluentPostgreSQL
 import Authentication
 import CoreFoundation
 
-/// - MARK - CREATE AND AUTHENTICATE USERS
-public class UserUpdateController {
-  public init() { }
-}
-
 /// - MARK - USER UPDATE CONTROLLER
-extension UserUpdateController {
+extension UserController {
   /// Update an user using User.Update
   public func updateUser(_ req: Request) throws -> Future<User.ShortPublicResponse> {
     // decode request parameter (u/:id)
@@ -353,34 +348,5 @@ extension UserUpdateController {
     let _ = try req.requireAuthenticated(User.self)
     throw Abort(HTTPResponseStatus.notImplemented)
   }
-  
-}
-
-/// - MARK - USERS ROUTES
-extension UserUpdateController: RouteCollection {
-  public func boot(router: Router) throws {
-    
-    // bearer / token auth protected routes
-    let bearer = router.grouped(User.tokenAuthMiddleware())
-    
-    bearer.post(Config.APIWEP.revokeWEP, Config.APIWEP.passwordWEP, use: resetPasswordAPI(_:)) // reset password information
-    
-    /**
-     ** Logged User end point api spec - 1
-     */
-    let accoundGroup = bearer.grouped(Config.APIWEP.accountWEP)
-    accoundGroup.get(Config.APIWEP.addWEP, use: verifyEmailAPI(_:)) // verify account link
-    
-    accoundGroup.delete(use: delete(_:))
-    accoundGroup.patch(Config.APIWEP.detailsWEP, use: updateDetailsAPI(_:)) // update my personnal informations
-    accoundGroup.patch(Config.APIWEP.profilesWEP, use: updateProfileAPI(_:)) // update my personnal logins information
-    accoundGroup.put(Config.APIWEP.profilePictureWEP, use: updatePPAPI) // update my personnal logins information
-    
-    accoundGroup.patch(Config.APIWEP.loginWEP, use: updateLoginsAPI(_:)) // update my personnal logins information
-    accoundGroup.patch(Config.APIWEP.passwordWEP, use: updatePasswordAPI) // update my personnal assword information
-    
-    accoundGroup.delete(Config.APIWEP.profilePictureWEP, use: delete(_:)) // delete my account
-  }
-  
   
 }

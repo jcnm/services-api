@@ -24,6 +24,7 @@ public final class Currency : AdoptedModel, Auditable {
   public var ref: String
   public var code: String
   public var symbol: String
+  public var name: String
   public var usd: String
 
   /// Create date.
@@ -34,7 +35,7 @@ public final class Currency : AdoptedModel, Auditable {
   public var deletedAt: Date?
 
   public static var defaultValue: Currency {
-    return Currency(code: "EUR", symbol: "€", usd: "1.09")
+    return Currency(code: "EUR", name: "Euro", symbol: "€", usd: "1.09")
   }
   
   public static var defaultRawValue: String {
@@ -46,32 +47,37 @@ public final class Currency : AdoptedModel, Auditable {
   }
 
   convenience init() {
-    self.init(code: "EUR", symbol: "€", usd: "1.09")
+    self.init(code: "EUR", name: "Euro", symbol: "€", usd: "1.09")
   }
   
-  public init(code: String, symbol: String, usd: String, createdAt : Date = Date(), updatedAt: Date? = nil,
+  public init(code: String, name:String, symbol: String, usd: String, createdAt : Date = Date(), updatedAt: Date? = nil,
   deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id         = id
     self.ref        = Utils.newRef(kCurrencyReferenceBasePrefix, size: kCurrencyReferenceLength)
-    self.code   = code
-    self.symbol = symbol
-    self.usd    = usd
+    self.code       = code
+    self.name       = name
+    self.symbol     = symbol
+    self.usd        = usd
     self.createdAt    = createdAt
     self.updatedAt    = updatedAt
     self.deletedAt    = deletedAt
   }
 
+  public func basics() -> [NamedEmail]{
+    return [NamedEmail(label: "Euro", value: "100")]
+  }
 }
 
 /// Allows `OrderItem` to be used as a Fluent migration.
 extension Currency: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    return AdoptedDatabase.create(Currency.self, on: conn)
+    let cTable = AdoptedDatabase.create(Currency.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
       builder.field(for: \.code)
+      builder.field(for: \.name)
       builder.field(for: \.symbol)
       builder.field(for: \.usd)
       builder.field(for: \.createdAt)
@@ -81,6 +87,11 @@ extension Currency: Migration {
       builder.unique(on: \.ref)
       builder.unique(on: \.code)
     }
+    if type(of: conn) == PostgreSQLConnection.self {
+      // Only for PostGreSQL DATABASE
+      _ = conn.raw("ALTER SEQUENCE \(Currency.name)_id_seq RESTART WITH 100").run()
+    }
+    return cTable
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {

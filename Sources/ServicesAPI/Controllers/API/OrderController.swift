@@ -11,7 +11,7 @@ import FluentPostgreSQL
 import Authentication
 import Paginator
 
-/// - MARK - CREATE Service
+/// - MARK - CREATE Order
 public final class OrderController {
   
   public init() { }

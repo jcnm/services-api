@@ -133,8 +133,8 @@ public final class UserController {
       }
       return u.fullResponse(req)
     })
-    
   }
+  
   /// Creates a new user.
   public func create(_ req: Request, with cuser: User.Create) throws -> Future<User> {
     let logger = try  req.make(Logger.self)
@@ -174,10 +174,6 @@ extension UserController: RouteCollection {
     /** Public user end point api spec */
     // Creation of a new user
     router.post(Config.APIWEP.signupWEP, use: createAPI(_:))
-    
-    /*************************** LOGGED SECTION *************************
-     ***
-     *******************************************************************/
     /** Public user end point api spec */
     // Creation of a new user
     // basic / password auth protected routes
@@ -187,5 +183,34 @@ extension UserController: RouteCollection {
     /// Login user used basic information at least
     basic.post(Config.APIWEP.loginWEP, use: loginAPI(_:))
     bearer.get(Config.APIWEP.logoutWEP, use: logoutAPI(_:))
+
+    /* Route to update user */
+    
+    /*************************** UPDATE SECTION *************************
+     ***
+     *******************************************************************/
+
+    bearer.post(Config.APIWEP.revokeWEP, Config.APIWEP.passwordWEP, use: resetPasswordAPI(_:)) // reset password information
+    
+    /**
+     ** Logged User end point api spec - 1
+     */
+    let accoundGroup = bearer.grouped(Config.APIWEP.accountWEP)
+    accoundGroup.get(Config.APIWEP.addWEP, use: verifyEmailAPI(_:)) // verify account link
+    
+    accoundGroup.delete(use: delete(_:))
+    accoundGroup.patch(Config.APIWEP.detailsWEP, use: updateDetailsAPI(_:)) // update my personnal informations
+    accoundGroup.patch(Config.APIWEP.profilesWEP, use: updateProfileAPI(_:)) // update my personnal logins information
+    accoundGroup.put(Config.APIWEP.profilePictureWEP, use: updatePPAPI) // update my personnal logins information
+    
+    accoundGroup.patch(Config.APIWEP.loginWEP, use: updateLoginsAPI(_:)) // update my personnal logins information
+    accoundGroup.patch(Config.APIWEP.passwordWEP, use: updatePasswordAPI) // update my personnal assword information
+    
+    accoundGroup.delete(Config.APIWEP.profilePictureWEP, use: delete(_:)) // delete my account
+    
+    /************************** FETCHING SECTION ************************
+     ***
+     *******************************************************************/
   }
+  
 }

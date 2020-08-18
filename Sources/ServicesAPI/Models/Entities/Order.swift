@@ -66,7 +66,6 @@ public static var auditID = HistoryDataType.order.rawValue
   }
 }
 
-
 /// Allows `Order` to be used as a Fluent migration.
 extension Order: Migration {
   /// See `Migration`.

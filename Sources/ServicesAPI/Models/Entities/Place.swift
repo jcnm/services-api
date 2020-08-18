@@ -72,7 +72,7 @@ public static var auditID = HistoryDataType.place.rawValue
   /// Place's unique slug réference.
   public var slugPlace: String
   /// user ID who initiated the place.
-  public var authorID: User.ID
+  public var authorID: User.ID?
   /// Label or title of tha place
   public var label: String?
   /// Street kind (house, avenue, etc)
@@ -104,7 +104,7 @@ public static var auditID = HistoryDataType.place.rawValue
   /// Deleted date.
   public var deletedAt: Date?
   
-  public init(author: User.ID, label: String?, number: String, kind: PlaceKind,
+  public init(author: User.ID?, label: String?, number: String, kind: PlaceKind,
               street: String, city: String, state: String?, postalCode: String,
               country: String, slug: String? = nil, position: [Double] = [], subLocality: String? = nil,
               subAdministrativeArea: String? = nil, createdAt: Date? = Date(),

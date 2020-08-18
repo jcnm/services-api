@@ -154,7 +154,7 @@ public static var auditID = HistoryDataType.contact.rawValue
   public var urlAddresses: [NamedURI]?
   public var socialProfiles: [NamedURI]?
   public var phoneNumbers: [NamedURI]?
-  public var places: [Place]?
+  public var places: [Place.ID]?
   public var instantMessageAddresses: [NamedEmail]?
   
   // VCard presentation
@@ -190,7 +190,7 @@ public static var auditID = HistoryDataType.contact.rawValue
               note: String? = nil, phoneNumbers: [NamedURI]? = nil,
               emailAddresses: [NamedEmail]? = nil, urlAddresses: [NamedURI]? = nil,
               socialProfiles: [NamedURI]? = nil, instantMessageAddresses: [NamedEmail]? = nil,
-              places: [Place]? = nil, departmentName: String? = nil, jobTitle: String? = nil,
+              places: [Place.ID]? = nil, departmentName: String? = nil, jobTitle: String? = nil,
               birthday: Date? = nil, dates: [LabeledValue<String>]? = nil,
               createdAt: Date = Date(), updatedAt: Date? = nil, deletedAt: Date? = nil, id: ObjectID? = nil) {
     self.id               = id

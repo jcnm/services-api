@@ -404,6 +404,10 @@ public extension Service {
     return children(\Score.serviceID)
   }
  
+  var devis: Children<Service, Devis> {
+    return children(\Devis.serviceID)
+  }
+  
 }
 
 /// Allows `Service` to be used as a dynamic parameter in route definitions.

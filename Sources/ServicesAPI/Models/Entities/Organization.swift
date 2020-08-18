@@ -305,7 +305,7 @@ public static var auditID = HistoryDataType.organization.rawValue
   /// Organization juridic for type.
   public var publicPart: String?
   /// Organization's currency.
-  public var money: String
+  public var currencyID: Currency.ID
   /// Organization status redaction for some form of organization this is required.
   public var status: String?
   /// Organization's description.
@@ -348,7 +348,7 @@ public static var auditID = HistoryDataType.organization.rawValue
   public var deletedAt: Date?
   /// Creates a new `Organization`.
   public init(label: String,  slug: String? = nil, slogan: String?, description: String,
-              sector: Sector.ID, kind: Int?, money: String,
+              sector: Sector.ID, kind: Int?, currency: Currency.ID,
               state: ObjectStatus, size: OrganizationSize = OrganizationSize.pe,
               parent: Organization.ID?, shortLabel: String,
               organizationRef: String? = nil, siren: String? = nil, siret:  String? = nil,
@@ -376,7 +376,7 @@ public static var auditID = HistoryDataType.organization.rawValue
     self.legalName        = label
     self.shortLabel       = shortLabel
     self.slogan           = slogan
-    self.money            = money
+    self.currencyID       = currency
     self.state            = state.rawValue
     self.okind            = kind
     self.osize            = size.rawValue
@@ -421,6 +421,9 @@ extension Organization: Migration {
       builder.field(for: \.shortLabel)
       builder.field(for: \.legalName)
       builder.field(for: \.slogan)
+      builder.field(for: \.logo)
+      builder.field(for: \.background)
+      builder.field(for: \.wallpaper)
       builder.field(for: \.okind)
       builder.field(for: \.state)
       builder.field(for: \.osize)
@@ -428,7 +431,7 @@ extension Organization: Migration {
       builder.field(for: \.juridicCatCode)
       builder.field(for: \.juridicCatLabel)
       builder.field(for: \.publicPart)
-      builder.field(for: \.money)
+      builder.field(for: \.currencyID)
       builder.field(for: \.status)
       builder.field(for: \.description)
       builder.field(for: \.summary)
@@ -456,9 +459,6 @@ extension Organization: Migration {
       builder.unique(on: \.siret)
       builder.unique(on: \.siren)
       builder.unique(on: \.slugOrg)
-      builder.unique(on: \.logo)
-      builder.unique(on: \.background)
-      builder.unique(on: \.wallpaper)
       builder.reference(from: \Organization.parentID,
                         to: \Organization.id,
                         onUpdate: .noAction, onDelete: .noAction)
@@ -484,6 +484,10 @@ public extension Organization {
   /// Fluent relation to the sector that is relative to this organization.
   var sector: Parent<Organization, Sector> {
     return parent(\.sectorID)
+  }
+  /// Fluent relation to the currency that is relative to this organization.
+  var currency: Parent<Organization, Currency> {
+    return parent(\.currencyID)
   }
   /// Fluent relation to the services that is relative to this organization.
   var services: Children<Organization, Service> {

@@ -21,6 +21,8 @@ public final class Devis:     AdoptedModel, Auditable {
   public var id:          ObjectID?
   /// user ID who initiated Contract.
   public var authorID:    User.ID
+  /// organization ID.
+  public var organizationID:  Organization.ID
   /// Devis's unique slug réference.
   public var slugDevis:   String
   /// Devis's unique réference into the organization whom create the schedule.
@@ -57,7 +59,9 @@ public final class Devis:     AdoptedModel, Auditable {
   public var orgBSignator: User.ID?
   /// user ID who closed the Contract.
   public var closedAuthorID: User.ID?
-  
+  // Submit new computed price
+  public var price: Double
+
   /// Create date.
   public var createdAt: Date?
   /// Update date.
@@ -65,8 +69,8 @@ public final class Devis:     AdoptedModel, Auditable {
   /// Deleted date.
   public var deletedAt: Date?
   
-  public init(author: User.ID, label: String, service: Service.ID,
-              status: ObjectStatus, draft: Int = 1, slug: String? = nil,
+  public init(author: User.ID, organization: Organization.ID, label: String, service: Service.ID,
+              status: ObjectStatus, price: Double, draft: Int = 1, slug: String? = nil,
               orgASigned: Bool = false, orgBSigned: Bool = false,
               orgASignator: User.ID? = nil, orgBSignator: User.ID? = nil,
               closedAuthorID: User.ID? = nil,
@@ -74,11 +78,13 @@ public final class Devis:     AdoptedModel, Auditable {
               deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id             = id
     self.ref            = Utils.newRef(kDevisReferenceBasePrefix, size: kDevisReferenceLength)
-    let wellformSlug    = label.lowercased()
+    let wellformSlug    = "\(label)\(createdAt.description)".lowercased()
       .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
       .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
-    self.slugDevis = slug == nil ? wellformSlug + "-" + self.ref : slug!
+    self.slugDevis      = slug == nil ? wellformSlug + "-" + self.ref : slug!
     self.authorID       = author
+    self.price          = price
+    self.organizationID = organization
     self.label          = label
     self.serviceID      = service
     self.status         = status.rawValue
@@ -94,7 +100,6 @@ public final class Devis:     AdoptedModel, Auditable {
   }
 }
 
-
 /// Allows `Devis` to be used as a Fluent migration.
 extension Devis: Migration {
   /// See `Migration`.
@@ -105,6 +110,8 @@ extension Devis: Migration {
       builder.field(for: \.ref)
       builder.field(for: \.slugDevis)
       builder.field(for: \.authorID)
+      builder.field(for: \.price)
+      builder.field(for: \.organizationID)
       builder.field(for: \.serviceID)
       builder.field(for: \.scheduleID)
       builder.field(for: \.activityID)
@@ -128,6 +135,7 @@ extension Devis: Migration {
       builder.unique(on: \.ref)
       builder.unique(on: \.slugDevis)
       builder.reference(from: \Devis.serviceID, to: \Service.id, onUpdate: .noAction, onDelete: .noAction)
+      builder.reference(from: \Devis.organizationID, to: \Organization.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.authorID, to: \User.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.scheduleID, to: \Schedule.id, onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Devis.activityID, to: \Activity.id, onUpdate: .noAction, onDelete: .noAction)
@@ -140,12 +148,50 @@ extension Devis: Migration {
       _ = conn.raw("ALTER SEQUENCE \(Devis.name)_id_seq RESTART WITH 5000").all()
     }
     return dTable
-    
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {
     return Database.delete(Devis.self, on: conn)
   }
+}
+
+public extension Devis {
+  /// Fluent relation to the organization devis.
+  var organization: Parent<Devis, Organization> {
+    return parent(\.organizationID)
+  }
+  var service: Parent<Devis, Service> {
+    return parent(\.serviceID)
+  }
+  /// Parent relation author.
+  var author: Parent<Devis, User> {
+    return parent(\.authorID)
+  }
+  /// Parent relation author.
+  var aSignator: Parent<Devis, User>? {
+    return parent(\.orgASignator)
+  }
+  /// Parent relation author.
+  var bSignator: Parent<Devis, User>? {
+    return parent(\.orgBSignator)
+  }
+  /// Parent relation author.
+  var closer: Parent<Devis, User>? {
+    return parent(\.closedAuthorID)
+  }
+  /// Parent relation activity.
+  var activity: Parent<Devis, Activity>? {
+    return parent(\.activityID)
+  }
+  /// Parent relation schedule.
+  var schedule: Parent<Devis, Schedule>? {
+    return parent(\.scheduleID)
+  }
+  
+  var assets: Siblings<Devis, Asset, DevisAsset> {
+    return siblings()
+  }
+
 }
 
 /// Allows `Devis` to be used as a dynamic parameter in route definitions.

@@ -11,7 +11,7 @@ import FluentPostgreSQL
 import Authentication
 import Paginator
 
-/// - MARK - CREATE Service
+/// - MARK - CREATE Activity
 public final class ActivityController {
   
   public init() { }
@@ -47,7 +47,7 @@ public final class ActivityController {
   }
 }
 
-/// - MARK - UPDATE Service
+/// - MARK - UPDATE Activity
 extension ActivityController {
   public func update(_ req: Request) throws -> Future<Activity.ShortPublicResponse> {
     let user = try UserController.logged(req)

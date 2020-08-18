@@ -29,8 +29,6 @@ public static var auditID = HistoryDataType.serviceasset.rawValue
   public var id: ObjectID?
   /// A potention planning day title
   public var label: String?
-  /// order of the asset linked
-  public var orderID: Order.ID?
   /// Related service id
   public var serviceID: Service.ID
   /// ID of the  asset linked
@@ -51,7 +49,6 @@ public static var auditID = HistoryDataType.serviceasset.rawValue
     self.id               = id
     self.label            = label
     self.serviceID        = service
-    self.orderID         = order
     self.assetID         = asset
     self.quantity        = quantity
 
@@ -79,7 +76,6 @@ extension ServiceAsset: Migration {
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.label)
-      builder.field(for: \.orderID)
       builder.field(for: \.serviceID)
       builder.field(for: \.quantity)
       builder.field(for: \.assetID)
@@ -90,9 +86,6 @@ extension ServiceAsset: Migration {
       builder.reference(from: \ServiceAsset.assetID,
                         to: \Asset.id,
                         onUpdate: .noAction, onDelete: .noAction)
-      builder.reference(from: \ServiceAsset.orderID,
-                        to: \Order.id,
-                        onUpdate: .noAction, onDelete: .setNull)
       builder.reference(from: \ServiceAsset.serviceID,
                         to: \Service.id,
                         onUpdate: .noAction, onDelete: .setNull)
