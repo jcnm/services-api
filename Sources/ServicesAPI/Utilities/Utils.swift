@@ -76,6 +76,7 @@ public struct PageMeta : Content {
   public var q:        String                = Config.SearchEngine.Default.queryString
   public var namedData:  [String:[NamedEmail]] = [:]
   public var params:     [String:String]       = [:]
+  public var currencies: [Currency]            = []
 
   public mutating func config(from req: Request) {
     do {

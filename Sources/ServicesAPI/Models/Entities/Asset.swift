@@ -44,14 +44,14 @@ public final class Asset: AdoptedModel, Auditable {
   /// date where this asset is taking in action
   public var fromDate: Date
   public var toDate: Date?
-  // Cost by adding this asset, could be negatif
+  // Unity cost by adding this asset, could be negatif
   public var cost: Double
   // Available stock of this present asset
   public var stock: Int
   // What sort of asset is this
   public var kind: Int
   // What unit is used here (iso unit)
-  public var unit: Int
+  public var unitID: Unit.ID
   // Sepecifique tva fator 100 18.2 = 1820
   public var tva: Int?
   /// The code if this is redeem
@@ -97,7 +97,7 @@ public final class Asset: AdoptedModel, Auditable {
     self.oref             = nil
     self.kind             = 1
     self.tva              = nil
-    self.unit             = 0
+    self.unitID           = 101
     self.status           = state.rawValue
     self.organizationID   = organization
     self.authorID         = author
@@ -142,7 +142,7 @@ extension Asset: Migration {
       builder.field(for: \.oref)
       builder.field(for: \.kind)
       builder.field(for: \.tva)
-      builder.field(for: \.unit)
+      builder.field(for: \.unitID)
       builder.field(for: \.slugAsset)
       builder.field(for: \.title)
       builder.field(for: \.status)
@@ -171,6 +171,9 @@ extension Asset: Migration {
       builder.unique(on: \.slugAsset)
       builder.reference(from: \Asset.organizationID,
                         to: \Organization.id,
+                        onUpdate: .noAction, onDelete: .noAction)
+      builder.reference(from: \Asset.unitID,
+                        to: \Unit.id,
                         onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Asset.authorID,
                         to: \User.id,

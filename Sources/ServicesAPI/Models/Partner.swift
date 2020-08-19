@@ -15,41 +15,41 @@ let kPartnerReferenceLength = 3
 
 /// A model to represent api backend version to every one.
 public final class Partner: AdoptedModel, Auditable {
-public static var auditID = HistoryDataType.partner.rawValue
+public static var auditID     = HistoryDataType.partner.rawValue
 
-  public static let name = "partner"
+  public static let name      = "partner"
   
   /// UserToken's unique identifier.
-  public var id: ObjectID?
+  public var id               :ObjectID?
   /// Version name.
-  public var name: String
-  public var ref: String
+  public var name             :String
+  public var ref              :String
   /// Partner's unique slug réference.
-  public var slugPartner: String
+  public var slugPartner      :String
   /// Sem Version Core.
-  public var mainUrl: String
-  public var versionAPI: String
-  public var bearerToken: String
-  public var endPointAPI : String
-  public var description: String
-  public var lastAPIUpdate: String
-  public var referedAppName: String
+  public var mainUrl          :String
+  public var versionAPI       :String
+  public var bearerToken      :String
+  public var endPointAPI      :String
+  public var description      :String
+  public var lastAPIUpdate    :String
+  public var referedAppName   :String
   // confuguration
-  public var asPathParam : Bool
-  public var paramQueryName: String?
-  public var hooksPointAPI: String?
+  public var asPathParam      :Bool
+  public var paramQueryName   :String?
+  public var hooksPointAPI    :String?
   // Presta
-  public var providerName : String
-  public var providerWebsite: String?
-  public var providerEmail: String?
-  public var providerNumber: String?
+  public var providerName     :String
+  public var providerWebsite  :String?
+  public var providerEmail    :String?
+  public var providerNumber   :String?
   
   /// Created date.
-  public var createdAt: Date
+  public var createdAt        :Date
   /// Updated date.
-  public var updatedAt: Date?
+  public var updatedAt        :Date?
   /// Deleted date.
-  public var deletedAt: Date?
+  public var deletedAt        :Date?
   
   /// Creates a new `UserToken`.
   public init(mainUrl: String, endPointAPI:String, versionAPI: String, bearerToken: String,
