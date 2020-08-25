@@ -1,5 +1,5 @@
 //
-//  Unit.swift
+//  UnitMeasure.swift
 //  
 //
 //  Created by J. Charles NJANDA M. on 19/08/2020.
@@ -86,16 +86,16 @@ public enum KindQuantity: Int, Codable, Comparable, ReflectionDecodable {
   }
 }
 
-let kUnitReferenceBasePrefix  = "UNIT"
-let kUnitReferenceLength = 3
+let kUnitMeasureReferenceBasePrefix  = "UNIT"
+let kUnitMeasureReferenceLength = 3
 
-public final class Unit : AdoptedModel, Auditable {
+public final class UnitMeasure : AdoptedModel, Auditable {
   public static var auditID = HistoryDataType.unit.rawValue
 
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }
-  public static let name = "currency"
+  public static let name = "unit"
   /// Currency  uniq object ID
   public var id             : ObjectID?
   public var ref            : String
@@ -113,8 +113,8 @@ public final class Unit : AdoptedModel, Auditable {
   /// Deleted date.
   public var deletedAt: Date?
 
-  public static var defaultValue: Unit {
-    return Unit(base: BaseUnit.meter, name: "Meter", kind: KindQuantity.length, symbol: "m", metric: "m")
+  public static var defaultValue: UnitMeasure {
+    return UnitMeasure(base: BaseUnit.meter, name: "Meter", kind: KindQuantity.length, symbol: "m", metric: "m")
   }
 
   convenience init() {
@@ -125,7 +125,7 @@ public final class Unit : AdoptedModel, Auditable {
               definition: Double? = nil, createdAt : Date = Date(), updatedAt: Date? = nil,
   deletedAt : Date?   = nil, id: ObjectID? = nil) {
     self.id           = id
-    self.ref          = Utils.newRef(kUnitReferenceBasePrefix, size: kUnitReferenceLength)
+    self.ref          = Utils.newRef(kUnitMeasureReferenceBasePrefix, size: kUnitMeasureReferenceLength)
     self.base         = base
     self.name         = name
     self.symbol       = symbol
@@ -136,11 +136,11 @@ public final class Unit : AdoptedModel, Auditable {
   }
 }
 
-/// Allows `Unit` to be used as a Fluent migration.
-extension Unit: Migration {
+/// Allows `UnitMeasure` to be used as a Fluent migration.
+extension UnitMeasure: Migration {
   /// See `Migration`.
   public static func prepare(on conn: AdoptedConnection) -> Future<Void> {
-    let cTable = AdoptedDatabase.create(Unit.self, on: conn)
+    let cTable = AdoptedDatabase.create(UnitMeasure.self, on: conn)
     { builder in
       builder.field(for: \.id, isIdentifier: true)
       builder.field(for: \.ref)
@@ -159,15 +159,15 @@ extension Unit: Migration {
     }
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for PostGreSQL DATABASE
-      _ = conn.raw("ALTER SEQUENCE \(Unit.name)_id_seq RESTART WITH 100").run()
+      _ = conn.raw("ALTER SEQUENCE \(UnitMeasure.name)_id_seq RESTART WITH 100").run()
     }
     return cTable
   }
   
   public static func revert(on conn: AdoptedConnection) -> Future<Void> {
-    return Database.delete(Unit.self, on: conn)
+    return Database.delete(UnitMeasure.self, on: conn)
   }
 }
 
-/// Allows `Unit` to be used as a dynamic parameter in route definitions.
-extension Unit: Parameter { }
+/// Allows `UnitMeasure` to be used as a dynamic parameter in route definitions.
+extension UnitMeasure: Parameter { }

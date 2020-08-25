@@ -51,7 +51,7 @@ public final class Asset: AdoptedModel, Auditable {
   // What sort of asset is this
   public var kind: Int
   // What unit is used here (iso unit)
-  public var unitID: Unit.ID
+  public var unitID: UnitMeasure.ID
   // Sepecifique tva fator 100 18.2 = 1820
   public var tva: Int?
   /// The code if this is redeem
@@ -173,7 +173,7 @@ extension Asset: Migration {
                         to: \Organization.id,
                         onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Asset.unitID,
-                        to: \Unit.id,
+                        to: \UnitMeasure.id,
                         onUpdate: .noAction, onDelete: .noAction)
       builder.reference(from: \Asset.authorID,
                         to: \User.id,

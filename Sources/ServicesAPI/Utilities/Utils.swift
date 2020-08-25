@@ -229,7 +229,6 @@ public struct FilterNavigation<Obj: Content>: Content {
         logger.info("Filter cursor/offset for the query : \(self.offset)")
       }
       if let ord = try? req.query.get(String.self, at: Config.SearchEngine.paramsDirectionQuery).uppercased() {
-        
         if ["ASC", "DESC"].contains(ord.uppercased()) {
           self.direction = ord.uppercased()
           logger.info("Filter direction given for the order query : \(ord)")
@@ -251,7 +250,6 @@ public struct FilterNavigation<Obj: Content>: Content {
         self.page = Int((Double(offset) / Double(limit)).rounded(.up))
         self.page = self.page < 1 ? 1 : self.page
       }
-      
     } catch _ {
       fatalError("Some error happen during filtering creation for : \(req)")
     }
