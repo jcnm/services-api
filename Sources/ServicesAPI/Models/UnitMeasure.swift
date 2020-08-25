@@ -10,10 +10,7 @@ import Vapor
 import FluentPostgreSQL
 
 
-public indirect enum BaseUnit: Int, Codable, Equatable, ReflectionDecodable {
-  public static func reflectDecoded() throws -> (BaseUnit, BaseUnit) {
-    return (unknown, candela)
-  }
+public indirect enum BaseUnit: Int, Codable {
 
   case unknown
   case base
@@ -34,15 +31,7 @@ public indirect enum BaseUnit: Int, Codable, Equatable, ReflectionDecodable {
   }
 }
 
-public enum KindQuantity: Int, Codable, Comparable, ReflectionDecodable {
-  public static func reflectDecoded() throws -> (KindQuantity, KindQuantity) {
-    return (unknown, signalTransmissionRate)
-  }
-  
-  public static func < (lhs: KindQuantity, rhs: KindQuantity) -> Bool {
-    return lhs.rawValue < rhs.rawValue
-  }
-  
+public enum KindQuantity: Int, Codable {
   case unknown
   case number
   case length
@@ -86,16 +75,16 @@ public enum KindQuantity: Int, Codable, Comparable, ReflectionDecodable {
   }
 }
 
-let kUnitMeasureReferenceBasePrefix  = "UNIT"
+let kUnitMeasureReferenceBasePrefix  = "UME"
 let kUnitMeasureReferenceLength = 3
 
 public final class UnitMeasure : AdoptedModel, Auditable {
-  public static var auditID = HistoryDataType.unit.rawValue
+  public static var auditID = HistoryDataType.unitmeasure.rawValue
 
   public static var createdAtKey: TimestampKey? { return \.createdAt }
   public static var updatedAtKey: TimestampKey? { return \.updatedAt }
   public static var deletedAtKey: TimestampKey? { return \.deletedAt }
-  public static let name = "unit"
+  public static let name = "umeasure"
   /// Currency  uniq object ID
   public var id             : ObjectID?
   public var ref            : String
@@ -121,9 +110,8 @@ public final class UnitMeasure : AdoptedModel, Auditable {
     self.init(base: BaseUnit.gram, name: "Gram", kind: KindQuantity.volume, symbol: "g", metric: "g")
   }
   
-  public init(base: BaseUnit, name:String, kind: KindQuantity, symbol: String, metric: String?,
-              definition: Double? = nil, createdAt : Date = Date(), updatedAt: Date? = nil,
-  deletedAt : Date?   = nil, id: ObjectID? = nil) {
+  public init(base: BaseUnit, name:String, kind: KindQuantity, symbol: String, metric: String?, definition: Double? = nil,
+              createdAt : Date = Date(), updatedAt: Date? = nil, deletedAt : Date?   = nil, id: ObjectID? = nil) {
     self.id           = id
     self.ref          = Utils.newRef(kUnitMeasureReferenceBasePrefix, size: kUnitMeasureReferenceLength)
     self.base         = base

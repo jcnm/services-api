@@ -97,7 +97,7 @@ public final class Asset: AdoptedModel, Auditable {
     self.oref             = nil
     self.kind             = 1
     self.tva              = nil
-    self.unitID           = 101
+    self.unitID           = 1000
     self.status           = state.rawValue
     self.organizationID   = organization
     self.authorID         = author

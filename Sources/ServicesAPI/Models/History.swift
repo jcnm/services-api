@@ -50,7 +50,7 @@ public enum HistoryDataType: Int, Codable { // Placing by order of object suscep
   case devisasset           = 35
   case assetorder           = 36
   case language             = 37
-  case unit                 = 38
+  case unitmeasure          = 38
 
   public static var defaultValue: HistoryDataType {
     return .unknown
