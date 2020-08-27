@@ -100,13 +100,19 @@ public final class OrganizationController {
               if let op = parent {
                 return op.flatMap { (orgp) -> Future<Organization.FullPublicResponse> in
                   if let part = orgp { // build response with parent
-                    return req.future(org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: part.shortResponse()))
+                    var forg = org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: part.shortResponse())
+                    forg.currency = APIController.currencies[org.currencyID]
+                    return req.future(forg)
                   } else {
-                    return req.future(org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: nil))
+                    var forg = org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: nil)
+                    forg.currency = APIController.currencies[org.currencyID]
+                    return req.future(forg)
                   }
                 }
               }
-              return req.future(org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: nil))
+              var forg = org.fullResponse(sect: sec, currency: curr, uorg: uo, parent: nil)
+              forg.currency = APIController.currencies[org.currencyID]
+              return req.future(forg)
             }
           }}
       }
@@ -181,11 +187,11 @@ extension OrganizationController {
 extension OrganizationController {
   
   public func show(_ req: Request) throws -> Future<Organization.FullPublicResponse> {
-    let u = try UserController.logged(req)
-    let org = try req.parameters.next(Organization.self)
+    let u     = try UserController.logged(req)
+    let org   = try req.parameters.next(Organization.self)
     return org.flatMap { (orga) -> Future<Organization.FullPublicResponse> in
       //        let industries = Industry.query(on: req).filter(\Industry.sectorID, .equal, orga.sectorID).all()
-      let currency   = orga.currency.get(on: req)
+      let currency    = orga.currency.get(on: req)
       let members     = try orga.members.query(on: req).alsoDecode(UserOrganization.self).all()
       let services    = try orga.services.query(on: req).all()
       let children    = try orga.organizations.query(on: req)
@@ -197,12 +203,12 @@ extension OrganizationController {
       let sector  = orga.sector.get(on: req)
       return sector.and(currency).and(members).and(services)
         .flatMap { (sec_mems, servs) -> Future<Organization.FullPublicResponse> in
-          let (seccur, uuos) = sec_mems
+          let (seccur, uuos)  = sec_mems
           let (sec, cur)      = seccur
-          var orgFull     = Organization.fullResponse(org: orga, sect: sec, currency: cur, uorg: nil, parent: nil)
-          orgFull.members = []
+          var orgFull         = Organization.fullResponse(org: orga, sect: sec, currency: cur, uorg: nil, parent: nil)
+          orgFull.members     = []
           if !servs.isEmpty {
-            orgFull.services = []
+            orgFull.services  = []
             for serv in servs {
               orgFull.services!.append(serv.shortResponse())
             }
@@ -215,7 +221,6 @@ extension OrganizationController {
             }
             orgFull.members!.append(Organization.UserRoleMemberPublicResponse(id: uo.id, role: uo.role, user: User.ShortPublicResponse(id: usr.id!, profileID: usr.profileID, login: usr.login, email: usr.email, ref:usr.ref, avatar: usr.avatar, staff: usr.staff, createdAt: usr.createdAt!), organizationID: uo.organizationID, createdAt: uo.createdAt, updatedAt: uo.updatedAt))
           }
-          
           _ = children.map { (orgsecs) -> Void in
             orgFull.children = []
             for ((m_org, m_sec), m_curr) in orgsecs {
@@ -223,14 +228,13 @@ extension OrganizationController {
             }
           }
           _ = parent?.map{ (m_org) -> Void in
-            let orgspr = Organization.ShortPublicResponse(id: m_org.id, shortLabel: m_org.shortLabel, legalName: m_org.legalName, ref: m_org.ref, logo: m_org.logo ?? "", kind: m_org.okind, currencyID: m_org.currencyID, sectorID: m_org.sectorID, parentID: m_org.parentID, size: m_org.osize, createdAt: m_org.createdAt, updatedAt: m_org.updatedAt)
+            let orgspr = Organization.ShortPublicResponse(id: m_org.id, shortLabel: m_org.shortLabel, legalName: m_org.legalName, ref: m_org.ref, logo: m_org.logo ?? "", kind: m_org.okind, currency: APIController.currencies[m_org.currencyID], sectorID: m_org.sectorID, parentID: m_org.parentID, size: m_org.osize, createdAt: m_org.createdAt, updatedAt: m_org.updatedAt)
             orgFull.parent = orgspr
           }
           return req.future(orgFull)
       }
     }
   }
-  
   
   public func organizationsOf(user: User, req: Request) throws
     -> (PageMeta, Future<OffsetPaginator<Organization.MidPublicResponse>>) {
@@ -246,8 +250,6 @@ extension OrganizationController {
         //            .join(\UserOrganization.organizationID, to: \Organization.id)
         .alsoDecode(UserOrganization.self)
         .alsoDecode(Sector.self)
-      .join(\Currency.id, to: \Organization.currencyID)
-      .alsoDecode(Currency.self)
 
       
       //            .orderBy(\Organization.id, .null)
@@ -268,11 +270,11 @@ extension OrganizationController {
       let trans = qry.transform(on: req)
       { (obj) ->
         Future<Organization.MidPublicResponse> in
-        let org         = obj.0.0.0
-        let uorg        = obj.0.0.1
-        let sect        = obj.0.1
-        let curr        = obj.1
-        let ofpr = org.midResponse(sect: sect, currency: curr, uorg: uorg, parent: nil)
+        let org         = obj.0.0
+        let uorg        = obj.0.1
+        let sect        = obj.1
+        var ofpr = org.midResponse(sect: sect, currency: nil, uorg: uorg, parent: nil)
+        ofpr.currency = APIController.currencies[org.currencyID]
         return req.future(ofpr)
 //        let promise = req.eventLoop.newPromise(Organization.MidPublicResponse.self)
 //        DispatchQueue.global().async {
@@ -307,8 +309,6 @@ extension OrganizationController {
             .filter(\Organization.parentID == org.id)
             .join(\Sector.id, to: \Organization.sectorID)
             .alsoDecode(Sector.self)
-          .join(\Currency.id, to: \Organization.currencyID)
-          .alsoDecode(Currency.self)
           if meta.size != 0 {
             qry = qry.filter(\Organization.osize == meta.size)
           }
@@ -318,11 +318,11 @@ extension OrganizationController {
           
           let trans = try qry.transform(on: req)
           { (obj) -> Organization.MidPublicResponse in
-            let org         = obj.0.0
-            
-            let sect        = obj.0.1
-            let curr        = obj.1
-            return org.midResponse(sect: sect, currency: curr, uorg: nil, parent: nil)
+            let org         = obj.0
+            let sect        = obj.1
+            var ofpr        = org.midResponse(sect: sect, currency: nil, uorg: nil, parent: nil)
+            ofpr.currency = APIController.currencies[org.currencyID]
+            return ofpr
           }
           return try trans.paginate(for: req, type: OffsetPaginator<Organization.MidPublicResponse>.self)
       }

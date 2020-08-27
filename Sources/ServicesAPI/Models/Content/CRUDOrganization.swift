@@ -45,7 +45,7 @@ public extension Organization {
   }
 
   func shortResponse() -> Organization.ShortPublicResponse {
-    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, legalName: self.legalName, ref: self.ref, logo: self.logo ?? "", kind: self.okind, currencyID: self.currencyID, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
+    return Organization.ShortPublicResponse(id: self.id, shortLabel: self.shortLabel, legalName: self.legalName, ref: self.ref, logo: self.logo ?? "", kind: self.okind, currency: nil, sectorID: self.sectorID, parentID: self.parentID, size: self.osize, createdAt: self.createdAt, updatedAt: self.updatedAt, errors: nil, succes: nil)
   }
   
   struct CreateOrganization: Content  {
@@ -185,7 +185,7 @@ public extension Organization {
     public var kind: Int?
     public var communityTVA: String?
     /// Organization's description.
-    public var currencyID: Currency.ID
+    public var currency: Currency?
     /// Reference to sector
     public var sectorID: Sector.ID
     /// Organization Parent Organization.ID.

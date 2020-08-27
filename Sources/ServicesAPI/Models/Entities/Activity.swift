@@ -149,9 +149,14 @@ public final class Activity: AdoptedModel , Auditable {
               updatedAt: Date? = nil, deletedAt : Date? = nil, id: ObjectID? = nil) {
     self.id                 = id
     self.ref          = Utils.newRef(kPlanningReferenceBasePrefix, size: kPlanningReferenceLength)
-    let formatSlug    = fromDate.description
-      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "0000", with: "")
-      .replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: "\\", with: "-")
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dMMyHHhmm"
+
+    let formatSlug    = formatter.string(from: createdAt)
+      .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+      .replacingOccurrences(of: " ", with: "")
+      .replacingOccurrences(of: "/", with: "-")
+      .replacingOccurrences(of: "\\", with: "-")
     self.slugActivity = slug == nil ? formatSlug + "-" + self.ref! : slug!
     self.title        = title
     self.dow          = dow.rawValue

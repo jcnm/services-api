@@ -14,16 +14,49 @@ import Paginator
 
 /// - MARK - CREATE Sector
 public final class APIController {
-  
+  static var unitMeasures:[UnitMeasure.ID: UnitMeasure] = [:]
+  static var currencies:[Currency.ID:Currency] = [:]
+  static var languages:[Language.ID: Language] = [:]
+
   let partnerController = PartnerController( )
   
+  static public func loadCurrencies(_ loop: Container) {
+    let req = Request(using: loop)
+    let q = Currency.query(on: req)
+    q.all().whenSuccess { (currencies) in
+      for e in currencies {
+        self.currencies[e.id!] = e
+      }
+    }
+  }
+  
+  static public func loadLanguages(_ loop: Container) {
+    let req = Request(using: loop)
+    let q = Language.query(on: req)
+    q.all().whenSuccess { (languages) in
+      for e in languages {
+        self.languages[e.id!] = e
+      }
+    }
+  }
+  
+  static public func loadUnitMeasure(_ loop: Container) {
+    let req = Request(using: loop)
+    let q = UnitMeasure.query(on: req)
+    q.all().whenSuccess { (umeasure) in
+      for e in umeasure {
+        self.unitMeasures[e.id!] = e
+      }
+    }
+  }
+
   public init() { }
   
 }
 /// - MARK - GET  Relative to Partener
 extension APIController {
   
-  public func inseeFRSirene(_ req: Request, partner: String? = nil ) throws -> Future<Sirene> {
+  public func inseeFRSirene(_ req: Request, partner: String? = nil) throws -> Future<Sirene> {
     let qPartnerStr: String
     let logger = try  req.make(Logger.self)
     if let p      = partner { qPartnerStr = p } else { qPartnerStr = try req.parameters.next(String.self) }

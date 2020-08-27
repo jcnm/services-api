@@ -89,7 +89,7 @@ extension Currency: Migration {
     }
     if type(of: conn) == PostgreSQLConnection.self {
       // Only for PostGreSQL DATABASE
-      _ = conn.raw("ALTER SEQUENCE \(Currency.name)_id_seq RESTART WITH 100").run()
+      _ = conn.raw("ALTER SEQUENCE \(Currency.name)_id_seq RESTART WITH 1000").run()
     }
     return cTable
   }

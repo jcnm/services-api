@@ -127,6 +127,7 @@ extension ServiceController {
                 logger.debug("Getting service author \(auth.id!) \(auth.login)")
                 return servScorePagine.flatMap { sss -> Future<Service.FullPublicResponse> in
                   var retRes = Service.fullResponse(serv: serv, ind: ind.shortResponse(), user: auth.shortResponse(), org: org.shortResponse(), parent: nil)
+                  retRes.organization.currency = APIController.currencies[org.currencyID]
                   retRes.scoreAverage = scsts
                   retRes.assets = assets
                   retRes.scores = sss
@@ -224,6 +225,7 @@ extension ServiceController {
         rawAss.reduce((), { (_, servass) -> Void in
           // 10.1 look the service indice and then, add this asset into it
           // 10.2 add only not redeem asset on sub services
+          servass.devisID
           if serviceID == servass.serviceID! || !servass.redeem { // Add every asset on first service desc but only not redeems on others
             mapAsset[servass.serviceID!]!.1.append(servass)
           }
@@ -231,10 +233,12 @@ extension ServiceController {
         // 11. sort the map service to asset by pidentkey asc (child first)
         
         let sFPR = try self.fullServicesWithAssets(req: req, logger: logger, mapAsset: mapAsset)
+
         return sFPR.flatten(on: req)
       }
     }
   }
+  
   fileprivate func fullServicesWithAssets(req: Request, logger: Logger,
                                      mapAsset: [Service.ID : (Service, [Asset.Response.ShortPublic])]) throws -> [Future<Service.FullPublicResponse>] {
     // Empty array of service full response
@@ -274,6 +278,7 @@ extension ServiceController {
             logger.debug("Getting service author \(auth.id!) \(auth.login)")
             return servScorePagine.flatMap { sss -> Future<Service.FullPublicResponse> in
               var retRes = Service.fullResponse(serv: serv, ind: ind.shortResponse(), user: auth.shortResponse(), org: org.shortResponse(), parent: nil)
+              retRes.organization.currency = APIController.currencies[org.currencyID]
               retRes.scoreAverage = scsts
               retRes.assets = assets
               retRes.scores = sss
@@ -304,11 +309,11 @@ extension ServiceController {
           }
         }
       }
-      
       sFPR.append(fpres)
     }
     return sFPR
   }
+  
   /*
    * Take a Schedule and it user and load its activities
    **/
@@ -326,7 +331,6 @@ extension ServiceController {
    
    */
   public func serviceFullResponse(req: Request, serv: Service) throws -> Future<Service.FullPublicResponse> {
-    
     let logger = try req.make(Logger.self)
     logger.debug("Getting Service from parameter \(serv.id!):\(serv.label)")
     let parent    = serv.parent?.get(on: req)
@@ -361,6 +365,7 @@ extension ServiceController {
           logger.debug("Getting service author \(auth.id!) \(auth.login)")
           return assets.and(servScorePagine).flatMap { (sass, sss) -> Future<Service.FullPublicResponse> in
             var retRes = Service.fullResponse(serv: serv, ind: ind.shortResponse(), user: auth.shortResponse(), org: org.shortResponse(), parent: nil)
+            retRes.organization.currency = APIController.currencies[org.currencyID]
             retRes.scoreAverage = scsts
             retRes.assets = sass
             retRes.scores = sss
@@ -685,7 +690,8 @@ extension ServiceController {
           let user    = obj.0.0.1
           let industry = obj.0.1
           let organization = obj.1
-          let publicResp = Service.fullResponse(serv: service, ind: industry.shortResponse(), user: user.shortResponse(), org: organization.shortResponse())
+          var publicResp = Service.fullResponse(serv: service, ind: industry.shortResponse(), user: user.shortResponse(), org: organization.shortResponse())
+          publicResp.organization.currency = APIController.currencies[organization.currencyID]
           logger.info("Getting Services applaying transformation to get \n{\(publicResp.id!), \(publicResp.label)}\n\n ")
           return publicResp
       }

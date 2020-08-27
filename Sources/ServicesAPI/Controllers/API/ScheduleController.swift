@@ -16,20 +16,24 @@ public final class ScheduleController {
   
   public init() { }
 
-  public func create(_ req: Request) throws -> Future<Schedule.ShortPublicResponse> {
+  public func create(_ req: Request) throws -> Future<Schedule.FullPublicResponse> {
     let user = try UserController.logged(req)
     let logger = try req.make(Logger.self)
     logger.info("Schedule creation initiated by \(user.id!) (\(user.login))")
     // TODO CHECK CREATION RIGHT for user
     // decode request content
     return try req.content.decode(Schedule.CreateSchedule.self).flatMap
-      { sche -> Future<Schedule.ShortPublicResponse> in
+      { sche -> Future<Schedule.FullPublicResponse> in
         logger.info("Schedule creation information got for service ID : \(sche.serviceID)")
         let schedule = Schedule(label: sche.label, owner: sche.ownerID, service: sche.serviceID, state: ObjectStatus.defaultValue, orgRefA: sche.orgScheduleARef)
         return schedule.create(on: req)
-          .map { (sch) -> Schedule.ShortPublicResponse in
-          logger.info("Schedule saved for serviceID : \(sch.serviceID) - Owner ID: \(sch.ownerID) (\(user.login))")
-          return sch.shortResponse()
+          .flatMap { (sch) -> Future<Schedule.FullPublicResponse> in
+          let serv = sch.service.get(on: req)
+            return serv.map { (service) -> Schedule.FullPublicResponse in
+                        logger.info("Schedule saved for serviceID : \(sch.serviceID) - Owner ID: \(sch.ownerID) (\(user.login))")
+              return sch.fullResponse(user: user.shortResponse(), service: service.shortResponse())
+
+            }
         }
     }
   }
