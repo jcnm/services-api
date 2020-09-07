@@ -10,7 +10,7 @@ import Foundation
 import Vapor
 import FluentPostgreSQL
 
-let kOrganizationReferenceBasePrefix  = "ORG"
+let kOrganizationReferenceBasePrefix  = "SO"
 let kOrganizationReferenceLength      = kReferenceDefaultLength
 
 public enum OrganizationKind: Int, Codable, RawRepresentable, CaseIterable {
