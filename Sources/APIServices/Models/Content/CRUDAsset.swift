@@ -27,7 +27,7 @@ public extension Asset {
                     forOrganizations: [Organization.ShortPublicResponse] = [],
                     forUsers: [User.ShortPublicResponse] = []) -> Response.FullPublic
   {
-    return Response.FullPublic(id: self.id!, ref: self.ref, oref: self.oref, author: author, organization: organization,title: self.title, slug: self.slugAsset, id_link: sasset?.id, quantity: sasset?.quantity, initialQuantity: nil, label: sasset?.label, service: serv,  duplicated: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost, stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: forServices, forOrganizations: forOrganizations, forUsers: forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
+    return Response.FullPublic(id: self.id!, ref: self.ref, oref: self.oref, author: author, organization: organization,title: self.title, slugAsset: self.slugAsset, id_link: sasset?.id, quantity: sasset?.quantity, initialQuantity: nil, label: sasset?.label, service: serv,  duplicated: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost, stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: forServices, forOrganizations: forOrganizations, forUsers: forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
   }
   
   
@@ -40,7 +40,7 @@ public extension Asset {
                     forOrganizations: [Organization.ShortPublicResponse] = [],
                     forUsers: [User.ShortPublicResponse] = []) -> Response.FullPublic
   {
-    return Response.FullPublic(id: self.id!, ref: self.ref, oref: self.oref, author: author, organization: organization,title: self.title, slug: self.slugAsset, id_link: dasset?.id, quantity: dasset?.quantity, initialQuantity: dasset?.initialQuantity, label: dasset?.label, service: serv,  duplicated: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost,  stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: forServices, forOrganizations: forOrganizations, forUsers: forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
+    return Response.FullPublic(id: self.id!, ref: self.ref, oref: self.oref, author: author, organization: organization,title: self.title, slugAsset: self.slugAsset, id_link: dasset?.id, quantity: dasset?.quantity, initialQuantity: dasset?.initialQuantity, label: dasset?.label, service: serv,  duplicated: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost,  stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: forServices, forOrganizations: forOrganizations, forUsers: forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt, deletedAt: self.deletedAt, errors: nil, succes: nil)
   }
   
   static func fullResponse(ass: Asset, author: User.ShortPublicResponse,
@@ -58,13 +58,13 @@ public extension Asset {
 
   func shortResponse(_ sasset: ServiceAsset? = nil) -> Response.ShortPublic
   {
-    return Response.ShortPublic(id: self.id!, ref: self.ref, oref: self.oref, title: self.title, slug: self.slugAsset, id_link: sasset?.id!, quantity: sasset?.quantity, label: sasset?.label, serviceID: sasset?.serviceID, authorID: self.authorID, organizationID: self.organizationID, duplicatedID: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost,
+    return Response.ShortPublic(id: self.id!, ref: self.ref, oref: self.oref, title: self.title, slugAsset: self.slugAsset, id_link: sasset?.id!, quantity: sasset?.quantity, label: sasset?.label, serviceID: sasset?.serviceID, authorID: self.authorID, organizationID: self.organizationID, duplicatedID: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost,
                                  stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: self.forServices, forOrganizations: self.forOrganizations, forUsers: self.forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt)
   }
   
   func shortResponse(_ dasset: DevisAsset) -> Response.ShortPublic
   {
-    return Response.ShortPublic(id: self.id!, ref: self.ref, oref: self.oref, title: self.title, slug: self.slugAsset, id_link: nil, devis_link: dasset.id!, quantity: dasset.quantity, initialQuantity: dasset.initialQuantity, label: dasset.label, serviceID: nil, devisID: dasset.devisID, authorID: self.authorID, organizationID: self.organizationID, duplicatedID: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost, stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: self.forServices, forOrganizations: self.forOrganizations, forUsers: self.forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt)
+    return Response.ShortPublic(id: self.id!, ref: self.ref, oref: self.oref, title: self.title, slugAsset: self.slugAsset, id_link: nil, devis_link: dasset.id!, quantity: dasset.quantity, initialQuantity: dasset.initialQuantity, label: dasset.label, serviceID: nil, devisID: dasset.devisID, authorID: self.authorID, organizationID: self.organizationID, duplicatedID: self.duplicatedID, description: self.description, status: self.status, fromDate: self.fromDate, toDate: self.toDate, cost: self.cost, stock: self.stock, kind: self.kind, unit: APIController.unitMeasures[self.unitID], tva: self.tva, redeemCode: self.redeemCode, redeem: self.redeem, percent: self.percent, orderExceed: self.orderExceed, orderBelow: self.orderBelow, forServices: self.forServices, forOrganizations: self.forOrganizations, forUsers: self.forUsers, toEveryService: self.toEveryService, createdAt: self.createdAt, updatedAt: self.updatedAt)
   }
 
   static func shortResponse(ass: Asset, _ sasset: ServiceAsset? = nil ) -> Response.ShortPublic {
@@ -196,7 +196,7 @@ public extension Asset {
       /// A potention planning day title
       public var title: String?
       /// acces slug
-      public var slug: String
+      public var slugAsset: String
       /// Service Asset's unique identifier.
       public var id_link: ServiceAsset.ID?
       /// Service Asset's unique identifier.
@@ -269,7 +269,7 @@ public extension Asset {
       /// A potention planning day title
       public var title: String?
       /// acces slug
-      public var slug: String
+      public var slugAsset: String
       /// Service Asset's unique identifier.
       public var id_link: ServiceAsset.ID?
       /// Service Asset's unique identifier.

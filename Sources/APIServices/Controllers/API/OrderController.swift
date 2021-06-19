@@ -26,6 +26,7 @@ public final class OrderController {
       { sche -> Future<Schedule.ShortPublicResponse> in
         logger.info("Schedule creation information got for service ID : \(sche.serviceID)")
         return Schedule(label: sche.label, owner: sche.ownerID, service: sche.serviceID, state: ObjectStatus.defaultValue).create(on: req).map { (sch) -> Schedule.ShortPublicResponse in
+          
           logger.info("Schedule saved for serviceID : \(sch.serviceID) - Owner ID: \(sch.ownerID) (\(user.login))")
           return sch.shortResponse()
         }

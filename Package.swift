@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-  name: "ServicesAPI",
+  name: "APIServices",
   products: [
-    .library(name: "ServicesAPI", targets: ["ServicesAPI"]),
+    .library(name: "APIServices", targets: ["APIServices"]),
   ],
   dependencies: [
     // 💧 A server-side Swift web framework.
@@ -21,10 +21,9 @@ let package = Package(
   ],
   targets: [
     .target(
-	name: "ServicesAPI", 
+	name: "APIServices",
 	dependencies: [.product(name: "Authentication", package: "Auth"), "Multipart", "FluentPostgreSQL", "Paginator", "Fuzi", "SwiftSoup", "Vapor"]
 	),
-    .testTarget(name: "ServiceAPITests", dependencies: ["ServicesAPI"])
+    .testTarget(name: "APIServicesTests", dependencies: ["APIServices"])
   ]
 )
-

@@ -15,6 +15,26 @@ import Paginator
 
 extension ServiceController {
   
+  private func recServiceQuery(serviceID: Int) -> String {
+    let query = """
+    WITH RECURSIVE recServ
+    AS (SELECT DISTINCT sv.*, ("sv"."id"::text) as pidentkey
+    FROM service sv
+    WHERE ("sv"."deletedAt" IS NULL OR "sv"."deletedAt" > NOW()) AND "sv".id = \(serviceID)
+    UNION ALL
+    SELECT DISTINCT ssv.*,
+    (CAST(rsv.pidentkey AS text) || CAST(ssv.id AS text) ) as pidentkey
+    FROM service ssv -- seconde service
+    INNER JOIN recServ as rsv -- recursive service
+    ON ssv."id" = rsv."parentID"
+    )
+    SELECT *
+    FROM recServ
+    ORDER BY pidentkey ASC
+    """
+    return query
+  }
+ 
   public func avgScores(_ req: Request, serviceID: Service.ID) -> EventLoopFuture<Service.ScoreAverage?> {
     let query = """
     SELECT count("general") tGeneral, count(intengibility) tIntengibility, count(inseparability) tInseparability, count(variability) tVariability, count(perishability) tPerishability, count(ownership) tOwnership, count(reliability) tReliability, count(disponibility) tDisponibility, count(pricing) tPricing,
@@ -39,25 +59,10 @@ extension ServiceController {
     logger.debug("Getting Service from parameter \(serviceID)")
     /// 1. write raw query to retrieve service tree from the given service id
     /// Retrieve recursivly every linked parents service to this one serviceID
-    let query = """
-    WITH RECURSIVE recServ
-    AS (SELECT DISTINCT sv.*, ("sv". "id"::text) as pidentkey
-    FROM service sv
-    WHERE ("sv"."deletedAt" IS NULL OR "sv"."deletedAt" > NOW()) AND "sv".id = \(serviceID)
-    UNION ALL
-    SELECT DISTINCT ssv.*,
-    (CAST(rsv.pidentkey AS text) || CAST(ssv.id AS text) ) as pidentkey
-    FROM service ssv -- seconde service
-    INNER JOIN recServ as rsv -- recursive service
-    ON ssv."id" = rsv."parentID"
-    )
-    SELECT *
-    FROM recServ
-    ORDER BY pidentkey ASC
-    """
+    let queryDevisTree = recServiceQuery(serviceID: serviceID)
     // 2. Performs query
     let res = req.withNewConnection(to: .psql)
-    { $0.raw(query).all(decoding: Service.self) } // Decode Service from raw query
+    { $0.raw(queryDevisTree).all(decoding: Service.self) } // Decode Service from raw query
     
     // 3. dig into the future
     return res.flatMap { (services) -> Future<[Service.FullPublicResponse]> in
@@ -165,7 +170,7 @@ extension ServiceController {
     }
     
   }
-  
+ 
   /**
    *
    */
@@ -175,25 +180,10 @@ extension ServiceController {
     logger.debug("Getting Service from parameter \(serviceID)")
     /// 1. write raw query to retrieve service tree from the given service id
     /// Retrieve recursivly every linked parents service to this one serviceID
-    let query = """
-    WITH RECURSIVE recServ
-    AS (SELECT DISTINCT sv.*, ("sv". "id"::text) as pidentkey
-    FROM service sv
-    WHERE ("sv"."deletedAt" IS NULL OR "sv"."deletedAt" > NOW()) AND "sv".id = \(serviceID)
-    UNION ALL
-    SELECT DISTINCT ssv.*,
-    (CAST(rsv.pidentkey AS text) || CAST(ssv.id AS text) ) as pidentkey
-    FROM service ssv -- seconde service
-    INNER JOIN recServ as rsv -- recursive service
-    ON ssv."id" = rsv."parentID"
-    )
-    SELECT *
-    FROM recServ
-    ORDER BY pidentkey ASC
-    """
+    let queryFullRT = recServiceQuery(serviceID: serviceID)
     // 2. Performs query
     let res = req.withNewConnection(to: .psql)
-    { $0.raw(query).all(decoding: Service.self) } // Decode Service from raw query
+    { $0.raw(queryFullRT).all(decoding: Service.self) } // Decode Service from raw query
     
     // 3. dig into the future
     return res.flatMap { (services) -> Future<[Service.FullPublicResponse]> in
@@ -225,7 +215,6 @@ extension ServiceController {
         rawAss.reduce((), { (_, servass) -> Void in
           // 10.1 look the service indice and then, add this asset into it
           // 10.2 add only not redeem asset on sub services
-          servass.devisID
           if serviceID == servass.serviceID! || !servass.redeem { // Add every asset on first service desc but only not redeems on others
             mapAsset[servass.serviceID!]!.1.append(servass)
           }
@@ -328,11 +317,11 @@ extension ServiceController {
       }
   }
   /**
-   
+   * Main response for a given service
    */
   public func serviceFullResponse(req: Request, serv: Service) throws -> Future<Service.FullPublicResponse> {
     let logger = try req.make(Logger.self)
-    logger.debug("Getting Service from parameter \(serv.id!):\(serv.label)")
+    logger.debug("Getting Service from parameter [ID:\(serv.id!), label:\(serv.label)]")
     let parent    = serv.parent?.get(on: req)
     let orga      = serv.organization.get(on: req)
     let author    = serv.author.get(on: req)

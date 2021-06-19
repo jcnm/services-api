@@ -1,6 +1,6 @@
 //
 //  InseeFR.swift
-//  ServicesAPI
+//  APIServices
 //
 //  Created by Jacques Charles NJANDA MBIADA on 01/05/2020.
 //

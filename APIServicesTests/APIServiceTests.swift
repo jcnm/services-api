@@ -1,6 +1,6 @@
 import XCTest
 
-final class ServiceAPITests: XCTestCase {
+final class APIServiceTests: XCTestCase {
     func testNothing() throws {
         // Add your tests here
         XCTAssert(true)
